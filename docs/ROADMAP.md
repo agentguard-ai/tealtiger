@@ -31,13 +31,15 @@ This roadmap outlines our strategic vision for building the leading security pla
 - [x] GitHub repository setup with CI/CD
 - [x] Security policy and vulnerability disclosure
 
-### 🚧 In Progress
-- [ ] Core Security Sidecar Agent (SSA)
-- [ ] Basic Policy Engine with JSON rules
-- [ ] Developer SDK (JavaScript/TypeScript)
-- [ ] Developer SDK (Python)
-- [ ] Local development environment
-- [ ] Documentation and examples
+### 🚧 In Progress (Refined MVP Strategy)
+- [ ] **Phase 1A**: Core Security Sidecar Agent (monolith architecture)
+- [ ] **Phase 1A**: Basic Policy Engine (embedded module)
+- [ ] **Phase 1B**: JavaScript/TypeScript SDK (framework-agnostic)
+- [ ] **Phase 1C**: Example applications and documentation
+- [ ] **Phase 1C**: Local development environment
+- [ ] **Phase 2**: Python SDK (after JavaScript validation)
+
+**Note**: See [MVP Strategy](./MVP-STRATEGY.md) for detailed development phases and architecture decisions.
 
 ### 📊 Success Metrics
 - **5000+ developers** using the SDK
@@ -46,12 +48,14 @@ This roadmap outlines our strategic vision for building the leading security pla
 - **4.5+ stars** on GitHub and npm/PyPI
 - **Active community** with Discord and contributions
 
-### 🎁 Key Features
+### 🎁 Key Features (MVP Focus)
+- **Framework-agnostic security** - Works with any agent implementation
+- **Monolith architecture** - Simple deployment and development
 - **Zero-config security** for common use cases
 - **Policy templates** for different agent types
 - **Local testing tools** for policy validation
+- **5-minute integration** time for developers
 - **Comprehensive examples** and tutorials
-- **Framework integrations** (LangChain, custom)
 
 ---
 
@@ -149,19 +153,21 @@ This roadmap outlines our strategic vision for building the leading security pla
 
 ## 🛣️ Technology Evolution
 
-### Current Architecture
+### Current Architecture (MVP)
 ```
-Agent → SDK → SSA → Policy Engine → Decision
-```
-
-### Phase 2 Architecture
-```
-Agent → SDK → SSA → [SLM + Policy Engine + OAuth] → Decision
-                ↓
-            Audit Service → SIEM/Dashboard
+Agent → JavaScript SDK → Security API (Monolith) → Policy Engine → Decision
+                                ↓
+                        PostgreSQL Database
 ```
 
-### Phase 3 Architecture
+### Phase 2 Architecture (Framework Integrations)
+```
+Agent → Framework Adapter → SDK → Security API → Policy Engine → Decision
+                                        ↓
+                                Audit Service → Logs
+```
+
+### Phase 3 Architecture (Microservices)
 ```
 Multi-Agent Ecosystem → Security Mesh → AI-Powered Decision Engine
                                     ↓
