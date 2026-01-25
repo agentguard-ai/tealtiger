@@ -152,20 +152,41 @@ This implementation plan focuses on building an MVP Developer SDK to achieve 500
     - **Property 13: Comprehensive Audit Trail**
     - **Validates: Requirements 6.1**
 
-- [ ] 11. Package and distribute SDK
-  - [ ] 11.1 Prepare SDK for npm and PyPI distribution
+- [ ] 11. Build CLI tools and developer experience (Phase 1A)
+  - [ ] 11.1 Create comprehensive AgentGuard CLI
+    - Implement authentication commands (login, logout, status)
+    - Add policy management commands (list, create, update, delete, validate)
+    - Build agent operations commands (list, status, register, deregister)
+    - Create audit and monitoring commands (query, export, stream)
+    - Add system health commands (check, metrics)
+    - _Requirements: 38.1, 38.4_
+  
+  - [ ] 11.2 Develop interactive API documentation
+    - Create live API documentation with testing capabilities
+    - Add code examples for all endpoints
+    - Implement API playground for testing
+    - Build integration templates for popular frameworks
+    - _Requirements: 38.2, 38.3_
+  
+  - [ ]* 11.3 Write CLI automation tests
+    - Test all CLI commands and workflows
+    - Validate CLI integration with CI/CD pipelines
+    - _Requirements: 38.4_
+
+- [ ] 12. Package and distribute SDK
+  - [ ] 12.1 Prepare SDK for npm and PyPI distribution
     - Set up automated package building and publishing
     - Create proper versioning and release process
     - Add package metadata and descriptions
     - _Requirements: 12.1_
   
-  - [ ] 11.2 Create installation and update mechanisms
+  - [ ] 12.2 Create installation and update mechanisms
     - Implement automatic SDK updates
     - Add version compatibility checking
     - Create migration guides for version updates
     - _Requirements: 12.1_
 
-- [ ] 12. Final checkpoint - MVP validation
+- [ ] 13. Final checkpoint - MVP validation
   - Test complete developer workflow from installation to deployment
   - Validate performance meets basic requirements (< 100ms overhead)
   - Ensure all documentation is accurate and complete
@@ -200,23 +221,89 @@ Once the MVP achieves 5000+ developer adoption, implement these comprehensive fe
   - [ ] 14.4 Build performance analytics and optimization tools
   - [ ]* 14.5 Write integration tests for monitoring pipeline
 
-- [ ] 15. Develop CISO Governance UI
+- [ ] 15. Implement GitOps deployment with ArgoCD
+  - [ ] 15.1 Set up ArgoCD for GitOps-based deployments
+    - Install and configure ArgoCD in Kubernetes cluster
+    - Create ArgoCD projects for different environments (dev, staging, prod)
+    - Set up Git repositories for infrastructure and policy management
+    - _Requirements: 29.1, 29.2_
+  
+  - [ ] 15.2 Implement policy-as-code management
+    - Create Git repository structure for security policies
+    - Implement ArgoCD applications for policy synchronization
+    - Add policy validation and approval workflows
+    - _Requirements: 29.3, 29.4_
+  
+  - [ ] 15.3 Configure multi-environment deployments
+    - Set up environment-specific ArgoCD applications
+    - Implement progressive deployment strategies (blue-green, canary)
+    - Add automated rollback capabilities with health checks
+    - _Requirements: 30.3, 30.4_
+  
+  - [ ]* 15.4 Write integration tests for GitOps workflow
+    - Test policy deployment and rollback scenarios
+    - Validate multi-environment consistency
+    - _Requirements: 29.5, 30.5_
+
+- [ ] 16. Build unified admin dashboard (Phase 1B)
+  - [ ] 16.1 Set up dashboard foundation and BFF architecture
+    - Create React 18 application with Vite build tool
+    - Set up Tailwind CSS + Headless UI for styling
+    - Implement Backend for Frontend (BFF) service with Express.js
+    - Configure React Context API for state management
+    - Set up unified authentication and navigation shell
+    - _Requirements: 36.1, 36.2, 36.4_
+  
+  - [ ] 16.2 Develop core dashboard modules
+    - Build security overview module with Recharts visualizations
+    - Create agent management module (list, status, registration)
+    - Implement policy management module with React Hook Form
+    - Add audit trail module with search and filtering
+    - Build system health module with service status grid
+    - _Requirements: 36.1, 37.2_
+  
+  - [ ] 16.3 Implement real-time features and API integration
+    - Set up Axios + React Query for API communication
+    - Implement global notification system with React Hot Toast
+    - Create live agent status monitoring with polling
+    - Add responsive design with Tailwind CSS breakpoints
+    - Configure React Router for navigation
+    - _Requirements: 36.4_
+  
+  - [ ]* 16.4 Write dashboard integration tests
+    - Set up Vitest + React Testing Library
+    - Test all dashboard modules and workflows
+    - Validate API integration and error handling
+    - Test responsive design and accessibility
+    - _Requirements: 36.1_
+    - Test policy deployment and rollback scenarios
+    - Validate multi-environment consistency
+    - _Requirements: 29.5, 30.5_
+
+- [ ] 16. Develop CISO Governance UI
   - [ ] 15.1 Create executive dashboard with risk metrics
   - [ ] 15.2 Build visual policy builder with compliance templates
   - [ ] 15.3 Implement role-based access control and user management
   - [ ] 15.4 Add compliance reporting for SOC 2, HIPAA, GDPR
   - [ ]* 15.5 Write UI automation tests for governance workflows
 
-- [ ] 16. Implement OAuth 2.0 fine-grained access control
-  - [ ] 16.1 Add Rich Authorization Requests (RFC 9396) support
-  - [ ] 16.2 Implement Resource Indicators (RFC 8707) for precise scoping
-  - [ ] 16.3 Build Token Introspection service (RFC 7662)
-  - [ ] 16.4 Add just-in-time (JIT) scope provisioning
-  - [ ]* 16.5 Write property tests for OAuth token lifecycle
+- [ ] 16. Develop CISO Governance UI
+  - [ ] 16.1 Create executive dashboard with risk metrics
+  - [ ] 16.2 Build visual policy builder with compliance templates  
+  - [ ] 16.3 Implement role-based access control and user management
+  - [ ] 16.4 Add compliance reporting for SOC 2, HIPAA, GDPR
+  - [ ]* 16.5 Write UI automation tests for governance workflows
+
+- [ ] 17. Implement OAuth 2.0 fine-grained access control
+  - [ ] 17.1 Add Rich Authorization Requests (RFC 9396) support
+  - [ ] 17.2 Implement Resource Indicators (RFC 8707) for precise scoping
+  - [ ] 17.3 Build Token Introspection service (RFC 7662)
+  - [ ] 17.4 Add just-in-time (JIT) scope provisioning
+  - [ ]* 17.5 Write property tests for OAuth token lifecycle
     - **Property 8: Minimal Permission Token Generation**
     - **Property 11: Token Validation and Introspection**
 
-- [ ] 17. Add enterprise compliance and audit features
+- [ ] 18. Add enterprise compliance and audit features
   - [ ] 17.1 Implement Post-Quantum Cryptography (PQC) sealing
   - [ ] 17.2 Build tamper-evident audit trails
   - [ ] 17.3 Add industry-specific policy packs (healthcare, finance, etc.)

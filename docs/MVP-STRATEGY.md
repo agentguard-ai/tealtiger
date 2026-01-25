@@ -52,22 +52,28 @@ Microservices Architecture
 ## 📊 MVP Development Phases
 
 ### Phase 1A: Core Foundation (Weeks 1-4)
-**Goal: Basic security evaluation working**
+**Goal: Basic security evaluation working + CLI tools**
 
 **What we'll build:**
 - Simple Express.js API (Security Sidecar Agent)
 - Basic policy engine (JSON rules)
 - PostgreSQL database setup
 - Docker development environment
+- **Comprehensive CLI tools for developers**
+- **Interactive API documentation**
 
 **Architecture:**
 ```javascript
-// Single application with multiple endpoints
+// Single application with multiple endpoints + CLI
 app.post('/api/security/evaluate', async (req, res) => {
   const decision = await policyEngine.evaluate(req.body);
   await auditLogger.log(decision);
   res.json(decision);
 });
+
+// CLI for developer operations
+agentguard policy create --file security-policy.json
+agentguard agent status --agent-id xyz
 ```
 
 **Success criteria:**
@@ -75,50 +81,83 @@ app.post('/api/security/evaluate', async (req, res) => {
 - ✅ Policy engine evaluates basic rules
 - ✅ Returns allow/deny/transform decisions
 - ✅ Logs all decisions to database
+- ✅ **CLI tools provide full API functionality**
+- ✅ **Interactive API docs enable easy testing**
 
-### Phase 1B: SDK Development (Weeks 5-8)
-**Goal: JavaScript SDK that developers can use**
+### Phase 1B: SDK Development + Research Integration (Weeks 5-8)
+**Goal: JavaScript SDK with research-inspired trace analysis**
+
+**Research Foundation**: Integrating program analysis concepts from AgentArmor research (Wang et al., 2025) with independent implementation for production use.
 
 **What we'll build:**
 - JavaScript/TypeScript SDK
 - Simple HTTP client wrapper
+- **Enhanced audit logging with execution traces** (AgentArmor-inspired)
+- **Basic trace collection and analysis** (research integration)
 - Policy configuration helpers
 - Basic error handling
 
-**Architecture:**
+**Research Integration:**
 ```javascript
-// Framework-agnostic SDK
+// Framework-agnostic SDK with trace analysis
+// Implementation inspired by AgentArmor research (Wang et al., 2025)
 const { SecureAgent } = require('@ai-security/agent-sdk');
 
 const agent = new SecureAgent({
   apiUrl: 'http://localhost:3001',
-  policies: './security-policies.json'
+  policies: './security-policies.json',
+  traceAnalysis: true // NEW: Enable execution trace collection
 });
 
-// Works with ANY agent framework
+// Works with ANY agent framework + collects execution traces
 const result = await agent.callTool('web-search', { query: 'test' });
+// Automatically analyzes execution trace for security patterns
 ```
+
+**Research-Inspired Features:**
+- **Execution trace collection** during agent tool calls
+- **Basic pattern detection** for prompt injection attempts  
+- **Enhanced audit logging** with trace analysis results
+- **Property registry** for tool security metadata
 
 **Success criteria:**
 - ✅ SDK can be installed via npm
 - ✅ Developers can secure their agents in 5 minutes
 - ✅ Works with custom agent implementations
+- ✅ **Collects and analyzes basic execution traces**
+- ✅ **Detects simple prompt injection patterns**
 - ✅ Clear error messages and debugging
 
-### Phase 1C: Examples & Documentation (Weeks 9-12)
-**Goal: Developers can easily adopt the platform**
+### Phase 1C: Examples & Documentation + Basic UI (Weeks 9-12)
+**Goal: Developers can easily adopt the platform + Basic admin interface**
 
 **What we'll build:**
 - Example applications (chatbot, data agent)
 - Getting started guide
 - Policy templates
 - Local development setup
+- **Unified admin dashboard for basic operations**
+- **Web-based policy management interface**
+
+**UI Architecture:**
+```javascript
+// Unified dashboard with micro-frontend modules
+interface BasicDashboard {
+  overview: SecurityOverview;
+  agents: AgentManagement;
+  policies: PolicyManagement;
+  audit: AuditTrails;
+  system: SystemHealth;
+}
+```
 
 **Success criteria:**
 - ✅ 5-minute quickstart guide works
 - ✅ Example applications demonstrate value
 - ✅ Policy templates for common use cases
 - ✅ Docker setup for easy local development
+- ✅ **Basic web dashboard for policy management**
+- ✅ **Real-time agent monitoring interface**
 
 ## 🎯 MVP Success Metrics
 
@@ -139,14 +178,27 @@ const result = await agent.callTool('web-search', { query: 'test' });
 
 ## 🛠️ Technology Stack (MVP)
 
+### Technology Stack (MVP)
+
 ### Backend Services
 ```yaml
-Language: Node.js/TypeScript
+Language: Node.js/JavaScript (Phase 1) → TypeScript (Phase 2)
 Framework: Express.js
 Database: PostgreSQL
 Cache: Redis (optional for MVP)
 Authentication: API Keys (simple)
 Deployment: Docker containers
+```
+
+### Frontend Dashboard (Phase 1B+)
+```yaml
+Framework: React 18 with JavaScript
+Build Tool: Vite
+Styling: Tailwind CSS + Headless UI
+State Management: React Context API
+Charts: Recharts
+HTTP Client: Axios + React Query
+Real-time: Socket.io (Phase 2)
 ```
 
 ### SDK
@@ -163,24 +215,29 @@ Distribution: npm registry
 Local Development: Docker Compose
 CI/CD: GitHub Actions
 Code Quality: ESLint, Prettier
-Testing: Jest, Supertest
+Testing: Jest, Supertest, Vitest (frontend)
 Monitoring: Simple logging (console/file)
 ```
 
 ## 🚀 Post-MVP Evolution
 
-### Phase 2: Framework Integrations (After 1000 users)
+### Phase 2: Framework Integrations + GitOps (After 1000 users)
 - Microsoft Agent Framework adapter
 - LangChain integration
 - AutoGen integration
 - Python SDK
+- **ArgoCD GitOps deployment pipeline**
+- **Policy-as-Code management**
 
-### Phase 3: Enterprise Features (After 5000 users)
+### Phase 3: Enterprise Features + Advanced UI (After 5000 users)
 - Microservices architecture
 - Advanced SLM classification
 - OAuth 2.0 fine-grained access
-- CISO governance UI
+- **Enterprise CISO governance dashboard**
+- **Advanced analytics and reporting UI**
 - Enterprise compliance features
+- **Multi-tenant ArgoCD deployments**
+- **Advanced deployment strategies (blue-green, canary)**
 
 ### Phase 4: Market Leadership (Series A+)
 - Multi-cloud deployment
@@ -229,5 +286,13 @@ Monitoring: Simple logging (console/file)
 ---
 
 **This strategy prioritizes speed to market and user validation over technical perfection, allowing us to learn and iterate based on real developer needs.**
+
+## Research Attribution
+
+This MVP strategy incorporates insights from academic research while maintaining independent implementation:
+
+- **Primary Research**: AgentArmor program analysis techniques (Wang et al., 2025) - http://arxiv.org/abs/2508.01249v1
+- **Additional Influences**: Multi-agent security, system observability, and red team testing research
+- **Implementation**: All concepts independently developed for production use with no direct code copying
 
 *Last updated: January 2025*

@@ -51,10 +51,32 @@ const agent = new SecureAgent({
 
 ## 📚 Documentation
 
-- [📋 Requirements](./docs/requirements.md) - Complete feature requirements
+### Core Documentation
+- [📋 Requirements](./docs/requirements.md) - Complete feature requirements (26 requirements)
 - [🏗️ Design Document](./docs/design.md) - Architecture and technical design
 - [✅ Implementation Plan](./docs/tasks.md) - Development roadmap and tasks
 - [🚀 Getting Started](./docs/getting-started.md) - Developer quickstart guide
+- [📈 MVP Strategy](./docs/MVP-STRATEGY.md) - Product development strategy
+
+### Development Process
+- [⚙️ SDLC Framework](./docs/SDLC-FRAMEWORK.md) - Agile-DevOps development methodology
+- [📅 Sprint Planning](./docs/SPRINT-PLANNING-TEMPLATE.md) - Sprint planning guide
+- [🔄 Sprint Retrospective](./docs/SPRINT-RETROSPECTIVE-TEMPLATE.md) - Retrospective guide
+- [✅ Code Review Checklist](./docs/CODE-REVIEW-CHECKLIST.md) - Comprehensive review guidelines
+- [📝 Daily Standup Notes](./DAILY-STANDUP.md) - Daily progress tracking
+
+### Business Operations
+- [📊 Project Management](./docs/PROJECT-MANAGEMENT-FRAMEWORK.md) - Comprehensive project management
+- [💰 FinOps Framework](./docs/FINOPS-FRAMEWORK.md) - Financial operations and cost management
+- [👥 Human Resources](./docs/HUMAN-RESOURCES-FRAMEWORK.md) - Team planning and management
+- [🔄 Business Continuity](./docs/BUSINESS-CONTINUITY-PLAN.md) - Disaster recovery and continuity
+- [🤝 Vendor Management](./docs/VENDOR-MANAGEMENT-FRAMEWORK.md) - Third-party vendor management
+
+### Research and Analysis
+- [🔬 Research Insights](./RESEARCH-INSIGHTS.md) - AgentArmor analysis and competitive positioning
+- [📊 Competitive Analysis](./COMPETITIVE-ANALYSIS.md) - Market analysis and differentiation
+- [📈 Project Status](./PROJECT-STATUS.md) - Current development status
+- [📋 Development Log](./DEVELOPMENT-LOG.md) - Daily development progress
 
 ## 🛣️ Roadmap
 

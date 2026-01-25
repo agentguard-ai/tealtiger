@@ -92,6 +92,7 @@ The platform follows a microservices architecture with clear service boundaries 
    - Primary entry point for all agent requests
    - Orchestrates security workflow
    - Implements Agent Action Firewall (AAF)
+   - **NEW: Collects execution traces for analysis** (AgentArmor-inspired)
    - **12-Factor**: Stateless, config via env vars, logs to stdout
 
 2. **SLM Classification Service**
@@ -104,6 +105,7 @@ The platform follows a microservices architecture with clear service boundaries 
    - Evaluates deterministic security policies
    - Supports Rego/Cedar policy languages
    - Manages policy versioning and rollback
+   - **NEW: Integrates with trace analysis findings** (research-inspired)
    - **12-Factor**: Immutable deployments, config externalized
 
 4. **Control Plane Service**
@@ -116,6 +118,7 @@ The platform follows a microservices architecture with clear service boundaries 
    - Records all security decisions and actions
    - Implements PQC-sealed tamper-evident logs
    - Exports to SIEM/SOAR systems
+   - **NEW: Stores execution traces and analysis results** (Research-inspired)
    - **12-Factor**: Logs as event streams, disposable processes
 
 6. **Token Service**
@@ -123,6 +126,14 @@ The platform follows a microservices architecture with clear service boundaries 
    - Implements token introspection (RFC 7662)
    - Manages JIT scope provisioning
    - **12-Factor**: Port binding, dev/prod parity
+
+7. **Trace Analysis Service** (NEW - Research-Inspired)
+   - Converts execution traces to graph representations (CFG, DFG, PDG)
+   - Performs program analysis for security pattern detection
+   - Maintains property registry for tool security metadata
+   - Provides forensic analysis and attack reconstruction
+   - **Research Foundation:** Based on AgentArmor program analysis techniques (Wang et al., 2025)
+   - **12-Factor**: Stateless processing, horizontally scalable
 
 ## Components and Interfaces
 
@@ -177,11 +188,287 @@ interface ClassificationResponse {
 }
 ```
 
+### Trace Analysis Service (NEW - Research-Inspired)
+
+**Purpose**: Provides sophisticated program analysis of agent execution traces for advanced security detection.
+
+**Research Foundation**: Implementation inspired by "AgentArmor: Enforcing Program Analysis on Agent Runtime Trace to Defend Against Prompt Injection" (Wang et al., 2025), with independent implementation and production-focused enhancements.
+
+**Key Interfaces**:
+```typescript
+interface ExecutionTrace {
+  agentId: string;
+  requestId: string;
+  toolCalls: ToolCall[];
+  dataFlow: DataFlowEdge[];
+  controlFlow: ControlFlowEdge[];
+  dependencies: DependencyEdge[];
+  timestamp: Date;
+}
+
+interface TraceAnalysisRequest {
+  trace: ExecutionTrace;
+  analysisType: 'prompt_injection' | 'anomaly_detection' | 'trust_boundary' | 'full';
+  propertyRegistry: PropertyMetadata[];
+}
+
+interface TraceAnalysisResponse {
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  detectedPatterns: SecurityPattern[];
+  graphAnalysis: {
+    controlFlowGraph: CFGAnalysis;
+    dataFlowGraph: DFGAnalysis;
+    programDependencyGraph: PDGAnalysis;
+  };
+  forensicInfo: ForensicAnalysis;
+  policyRecommendations: PolicyRecommendation[];
+}
+```
+
 **Implementation Details**:
-- Uses Phi-3 small/mini models for fast inference
-- Implements response caching for common patterns
-- Supports model versioning and A/B testing
-- Provides fallback to rule-based classification
+- Converts execution traces to graph-based intermediate representations
+- Implements program analysis techniques for security pattern detection
+- Maintains property registry with security-relevant metadata
+- Provides detailed forensic analysis and attack reconstruction
+- Supports both real-time and batch analysis modes
+
+## Research Attribution
+
+This design incorporates concepts and techniques from academic research, with all implementations developed independently for production use:
+
+### Primary Research Foundation
+- **Wang, P., Liu, Y., Lu, Y., et al.** (2025). "AgentArmor: Enforcing Program Analysis on Agent Runtime Trace to Defend Against Prompt Injection." *arXiv preprint arXiv:2508.01249*. 
+  - **Concepts Used**: Graph-based trace analysis (CFG, DFG, PDG), property registry, program analysis for security
+  - **Our Innovation**: Hybrid prevention+detection model, production-ready architecture, enterprise features
+
+### Additional Research Influences
+- **System-Level Observability**: AgentSight eBPF monitoring techniques adapted for security context
+- **Multi-Agent Security**: Benchmarking research insights for cascading risk prevention
+- **Graph-Based Detection**: SentinelAgent anomaly detection concepts adapted for trace analysis
+- **Red Team Testing**: AgentVigil black-box testing approaches for continuous validation
+- **Provable Security**: MELON trajectory analysis techniques for high-assurance environments
+
+## Multi-Language SDK Architecture
+
+### SDK Development Strategy
+
+The platform follows a strategic multi-language approach prioritizing market timing and developer adoption:
+
+#### Phase 1: JavaScript/TypeScript SDK (MVP)
+**Target Audience**: AI agent developers, web developers, rapid prototyping
+**Rationale**: 
+- Aligns with AI agent ecosystem (LangChain, AutoGen, CrewAI)
+- Faster development and market entry
+- 17+ million JavaScript developers globally
+- Lower barrier to entry for agent developers
+
+```typescript
+// JavaScript SDK Architecture
+interface AgentGuardSDK {
+  // Core security functions
+  evaluateRequest(request: AgentRequest): Promise<SecurityDecision>;
+  
+  // Trace analysis integration
+  enableTraceAnalysis(config: TraceConfig): void;
+  
+  // Policy management
+  loadPolicies(policies: SecurityPolicy[]): void;
+}
+```
+
+#### Phase 2: Java/Spring Boot SDK (Enterprise)
+**Target Audience**: Enterprise customers, existing Java environments
+**Rationale**:
+- Enterprise Java dominance (60% of enterprise applications)
+- Mature security ecosystem (Spring Security, Apache Shiro)
+- Better enterprise integration capabilities
+- Higher performance for CPU-intensive operations
+
+```java
+// Java SDK Architecture (Planned)
+@Component
+public class AgentGuardClient {
+    
+    @Autowired
+    private SecurityEvaluator securityEvaluator;
+    
+    @Autowired
+    private TraceAnalyzer traceAnalyzer;
+    
+    public SecurityDecision evaluateRequest(AgentRequest request) {
+        // Enterprise-grade security evaluation
+    }
+}
+```
+
+#### Phase 3: Python SDK (AI/ML Integration)
+**Target Audience**: AI/ML researchers, Python-heavy organizations
+**Rationale**:
+- Dominant language in AI/ML (60% of AI frameworks)
+- Integration with existing Python agent frameworks
+- Research community adoption
+
+### Language-Agnostic API Design
+
+All SDKs communicate with the same core API, ensuring consistent functionality:
+
+```yaml
+# Core API Endpoints (Language Agnostic)
+POST /api/security/evaluate
+GET  /api/security/policies  
+POST /api/security/trace-analysis
+GET  /api/security/audit/{agentId}
+```
+
+### Enterprise Java Considerations
+
+#### Spring Boot Integration Features
+- **Spring Security Integration**: Seamless authentication/authorization
+- **Dependency Injection**: Native Spring IoC container support
+- **Aspect-Oriented Programming**: Cross-cutting security concerns
+- **Enterprise Monitoring**: JMX, Micrometer, Actuator integration
+- **Configuration Management**: Spring Boot configuration properties
+
+#### Java Ecosystem Advantages
+- **Performance**: Better for CPU-intensive security operations
+- **Concurrency**: Mature threading and async processing
+- **Security Libraries**: Robust cryptographic and security frameworks
+- **Enterprise Integration**: Better SAP, Oracle, IBM system integration
+### GitOps Architecture with ArgoCD
+
+#### ArgoCD Integration Strategy
+
+The platform leverages ArgoCD for GitOps-based deployment and policy management:
+
+```mermaid
+graph TB
+    subgraph "Git Repositories"
+        INFRA[Infrastructure Repo]
+        POLICIES[Security Policies Repo]
+        APPS[Applications Repo]
+    end
+    
+    subgraph "ArgoCD"
+        ARGO[ArgoCD Server]
+        APP1[SSA Application]
+        APP2[Policy Engine App]
+        APP3[Audit Service App]
+    end
+    
+    subgraph "Kubernetes Cluster"
+        SSA[Security Sidecar Agent]
+        PE[Policy Engine]
+        AS[Audit Service]
+    end
+    
+    INFRA --> ARGO
+    POLICIES --> ARGO
+    APPS --> ARGO
+    ARGO --> APP1
+    ARGO --> APP2
+    ARGO --> APP3
+    APP1 --> SSA
+    APP2 --> PE
+    APP3 --> AS
+```
+
+#### ArgoCD Applications Structure
+
+```yaml
+# ArgoCD Application for Security Sidecar Agent
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: agentguard-ssa
+  namespace: argocd
+spec:
+  project: agentguard
+  source:
+    repoURL: https://github.com/agentguard/infrastructure
+    targetRevision: HEAD
+    path: manifests/ssa
+    helm:
+      valueFiles:
+      - values-production.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: agentguard-production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+```
+
+#### Policy Management Through GitOps
+
+**Security Policy Repository Structure:**
+```
+security-policies/
+├── environments/
+│   ├── dev/
+│   │   ├── base-policies.json
+│   │   └── kustomization.yaml
+│   ├── staging/
+│   │   ├── base-policies.json
+│   │   └── kustomization.yaml
+│   └── production/
+│       ├── base-policies.json
+│       └── kustomization.yaml
+├── industry-packs/
+│   ├── healthcare/
+│   ├── finance/
+│   └── pharma/
+└── custom-policies/
+    ├── customer-a/
+    └── customer-b/
+```
+
+**Policy Deployment Workflow:**
+1. **Policy Development**: Security team creates/updates policies in Git
+2. **Review Process**: Pull request review and approval
+3. **ArgoCD Sync**: Automatic deployment to target environments
+4. **Validation**: Health checks and policy validation
+5. **Rollback**: Automatic rollback if validation fails
+
+#### Multi-Environment Management
+
+```yaml
+# Environment-specific ArgoCD Projects
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: agentguard-production
+spec:
+  description: AgentGuard Production Environment
+  sourceRepos:
+  - 'https://github.com/agentguard/*'
+  destinations:
+  - namespace: 'agentguard-*'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'rbac.authorization.k8s.io'
+    kind: ClusterRole
+```
+
+#### Deployment Strategies
+
+**Progressive Deployment with ArgoCD:**
+- **Blue-Green Deployments**: Zero-downtime policy updates
+- **Canary Releases**: Gradual rollout of new security features
+- **Feature Flags**: Environment-specific feature enablement
+- **Rollback Automation**: Automatic rollback on health check failures
+
+#### Enterprise Integration Benefits
+
+1. **Compliance Audit Trail**: All changes tracked in Git with full history
+2. **Change Management**: Integration with enterprise change approval processes
+3. **Disaster Recovery**: Complete infrastructure recreation from Git repositories
+4. **Multi-Tenant Support**: Separate ArgoCD applications per customer/environment
+5. **Security**: RBAC integration with enterprise identity providers
 
 ### Policy Engine Service
 
@@ -482,3 +769,444 @@ Based on the requirements analysis, the following properties ensure the system b
 ### Property 18: Policy Language Support
 *For any* security policy written in Rego or Cedar format, the Policy Engine should correctly parse and evaluate the rules.
 **Validates: Requirements 3.2**
+
+## Future Architecture Enhancements (Phase 2+ Roadmap)
+
+*The following architectural components represent our strategic roadmap for addressing emerging threats and industry standards identified in 2025 research.*
+
+### OWASP Top 10 Agentic Applications Architecture
+
+#### Goal Integrity Monitor (ASI01 - Agent Goal Hijack)
+```typescript
+interface GoalIntegrityService {
+  validateGoalConsistency(originalGoal: AgentGoal, currentActions: AgentAction[]): SecurityDecision;
+  detectIntentManipulation(conversationHistory: Message[]): ThreatAssessment;
+  monitorGoalDrift(agentId: string, timeWindow: number): GoalDriftAnalysis;
+}
+```
+
+#### Tool Usage Validator (ASI02 - Tool Misuse & Exploitation)
+```typescript
+interface ToolSecurityService {
+  validateToolInvocation(toolName: string, parameters: any, context: ExecutionContext): ValidationResult;
+  assessToolRisk(toolCapabilities: ToolCapability[], userIntent: string): RiskAssessment;
+  preventToolWeaponization(toolChain: ToolInvocation[]): SecurityDecision;
+}
+```
+
+#### Memory Integrity Guard (ASI06 - Memory & Context Poisoning)
+```typescript
+interface MemorySecurityService {
+  validateMemoryUpdate(update: MemoryUpdate, source: DataSource): ValidationResult;
+  detectPoisoningPatterns(memoryContent: any, updateHistory: MemoryUpdate[]): ThreatAssessment;
+  quarantineCorruptedMemory(memoryId: string, reason: string): QuarantineResult;
+}
+```
+
+### Framework-Agnostic Security Layer
+
+#### Universal Agent Interceptor
+```typescript
+interface UniversalAgentInterceptor {
+  // Works across AutoGen, CrewAI, LangChain, custom frameworks
+  interceptAgentCommunication(message: AgentMessage, framework: FrameworkType): InterceptionResult;
+  normalizeFrameworkEvents(event: FrameworkEvent): StandardizedEvent;
+  applyFrameworkSpecificPolicies(framework: FrameworkType, policies: SecurityPolicy[]): PolicySet;
+}
+```
+
+#### Cross-Framework Audit Trail
+```typescript
+interface CrossFrameworkAuditor {
+  logFrameworkAgnosticEvent(event: StandardizedEvent): AuditRecord;
+  correlateMultiFrameworkAttacks(events: StandardizedEvent[]): AttackCorrelation;
+  generateUnifiedSecurityReport(timeRange: TimeRange): SecurityReport;
+}
+```
+
+### Advanced Threat Detection Architecture
+
+#### Multi-Step Attack Chain Detector
+```typescript
+interface AttackChainDetector {
+  analyzeActionSequence(actions: AgentAction[]): AttackChainAnalysis;
+  detectBenignLookingMaliciousSequence(sequence: ActionSequence): ThreatAssessment;
+  predictAttackProgression(partialChain: AgentAction[]): AttackPrediction;
+}
+```
+
+#### Hallucinated Compliance Detector
+```typescript
+interface ComplianceAnalyzer {
+  detectHallucinatedResponse(response: AgentResponse, context: ExecutionContext): HallucinationAnalysis;
+  validateResponseAuthenticity(response: AgentResponse, expectedBehavior: BehaviorModel): AuthenticityCheck;
+  classifyDefensiveBehavior(response: AgentResponse): DefensiveBehaviorType;
+}
+```
+
+### Enterprise Integration Architecture
+
+#### Microsoft Agent 365 Connector
+```typescript
+interface Agent365Integration {
+  syncWithAgent365Governance(policies: SecurityPolicy[]): SyncResult;
+  authenticateViaEntraID(agentIdentity: AgentIdentity): AuthenticationResult;
+  reportToDefenderForCloud(securityEvent: SecurityEvent): ReportingResult;
+}
+```
+
+#### NIST AI RMF 2.0 Compliance Engine
+```typescript
+interface NISTComplianceEngine {
+  assessRiskCategories(agent: AgentProfile): NISTRiskAssessment;
+  generateComplianceReport(timeRange: TimeRange): NISTComplianceReport;
+  mapControlsToAgentBehavior(controls: NISTControl[]): ControlMapping;
+}
+```
+
+### Deployment Strategy for Future Enhancements
+
+#### Phased Implementation Approach
+1. **Phase 2 (Months 2-3)**: OWASP Top 10 core protections
+2. **Phase 3 (Months 4-6)**: Framework-agnostic security layer
+3. **Phase 4 (Months 6-12)**: Advanced threat detection and enterprise integrations
+
+#### Backward Compatibility Strategy
+- All future enhancements designed as optional modules
+- Existing APIs maintained for seamless upgrades
+- Progressive enhancement model for enterprise customers
+- Feature flags for gradual rollout of advanced capabilities
+
+## Research Attribution
+
+This design incorporates concepts and techniques from academic research, with all implementations developed independently for production use:
+
+### Primary Research Foundation
+- **Wang, P., Liu, Y., Lu, Y., et al.** (2025). "AgentArmor: Enforcing Program Analysis on Agent Runtime Trace to Defend Against Prompt Injection." *arXiv preprint arXiv:2508.01249*. 
+  - **Concepts Used**: Graph-based trace analysis (CFG, DFG, PDG), property registry, program analysis for security
+  - **Our Innovation**: Hybrid prevention+detection model, production-ready architecture, enterprise features
+
+### Additional Research Influences
+- **System-Level Observability**: AgentSight eBPF monitoring techniques adapted for security context
+- **Multi-Agent Security**: Benchmarking research insights for cascading risk prevention
+- **Graph-Based Detection**: SentinelAgent anomaly detection concepts adapted for trace analysis
+- **Red Team Testing**: AgentVigil black-box testing approaches for continuous validation
+- **Provable Security**: MELON trajectory analysis techniques for high-assurance environments
+
+### 2025 Industry Standards Integration
+- **OWASP Top 10 for Agentic Applications**: Industry-standard vulnerability framework
+- **Microsoft Agent 365**: Enterprise governance and identity integration
+- **NIST AI RMF 2.0**: Federal risk management framework compliance
+- **Penetration Testing Research**: Framework-specific vulnerability mitigation
+
+**Legal Note**: All research concepts have been independently implemented. No source code, datasets, or proprietary implementations from research papers have been directly copied. This design represents original work inspired by published academic concepts.
+
+## User Interface Architecture
+
+### Strategic UI Approach: Unified Dashboard
+
+The platform follows a unified dashboard strategy rather than individual per-service UIs, based on industry best practices and enterprise user experience requirements.
+
+#### Design Principles
+- **Single Point of Entry**: One dashboard for all security operations
+- **API-First**: All UI functionality available programmatically
+- **Progressive Enhancement**: Phased UI development aligned with customer needs
+- **Micro-Frontend Architecture**: Independent module development with unified experience
+- **Role-Based Customization**: Different views for developers, security ops, and executives
+
+### Phase 1A: CLI and API-First Approach
+
+#### AgentGuard CLI Architecture
+```bash
+# Core CLI operations
+agentguard auth login --api-key <key>
+agentguard policy list --format json
+agentguard policy create --file security-policy.json
+agentguard agent status --agent-id <id>
+agentguard audit export --start-date 2025-01-01 --format csv
+agentguard health check --services all
+```
+
+#### CLI Implementation Structure
+```typescript
+interface AgentGuardCLI {
+  // Authentication commands
+  auth: {
+    login(apiKey: string): Promise<AuthResult>;
+    logout(): Promise<void>;
+    status(): Promise<AuthStatus>;
+  };
+  
+  // Policy management
+  policy: {
+    list(filters?: PolicyFilters): Promise<PolicyList>;
+    create(policyFile: string): Promise<PolicyResult>;
+    update(policyId: string, policyFile: string): Promise<PolicyResult>;
+    delete(policyId: string): Promise<DeleteResult>;
+    validate(policyFile: string): Promise<ValidationResult>;
+  };
+  
+  // Agent operations
+  agent: {
+    list(filters?: AgentFilters): Promise<AgentList>;
+    status(agentId: string): Promise<AgentStatus>;
+    register(agentConfig: AgentConfig): Promise<RegistrationResult>;
+    deregister(agentId: string): Promise<DeregistrationResult>;
+  };
+  
+  // Audit and monitoring
+  audit: {
+    query(filters: AuditFilters): Promise<AuditResults>;
+    export(format: ExportFormat, filters: AuditFilters): Promise<ExportResult>;
+    stream(filters?: AuditFilters): AsyncIterable<AuditEvent>;
+  };
+  
+  // System health
+  health: {
+    check(services?: string[]): Promise<HealthStatus>;
+    metrics(): Promise<SystemMetrics>;
+  };
+}
+```
+
+### Phase 1B: Unified Admin Dashboard
+
+#### Dashboard Architecture
+```typescript
+interface UnifiedDashboard {
+  // Core navigation shell
+  shell: {
+    navigation: UnifiedNavigation;
+    authentication: SingleSignOn;
+    notifications: GlobalNotifications;
+    userProfile: UserManagement;
+  };
+  
+  // Main dashboard modules
+  modules: {
+    overview: SecurityOverviewModule;
+    agents: AgentManagementModule;
+    policies: PolicyManagementModule;
+    audit: AuditTrailModule;
+    alerts: SecurityAlertsModule;
+    system: SystemHealthModule;
+  };
+}
+```
+
+#### Backend for Frontend (BFF) Pattern
+```typescript
+interface AgentGuardBFF {
+  // Service orchestration for UI
+  async getDashboardData(userId: string): Promise<DashboardData> {
+    const [agents, policies, alerts, health] = await Promise.all([
+      this.agentService.getAgentSummary(),
+      this.policyService.getPolicySummary(),
+      this.alertService.getActiveAlerts(),
+      this.healthService.getSystemHealth()
+    ]);
+    
+    return {
+      overview: this.buildOverview(agents, policies, alerts),
+      agents: agents,
+      policies: policies,
+      alerts: alerts,
+      systemHealth: health
+    };
+  }
+  
+  // Unified API gateway for UI operations
+  async executeSecurityOperation(operation: SecurityOperation): Promise<OperationResult> {
+    // Route to appropriate service based on operation type
+    switch (operation.type) {
+      case 'policy-update':
+        return await this.policyService.updatePolicy(operation.data);
+      case 'agent-action':
+        return await this.agentService.executeAction(operation.data);
+      case 'audit-query':
+        return await this.auditService.query(operation.data);
+      default:
+        throw new Error(`Unknown operation type: ${operation.type}`);
+    }
+  }
+}
+```
+
+### Phase 2: Enterprise CISO Dashboard
+
+#### Executive Dashboard Architecture
+```typescript
+interface CISODashboard extends UnifiedDashboard {
+  // Executive-level modules
+  executiveModules: {
+    riskSummary: RiskSummaryModule;
+    complianceStatus: ComplianceModule;
+    threatIntelligence: ThreatIntelModule;
+    policyGovernance: PolicyGovernanceModule;
+    incidentResponse: IncidentResponseModule;
+    businessMetrics: BusinessMetricsModule;
+  };
+  
+  // Advanced features
+  advancedFeatures: {
+    customReporting: ReportBuilderModule;
+    workflowAutomation: WorkflowModule;
+    teamCollaboration: CollaborationModule;
+    auditPackaging: CompliancePackagingModule;
+  };
+}
+```
+
+### Micro-Frontend Implementation
+
+#### Module Architecture
+```typescript
+// Independent micro-frontend modules
+interface MicroFrontendModule {
+  // Module lifecycle
+  mount(container: HTMLElement, props: ModuleProps): Promise<void>;
+  unmount(): Promise<void>;
+  update(props: ModuleProps): Promise<void>;
+  
+  // Module communication
+  subscribe(event: string, handler: EventHandler): void;
+  publish(event: string, data: any): void;
+  
+  // Module configuration
+  getConfig(): ModuleConfig;
+  setConfig(config: ModuleConfig): void;
+}
+
+// Policy Management Micro-Frontend
+class PolicyManagementModule implements MicroFrontendModule {
+  async mount(container: HTMLElement, props: ModuleProps) {
+    // Render React/Vue component for policy management
+    const PolicyApp = await import('./PolicyManagementApp');
+    ReactDOM.render(<PolicyApp {...props} />, container);
+  }
+  
+  // Handle cross-module communication
+  subscribe('policy-updated', (policy) => {
+    this.refreshPolicyList();
+    this.publish('global-notification', {
+      type: 'success',
+      message: `Policy ${policy.name} updated successfully`
+    });
+  });
+}
+```
+
+### Technology Stack
+
+#### Frontend Technologies
+```yaml
+# Phase 1B: MVP Dashboard Stack
+Framework: React 18 with JavaScript
+Build Tool: Vite
+Styling: Tailwind CSS + Headless UI
+State Management: React Context API
+Charts: Recharts for basic visualizations
+Forms: React Hook Form
+Icons: Heroicons
+HTTP Client: Axios with React Query
+Development: React DevTools + Vite HMR
+
+# Phase 2: Enterprise Dashboard Stack  
+Framework: React 18 with TypeScript migration
+State Management: Redux Toolkit + RTK Query
+UI Components: Custom AgentGuard Design System
+Charts: Recharts + D3.js for advanced visualizations
+Tables: TanStack Table (React Table v8)
+Forms: React Hook Form + Zod validation
+Real-time: Socket.io for live updates
+Notifications: React Hot Toast
+Testing: Vitest + React Testing Library
+Documentation: Storybook for component library
+```
+
+#### Backend for Frontend (BFF)
+```yaml
+# BFF Service Stack
+Runtime: Node.js with Express.js
+Language: JavaScript (Phase 1B) → TypeScript (Phase 2)
+API Gateway: Custom aggregation layer
+Authentication: JWT + OAuth 2.0 integration
+Caching: Redis for dashboard data caching
+WebSocket: Socket.io for real-time updates
+Validation: Joi (Phase 1B) → Zod (Phase 2)
+```
+
+### Security Considerations
+
+#### UI Security Architecture
+```typescript
+interface UISecurityLayer {
+  // Authentication and authorization
+  authentication: {
+    singleSignOn: SSOIntegration;
+    multiFactorAuth: MFASupport;
+    sessionManagement: SecureSessionHandling;
+  };
+  
+  // Content security
+  contentSecurity: {
+    cspHeaders: ContentSecurityPolicy;
+    xssProtection: XSSPrevention;
+    csrfProtection: CSRFTokens;
+  };
+  
+  // Data protection
+  dataProtection: {
+    sensitiveDataMasking: DataMaskingRules;
+    auditLogging: UIAuditTrail;
+    encryptedStorage: ClientSideEncryption;
+  };
+}
+```
+
+### Deployment Architecture
+
+#### UI Deployment Strategy
+```yaml
+# Production Deployment
+CDN: CloudFlare for global distribution
+Static Hosting: AWS S3 + CloudFront
+BFF Deployment: Kubernetes with auto-scaling
+SSL/TLS: Automated certificate management
+Monitoring: Real User Monitoring (RUM) + Error tracking
+
+# Development Environment
+Local Development: Vite dev server with HMR
+API Mocking: MSW (Mock Service Worker)
+Testing: Automated E2E testing with Playwright
+CI/CD: GitHub Actions with preview deployments
+```
+
+### Performance Optimization
+
+#### Dashboard Performance Strategy
+```typescript
+interface PerformanceOptimizations {
+  // Code splitting and lazy loading
+  codesplitting: {
+    routeBasedSplitting: boolean;
+    componentLazyLoading: boolean;
+    modulePreloading: boolean;
+  };
+  
+  // Data optimization
+  dataOptimization: {
+    virtualizedTables: boolean;
+    infiniteScrolling: boolean;
+    optimisticUpdates: boolean;
+    backgroundSync: boolean;
+  };
+  
+  // Caching strategy
+  caching: {
+    serviceWorker: boolean;
+    apiResponseCaching: boolean;
+    staticAssetCaching: boolean;
+  };
+}
+```

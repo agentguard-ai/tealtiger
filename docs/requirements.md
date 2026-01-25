@@ -293,3 +293,254 @@ The AI Agent Security Platform is a production-grade runtime security and govern
 3. THE System SHALL support full governance deployments for enterprises who want comprehensive policy management
 4. WHEN customers upgrade between offerings, THE System SHALL provide seamless migration paths
 5. THE System SHALL maintain feature isolation between offerings while sharing core security infrastructure
+
+## Research References
+
+This requirements document incorporates insights and techniques from the following academic research:
+
+### Primary Research Foundation
+- **Wang, P., Liu, Y., Lu, Y., et al.** (2025). "AgentArmor: Enforcing Program Analysis on Agent Runtime Trace to Defend Against Prompt Injection." *arXiv preprint arXiv:2508.01249*. Available: http://arxiv.org/abs/2508.01249v1
+
+### Related Research Influences
+- **AgentSight: System-Level Observability for AI Agents Using eBPF** (2025-08-02) - System monitoring techniques
+- **Towards Unifying Quantitative Security Benchmarking for Multi Agent Systems** (2025-07-23) - Multi-agent security considerations  
+- **OpenAgentSafety: A Comprehensive Framework for Evaluating Real-World AI Agent Safety** (2025-07-08) - Safety evaluation frameworks
+- **SentinelAgent: Graph-based Anomaly Detection in Multi-Agent Systems** (2025-05-30) - Graph-based detection methods
+- **AgentVigil: Generic Black-Box Red-teaming for Indirect Prompt Injection** (2025-05-09) - Red team testing approaches
+- **MELON: Provable Defense Against Indirect Prompt Injection Attacks** (2025-02-07) - Provable security techniques
+- **Agent-as-a-Judge: Evaluate Agents with Agents** (2024-10-14) - Agent evaluation methodologies
+- **GuardAgent: Safeguard LLM Agents by a Guard Agent via Knowledge-Enabled Reasoning** (2024-06-13) - Guardrail approaches
+
+### Requirement 27: Multi-Language SDK Support Strategy
+
+**User Story:** As a platform architect, I want a strategic approach to supporting multiple programming languages, so that we can serve both the AI agent developer community (JavaScript/Python) and enterprise customers (Java) effectively.
+
+#### Acceptance Criteria
+
+1. THE System SHALL provide a JavaScript/TypeScript SDK as the primary MVP offering to align with the AI agent ecosystem
+2. THE System SHALL design all APIs to be language-agnostic, enabling future SDK development in multiple languages
+3. THE System SHALL plan for Java/Spring Boot SDK development in Phase 2 to target enterprise customers
+4. THE System SHALL maintain consistent security functionality across all language SDKs while respecting language-specific conventions
+5. WHEN enterprise demand is validated, THE System SHALL prioritize Java SDK development for enterprise sales acceleration
+
+### Requirement 28: Enterprise Java Integration Planning
+
+**User Story:** As an enterprise architect, I want Java/Spring Boot integration capabilities, so that I can deploy AI agent security in existing enterprise Java environments.
+
+#### Acceptance Criteria
+
+1. THE System SHALL design the core API to support Java SDK integration without requiring platform changes
+2. THE Java SDK SHALL integrate with Spring Security framework for enterprise authentication and authorization
+3. THE Java SDK SHALL support enterprise Java patterns including dependency injection, aspect-oriented programming, and enterprise monitoring
+4. THE System SHALL provide Java-specific enterprise features including JMX monitoring, enterprise logging frameworks, and Java security managers
+### Requirement 29: GitOps-Based Deployment and Policy Management
+
+**User Story:** As a DevOps engineer, I want GitOps-based deployment and policy management using ArgoCD, so that I can manage security policies as code with full audit trails and consistent deployments across environments.
+
+#### Acceptance Criteria
+
+1. THE System SHALL support ArgoCD for GitOps-based deployment of all platform components
+2. THE System SHALL manage security policies through Git repositories with ArgoCD synchronization
+3. THE System SHALL provide policy versioning and rollback capabilities through ArgoCD applications
+4. THE System SHALL support multi-environment deployments (dev, staging, production) with environment-specific configurations
+5. WHEN policy changes are committed to Git, THE System SHALL automatically deploy updates through ArgoCD with proper validation and approval workflows
+
+### Requirement 30: Infrastructure as Code with GitOps
+
+**User Story:** As a platform operator, I want all infrastructure and configuration managed as code, so that I can ensure consistent, auditable, and repeatable deployments across all environments.
+
+#### Acceptance Criteria
+
+1. THE System SHALL define all Kubernetes manifests, Helm charts, and configuration in Git repositories
+2. THE System SHALL use ArgoCD Applications to manage different components (SSA, Policy Engine, Audit Service, etc.)
+3. THE System SHALL support progressive deployment strategies (blue-green, canary) through ArgoCD
+4. THE System SHALL provide automated rollback capabilities when deployment health checks fail
+5. THE System SHALL integrate ArgoCD with existing CI/CD pipelines for complete GitOps workflow
+
+### Requirement 24: Agent Execution Trace Analysis (Research-Inspired)
+
+**User Story:** As a security analyst, I want sophisticated program analysis of agent execution traces, so that I can detect complex prompt injection attacks and behavioral anomalies that traditional rule-based systems might miss.
+
+**Research Foundation:** Inspired by "AgentArmor: Enforcing Program Analysis on Agent Runtime Trace to Defend Against Prompt Injection" (Wang et al., 2025) - http://arxiv.org/abs/2508.01249v1
+
+#### Acceptance Criteria
+
+1. WHEN an agent executes tool calls, THE System SHALL collect comprehensive execution traces including control flow, data flow, and dependency information
+2. THE System SHALL convert agent execution traces into graph-based intermediate representations (Control Flow Graph, Data Flow Graph, Program Dependency Graph)
+3. WHEN analyzing execution traces, THE System SHALL apply program analysis techniques to detect prompt injection patterns, trust boundary violations, and control flow anomalies
+4. THE System SHALL maintain a property registry that attaches security-relevant metadata to tools and data interactions
+5. WHEN trace analysis detects security violations, THE System SHALL provide detailed forensic information including graph visualizations and attack vectors
+
+### Requirement 25: Hybrid Security Model (Prevention + Detection)
+
+**User Story:** As a security architect, I want both proactive prevention and post-execution detection capabilities, so that I can achieve comprehensive security coverage that combines real-time protection with forensic analysis.
+
+**Research Foundation:** Novel hybrid approach combining traditional policy-based prevention with program analysis detection techniques inspired by AgentArmor research (Wang et al., 2025)
+
+#### Acceptance Criteria
+
+1. THE System SHALL implement pre-execution security evaluation using policy-based prevention (existing capability)
+2. THE System SHALL implement post-execution trace analysis using program analysis techniques (AgentArmor-inspired)
+3. WHEN both prevention and detection systems are active, THE System SHALL correlate findings to improve policy recommendations and threat detection
+4. THE System SHALL use execution trace analysis to automatically suggest new security policies based on observed attack patterns
+5. WHEN trace analysis identifies previously unknown attack vectors, THE System SHALL update prevention policies to block similar future attempts
+
+### Requirement 26: Enhanced Prompt Injection Detection
+
+**User Story:** As a security engineer, I want advanced prompt injection detection using program analysis, so that I can identify sophisticated attacks that manipulate agent behavior through indirect prompt manipulation.
+
+**Research Foundation:** Based on program analysis techniques for prompt injection detection from AgentArmor research (Wang et al., 2025) and related work on indirect prompt injection defense
+
+#### Acceptance Criteria
+
+1. THE System SHALL analyze agent execution traces to identify unexpected control flow branches that may indicate prompt injection
+2. THE System SHALL track user input propagation through agent reasoning chains to detect prompt injection attempts
+3. THE System SHALL identify trust boundary violations where untrusted input influences trusted operations
+4. THE System SHALL maintain behavioral baselines for agents and detect deviations that suggest prompt manipulation
+5. WHEN prompt injection is detected through trace analysis, THE System SHALL provide detailed attack reconstruction and mitigation recommendations
+
+## Future Requirements (Phase 2+ Roadmap)
+
+*The following requirements represent our strategic roadmap for addressing emerging threats and industry standards. These are included as placeholders for future development phases and demonstrate our awareness of the evolving agentic AI security landscape.*
+
+### Requirement 31: OWASP Top 10 Agentic Applications Compliance (Future - Phase 2+)
+
+**User Story:** As a security officer, I want comprehensive protection against the OWASP Top 10 for Agentic Applications, so that our AI agent deployments meet industry security standards and protect against the most critical threats.
+
+**Research Foundation:** Based on OWASP GenAI Security Project's "Top 10 for Agentic Applications 2026" released December 2025
+
+#### Acceptance Criteria (Future Implementation)
+
+1. THE System SHALL prevent Agent Goal Hijack (ASI01) by monitoring goal consistency and detecting intent manipulation attempts
+2. THE System SHALL prevent Tool Misuse & Exploitation (ASI02) through comprehensive tool usage validation and context analysis  
+3. THE System SHALL prevent Identity & Privilege Abuse (ASI03) via strict credential management and privilege escalation detection
+4. THE System SHALL prevent Memory & Context Poisoning (ASI06) through memory integrity validation and poisoning pattern detection
+5. THE System SHALL prevent Insecure Inter-Agent Communication (ASI07) by implementing authenticated and encrypted agent-to-agent channels
+
+### Requirement 32: Framework-Agnostic Security Architecture (Future - Phase 2+)
+
+**User Story:** As a platform architect, I want security controls that work consistently across different agent frameworks, so that we can protect against framework-specific vulnerabilities while maintaining deployment flexibility.
+
+**Research Foundation:** Based on "Penetration Testing of Agentic AI" research showing 52.3% vs 30.8% refusal rates between AutoGen and CrewAI frameworks
+
+#### Acceptance Criteria (Future Implementation)
+
+1. THE System SHALL provide consistent security controls across AutoGen, CrewAI, and custom agent frameworks
+2. THE System SHALL detect and mitigate framework-specific vulnerabilities including handoff manipulation and delegation abuse
+3. THE System SHALL monitor inter-agent communication patterns to prevent framework-level attack propagation
+4. THE System SHALL provide framework-agnostic audit trails that capture security decisions regardless of underlying architecture
+5. THE System SHALL adapt security policies based on framework-specific risk profiles and communication patterns
+
+### Requirement 33: Advanced Threat Detection for Agentic AI (Future - Phase 3+)
+
+**User Story:** As a security analyst, I want advanced threat detection specifically designed for agentic AI attacks, so that I can identify and respond to novel attack vectors that traditional security tools miss.
+
+**Research Foundation:** Incorporating latest research on goal hijacking, memory poisoning, and multi-step attack chains identified in 2025 security research
+
+#### Acceptance Criteria (Future Implementation)
+
+1. THE System SHALL detect goal drift and intent manipulation through continuous goal consistency monitoring
+2. THE System SHALL identify memory poisoning attempts by analyzing memory update patterns and source validation
+3. THE System SHALL recognize multi-step attack chains that appear benign individually but form malicious sequences
+4. THE System SHALL detect "hallucinated compliance" patterns where agents fabricate responses to avoid executing or refusing attacks
+5. THE System SHALL provide real-time threat intelligence updates based on emerging agentic AI attack patterns
+
+### Requirement 34: Microsoft Agent 365 Integration (Future - Phase 2+)
+
+**User Story:** As an enterprise IT administrator, I want seamless integration with Microsoft Agent 365 governance framework, so that our AI agent security aligns with Microsoft's enterprise agent management ecosystem.
+
+**Research Foundation:** Based on Microsoft Ignite 2025 announcements for enterprise agent governance and security
+
+#### Acceptance Criteria (Future Implementation)
+
+1. THE System SHALL integrate with Microsoft Agent 365 for unified agent governance and policy management
+2. THE System SHALL support Microsoft Entra ID authentication and authorization for agent identity management
+3. THE System SHALL align with Microsoft's agent security frameworks and compliance requirements
+4. THE System SHALL provide native integration with Microsoft Defender for Cloud and Microsoft Sentinel
+5. THE System SHALL support Microsoft's agent lifecycle management and deployment patterns
+
+### Requirement 35: NIST AI RMF 2.0 Compliance (Future - Phase 3+)
+
+**User Story:** As a compliance officer, I want alignment with NIST AI Risk Management Framework 2.0 controls, so that our agentic AI deployments meet federal and enterprise risk management standards.
+
+**Research Foundation:** Based on NIST SP 800-53 Control Overlays for Securing AI Systems and enhanced agentic AI risk categories
+
+#### Acceptance Criteria (Future Implementation)
+
+1. THE System SHALL implement NIST SP 800-53 control overlays specific to multi-agent systems
+2. THE System SHALL provide continuous risk assessment and monitoring aligned with NIST AI RMF 2.0 guidelines
+3. THE System SHALL support autonomous agent risk categorization and mitigation strategies
+4. THE System SHALL generate compliance reports and evidence packages for NIST AI RMF audits
+5. THE System SHALL integrate with federal risk management systems and reporting requirements
+
+### Requirement 36: Unified Dashboard Architecture (Phase 1B+)
+
+**User Story:** As a security administrator, I want a single unified dashboard for all AgentGuard operations, so that I can manage security policies, monitor agents, and respond to threats from one consistent interface.
+
+**Strategic Foundation:** Based on industry best practices and user experience optimization for enterprise security platforms
+
+#### Acceptance Criteria
+
+1. THE System SHALL provide a single unified web dashboard that aggregates data from all microservices
+2. THE System SHALL implement a Backend for Frontend (BFF) pattern to orchestrate service data for the UI
+3. THE System SHALL use micro-frontend architecture to enable independent development of dashboard modules
+4. THE System SHALL provide consistent navigation, authentication, and user experience across all dashboard sections
+5. THE System SHALL avoid individual per-service UIs in favor of unified service management interfaces
+
+### Requirement 37: Progressive UI Development Strategy (Phased Approach)
+
+**User Story:** As a product manager, I want a strategic approach to UI development that aligns with our MVP timeline and customer needs, so that we can deliver value incrementally without over-engineering.
+
+**Strategic Foundation:** Balancing time-to-market with enterprise customer expectations and developer adoption
+
+#### Acceptance Criteria (Phased Implementation)
+
+1. **Phase 1A (MVP)**: THE System SHALL provide comprehensive CLI tools and API documentation without web UI
+2. **Phase 1B**: THE System SHALL deliver a basic unified admin dashboard for policy management and agent monitoring
+3. **Phase 2**: THE System SHALL provide an enterprise-grade CISO dashboard with executive reporting and compliance features
+4. THE System SHALL maintain API-first architecture ensuring all UI functionality is available programmatically
+5. THE System SHALL support role-based dashboard customization for different user personas (developers, security ops, executives)
+
+### Requirement 39: Design Thinking and User-Centered Development (All Phases)
+
+**User Story:** As a product manager, I want to apply design thinking principles throughout our development process, so that we create a security platform that truly meets user needs and provides exceptional user experience.
+
+**Strategic Foundation:** Based on human-centered design principles and enterprise software UX best practices
+
+#### Acceptance Criteria
+
+1. THE System SHALL be designed based on comprehensive user research including developer interviews, security team surveys, and CISO feedback
+2. THE System SHALL implement user personas and journey mapping to guide feature development and interface design
+3. THE System SHALL use progressive disclosure principles to make complex security concepts accessible to non-security experts
+4. THE System SHALL provide contextual help and guidance exactly when and where users need it
+5. THE System SHALL undergo continuous usability testing and iteration based on real user feedback
+
+### Requirement 40: User Experience Excellence (Phase 1B+)
+
+**User Story:** As a user of AgentGuard, I want an intuitive and efficient interface that makes security management feel effortless, so that I can focus on my core work without security friction.
+
+**Strategic Foundation:** Competitive differentiation through superior user experience in the security tools market
+
+#### Acceptance Criteria
+
+1. THE System SHALL achieve >90% task completion rate for key user workflows
+2. THE System SHALL enable users to complete primary tasks in <2 minutes
+3. THE System SHALL maintain <5% user error rate across all interfaces
+4. THE System SHALL achieve System Usability Scale (SUS) score >80
+5. THE System SHALL provide visual clarity for complex security concepts through effective data visualization and interface design
+
+### Requirement 38: CLI and Developer Tools (Phase 1A)
+
+**User Story:** As a developer integrating AgentGuard, I want comprehensive command-line tools and API resources, so that I can manage security operations programmatically and integrate with existing workflows.
+
+**Strategic Foundation:** Developer-first approach for initial adoption and enterprise automation requirements
+
+#### Acceptance Criteria
+
+1. THE System SHALL provide a comprehensive CLI tool for all core operations (policy management, agent status, audit queries)
+2. THE System SHALL include interactive API documentation with live examples and testing capabilities
+3. THE System SHALL provide SDK code examples and integration templates for popular development environments
+4. THE System SHALL support CLI automation and scripting for CI/CD pipeline integration
+5. THE System SHALL maintain feature parity between CLI tools and web dashboard functionality
+
+**Note:** All research concepts have been independently implemented and adapted for production use. No source code or proprietary implementations from research papers have been directly copied.
