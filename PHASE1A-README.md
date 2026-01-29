@@ -13,6 +13,73 @@ This guide will help you set up and run the Phase 1A core foundation of the AI A
 - ✅ **Example Agent** - Shows how to integrate
 - ✅ **Advanced Analysis** - Trace analyzer for prompt injection detection (experimental)
 
+## 🔗 Agent Integration Methods
+
+**Critical:** Agents must be **explicitly integrated** with the SSA - it doesn't happen automatically. Here are the integration approaches:
+
+### 1. Manual Integration (Current Phase 1A)
+Agents explicitly call SSA before each tool execution:
+
+```javascript
+// Agent checks with SSA before executing tools
+async function executeToolSafely(toolName, parameters) {
+  // 1. Check with SSA first
+  const decision = await evaluateSecurity(toolName, parameters);
+  
+  // 2. Act based on decision
+  if (decision.action === 'allow') {
+    return await executeTool(toolName, parameters);
+  } else if (decision.action === 'transform') {
+    return await executeTool(toolName, decision.transformedRequest);
+  } else {
+    throw new Error(`Tool blocked: ${decision.reason}`);
+  }
+}
+```
+
+### 2. SDK Integration (Task 5 - Next Phase)
+The agent uses our SDK which automatically intercepts tool calls:
+
+```javascript
+// Future SDK approach - automatic interception
+import { AgentGuard } from '@ai-security/agent-guard-sdk';
+
+const agentGuard = new AgentGuard({
+  apiKey: 'your-api-key',
+  ssaUrl: 'http://localhost:3001'
+});
+
+// SDK automatically intercepts and evaluates this call
+const result = await agentGuard.executeTool('web-search', {
+  query: 'AI security'
+});
+```
+
+### 3. Framework Integration (Future Phases)
+Integration at the framework level (LangChain, AutoGen, etc.):
+
+```python
+# Future framework integration
+from langchain.agents import AgentExecutor
+from ai_security import AgentGuardMiddleware
+
+agent = AgentExecutor.from_agent_and_tools(
+    agent=agent,
+    tools=tools,
+    middleware=[AgentGuardMiddleware(api_key="your-key")]
+)
+```
+
+## 🚨 The Shadow Agent Challenge
+
+**Key Problem:** Agents that exist but aren't integrated with SSA (Shadow Agents)
+
+**Solution:** Task 13 - Shadow Agent Discovery addresses this by:
+- **Network Scanning** - Detect agents making AI API calls
+- **Process Monitoring** - Find Python/Node.js processes with AI libraries  
+- **Traffic Analysis** - Monitor HTTP calls to OpenAI, Anthropic, etc.
+- **Automatic Integration** - Attempt to inject SSA integration
+
 ### Key Features
 
 **1. Risk-Based Policy Evaluation**
@@ -114,10 +181,44 @@ curl -X POST http://localhost:3001/api/security/evaluate \
 ```
 
 ### Step 4: Run Example Agent
+
+The example agent demonstrates **manual integration** with the SSA:
+
 ```bash
 # Run the simple agent example
 cd examples
 node simple-agent.js
+```
+
+**How the Example Agent Works:**
+1. **Before each tool call** - Agent sends request to SSA for evaluation
+2. **SSA evaluates** - Policy engine makes allow/deny/transform decision  
+3. **Agent acts on decision** - Executes, blocks, or modifies the tool call
+4. **Audit trail** - All decisions are logged for compliance
+
+**Integration Pattern:**
+```javascript
+// Agent integration pattern (from examples/simple-agent.js)
+async function executeToolSafely(toolName, parameters) {
+  // Step 1: Check with SSA
+  const response = await axios.post('http://localhost:3001/api/security/evaluate', {
+    agentId: 'simple-agent',
+    toolName: toolName,
+    parameters: parameters
+  }, {
+    headers: { 'X-API-Key': 'test-api-key-12345' }
+  });
+  
+  // Step 2: Act on decision
+  const decision = response.data.decision;
+  if (decision.action === 'allow') {
+    return await actuallyExecuteTool(toolName, parameters);
+  } else if (decision.action === 'transform') {
+    return await actuallyExecuteTool(toolName, decision.transformedRequest);
+  } else {
+    throw new Error(`Blocked: ${decision.reason}`);
+  }
+}
 ```
 
 ## 📋 API Endpoints
@@ -288,6 +389,25 @@ curl -X POST http://localhost:3001/api/security/evaluate \
 ## 🏗️ Architecture Overview
 
 Phase 1A implements a **Security Sidecar Agent (SSA)** pattern that mediates all agent tool/API calls through a centralized security evaluation service.
+
+**🔑 Key Architectural Principle:** Agents must be **explicitly integrated** with the SSA. The SSA doesn't automatically intercept calls - agents must be designed or modified to check with the SSA before executing tools.
+
+### Integration Evolution Roadmap
+
+**Phase 1A (Current):**
+- ✅ Manual integration required (see example agent)
+- ✅ SSA provides HTTP API for security evaluation
+- ✅ Agents explicitly call SSA before tool execution
+
+**Phase 1B (Next):**
+- 🔄 SDK makes integration easier and automatic
+- 🔄 Framework-specific integrations (LangChain, AutoGen)
+- 🔄 Shadow agent discovery and integration
+
+**Phase 2 (Enterprise):**
+- 🔮 Network-level interception
+- 🔮 Zero-trust architecture
+- 🔮 Automatic policy injection
 
 ### Architecture Diagram
 

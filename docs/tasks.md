@@ -69,7 +69,7 @@ This implementation plan focuses on building an MVP Developer SDK to achieve 500
     - **Property 10: Request Transformation Correctness**
     - **Validates: Requirements 3.5**
 
-- [ ] 4. Checkpoint - Core services integration test
+- [x] 4. Checkpoint - Core services integration test
   - Ensure SSA and Policy Engine work together correctly
   - Test end-to-end request flow with transformations
   - Ask the user if questions arise

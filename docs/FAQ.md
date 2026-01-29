@@ -91,6 +91,50 @@ A: Primary risks and mitigation:
 
 ## Technical Team & Developer FAQs
 
+### Agent Integration & Implementation
+
+**Q: How does an agent know it needs to check with the SSA before executing tools?**
+
+A: **Agents must be explicitly integrated - security doesn't happen automatically.**
+
+**Current Integration Methods:**
+
+1. **Manual Integration (Phase 1A):**
+   - Agents explicitly call SSA API before each tool execution
+   - Developer modifies agent code to include security checks
+   - Example: `const decision = await evaluateSecurity(toolName, params)`
+
+2. **SDK Integration (Phase 1B - Coming Soon):**
+   - Our SDK automatically intercepts tool calls
+   - Transparent to the agent - security happens behind the scenes
+   - Example: `await agentGuard.executeTool('web-search', params)`
+
+3. **Framework Integration (Future):**
+   - Built into popular frameworks (LangChain, AutoGen, CrewAI)
+   - Middleware approach - no code changes needed
+   - Automatic security evaluation for all framework users
+
+**The Shadow Agent Challenge:**
+- **Problem:** Agents that exist but aren't integrated (shadow agents)
+- **Solution:** Our Shadow Agent Discovery service automatically finds and secures unknown agents through network scanning and process monitoring
+
+**Q: What if developers don't integrate their agents with the SSA?**
+
+A: **This is exactly why we built Shadow Agent Discovery - our answer to the critical VC question "How do you secure agents you don't know exist?"**
+
+**Our Multi-Layer Approach:**
+
+1. **Developer Incentives:** Make integration so easy that developers want to use it
+2. **Automatic Discovery:** Network scanning finds agents making AI API calls
+3. **Policy Injection:** Automatically inject security policies into discovered agents
+4. **Enterprise Enforcement:** Network-level controls for enterprise environments
+
+**Discovery Methods:**
+- Port scanning for agent communication patterns
+- HTTP/HTTPS traffic analysis for AI API calls (OpenAI, Anthropic, etc.)
+- Process monitoring for Python/Node.js with AI libraries
+- Library detection (LangChain, AutoGen, CrewAI signatures)
+
 ### Architecture & Implementation
 
 **Q: Why did you choose a sidecar pattern over agent-native security?**

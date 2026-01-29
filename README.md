@@ -37,17 +37,70 @@ Current focus: Developer SDK with core security mediation, basic policy engine, 
 
 ## 🚀 Quick Start
 
+### Agent Integration Methods
+
+**Critical:** Agents must be **explicitly integrated** with the SSA - security doesn't happen automatically.
+
+#### 1. Manual Integration (Phase 1A - Current)
+```javascript
+// Agent explicitly checks with SSA before tool execution
+async function executeToolSafely(toolName, parameters) {
+  // Check with SSA first
+  const decision = await evaluateSecurity(toolName, parameters);
+  
+  // Act based on decision
+  if (decision.action === 'allow') {
+    return await executeTool(toolName, parameters);
+  } else if (decision.action === 'transform') {
+    return await executeTool(toolName, decision.transformedRequest);
+  } else {
+    throw new Error(`Tool blocked: ${decision.reason}`);
+  }
+}
+```
+
+#### 2. SDK Integration (Phase 1B - Next)
 ```bash
 # Install the SDK
 npm install @ai-security/agent-sdk
+```
 
-# Basic integration
-import { SecureAgent } from '@ai-security/agent-sdk';
+```javascript
+// SDK automatically intercepts tool calls
+import { AgentGuard } from '@ai-security/agent-sdk';
 
-const agent = new SecureAgent({
-  policies: './security-policies.json'
+const agentGuard = new AgentGuard({
+  apiKey: 'your-api-key',
+  ssaUrl: 'http://localhost:3001'
+});
+
+// SDK handles security evaluation automatically
+const result = await agentGuard.executeTool('web-search', {
+  query: 'AI security'
 });
 ```
+
+#### 3. Framework Integration (Future)
+```python
+# Framework-level integration
+from langchain.agents import AgentExecutor
+from ai_security import AgentGuardMiddleware
+
+agent = AgentExecutor.from_agent_and_tools(
+    agent=agent,
+    tools=tools,
+    middleware=[AgentGuardMiddleware(api_key="your-key")]
+)
+```
+
+### Shadow Agent Discovery
+
+**The Challenge:** How do you secure agents you don't know exist?
+
+**Our Solution:** Automatic discovery and integration:
+- Network scanning for AI API calls
+- Process monitoring for agent frameworks
+- Automatic SDK injection for compatible agents
 
 ## 📚 Documentation
 
