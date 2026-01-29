@@ -7,13 +7,13 @@ The AgentGuard SDK is a **client library** that connects to a Security Sidecar A
 ## Installation
 
 ```bash
-npm install @ai-security/agent-guard-sdk
+npm install agentguard-sdk
 ```
 
 ## Basic Usage
 
 ```javascript
-import { AgentGuard } from '@ai-security/agent-guard-sdk';
+import { AgentGuard } from 'agentguard-sdk';
 
 // Initialize with your organization's SSA server
 const agentGuard = new AgentGuard({
@@ -79,7 +79,7 @@ Company Infrastructure:
 ## Development Workflow
 
 1. **Get Credentials** - Request API key and SSA URL from your security team
-2. **Install SDK** - `npm install @ai-security/agent-guard-sdk`
+2. **Install SDK** - `npm install agentguard-sdk`
 3. **Configure Agent** - Set up AgentGuard with your credentials
 4. **Develop Securely** - All tool calls automatically go through security evaluation
 5. **Deploy** - Your agent works with existing company security infrastructure
@@ -87,7 +87,7 @@ Company Infrastructure:
 ## Example: Secure File Operations
 
 ```javascript
-import { AgentGuard } from '@ai-security/agent-guard-sdk';
+import { AgentGuard } from 'agentguard-sdk';
 
 const agentGuard = new AgentGuard({
   apiKey: process.env.AGENT_GUARD_API_KEY,
@@ -152,7 +152,7 @@ const agentGuard = new AgentGuard({
 ## Error Handling
 
 ```javascript
-import { AgentGuardError, AgentGuardErrorCode } from '@ai-security/agent-guard-sdk';
+import { AgentGuardError, AgentGuardErrorCode } from 'agentguard-sdk';
 
 try {
   const result = await agentGuard.executeTool('dangerous-operation', params);

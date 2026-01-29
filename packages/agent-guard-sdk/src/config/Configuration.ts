@@ -50,7 +50,14 @@ export class Configuration {
    * Get a specific configuration value
    */
   get<K extends keyof AgentGuardConfig>(key: K): AgentGuardConfig[K] {
-    return this.config[key];
+    const value = this.config[key];
+    
+    // Deep clone objects to prevent external modification
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return JSON.parse(JSON.stringify(value)) as AgentGuardConfig[K];
+    }
+    
+    return value;
   }
 
   /**

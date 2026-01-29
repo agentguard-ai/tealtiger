@@ -102,6 +102,10 @@ docker-compose.override.yml
 .pytest_cache/
 .coverage
 htmlcov/
+test-install/
+test-deprecated/
+**/test-install/
+**/test-deprecated/
 
 # Documentation build
 docs/_build/

@@ -5,7 +5,6 @@
 import { AgentGuard } from '../AgentGuard';
 import { SSAClient } from '../SSAClient';
 import { Configuration } from '../../config/Configuration';
-import { AgentGuardValidationError } from '../../utils/errors';
 import { SecurityDecision } from '../../types';
 
 // Mock the SSAClient
@@ -30,10 +29,20 @@ describe('AgentGuard', () => {
       get: jest.fn(),
       set: jest.fn(),
       validate: jest.fn(),
-      getSafeConfig: jest.fn()
+      getSafeConfig: jest.fn(),
+      getConfig: jest.fn()
     } as any;
 
     MockedConfiguration.mockImplementation(() => mockConfig);
+
+    // Setup mock config return values
+    mockConfig.getConfig.mockReturnValue({
+      ssaUrl: 'https://test-ssa.example.com',
+      apiKey: 'test-api-key',
+      timeout: 5000,
+      retries: 3,
+      debug: false
+    });
 
     // Setup mock SSA client
     mockSSAClient = {
@@ -65,7 +74,13 @@ describe('AgentGuard', () => {
     });
 
     it('should create SSA client instance', () => {
-      expect(MockedSSAClient).toHaveBeenCalledWith(mockConfig);
+      expect(MockedSSAClient).toHaveBeenCalledWith({
+        ssaUrl: 'https://test-ssa.example.com',
+        apiKey: 'test-api-key',
+        timeout: 5000,
+        retries: 3,
+        debug: false
+      });
     });
   });
 
@@ -74,7 +89,11 @@ describe('AgentGuard', () => {
 
     beforeEach(() => {
       mockToolExecutor.mockClear();
-      mockConfig.get.mockReturnValue('test-agent');
+      mockConfig.get.mockImplementation((key: string) => {
+        if (key === 'agentId') return 'test-agent';
+        if (key === 'debug') return true;
+        return undefined;
+      });
     });
 
     it('should execute tool when security decision is allow', async () => {
@@ -98,7 +117,8 @@ describe('AgentGuard', () => {
       const result = await agentGuard.executeTool(
         'test-tool',
         { param1: 'value1' },
-        mockToolExecutor
+        undefined, // context
+        mockToolExecutor // toolExecutor
       );
 
       expect(mockSSAClient.evaluateSecurity).toHaveBeenCalledWith({
@@ -136,7 +156,8 @@ describe('AgentGuard', () => {
       const result = await agentGuard.executeTool(
         'dangerous-tool',
         { param1: 'value1' },
-        mockToolExecutor
+        undefined, // context
+        mockToolExecutor // toolExecutor
       );
 
       expect(mockToolExecutor).not.toHaveBeenCalled();
@@ -178,7 +199,8 @@ describe('AgentGuard', () => {
       const result = await agentGuard.executeTool(
         'file-write',
         { path: '/test.txt', content: 'data' },
-        mockToolExecutor
+        undefined, // context
+        mockToolExecutor // toolExecutor
       );
 
       expect(mockToolExecutor).toHaveBeenCalledWith('file-read', { path: '/test.txt' });
@@ -191,19 +213,24 @@ describe('AgentGuard', () => {
     });
 
     it('should validate tool name', async () => {
-      await expect(
-        agentGuard.executeTool('', {}, mockToolExecutor)
-      ).rejects.toThrow(AgentGuardValidationError);
+      const result = await agentGuard.executeTool('', {}, undefined, mockToolExecutor);
+      
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_REQUEST');
+      expect(result.error?.message).toContain('Tool name is required');
 
-      await expect(
-        agentGuard.executeTool('invalid tool name!', {}, mockToolExecutor)
-      ).rejects.toThrow(AgentGuardValidationError);
+      const result2 = await agentGuard.executeTool('invalid tool name!', {}, undefined, mockToolExecutor);
+      
+      expect(result2.success).toBe(false);
+      expect(result2.error?.code).toBe('INVALID_REQUEST');
     });
 
     it('should validate tool parameters', async () => {
-      await expect(
-        agentGuard.executeTool('test-tool', null as any, mockToolExecutor)
-      ).rejects.toThrow(AgentGuardValidationError);
+      const result = await agentGuard.executeTool('test-tool', null as any, undefined, mockToolExecutor);
+      
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('INVALID_REQUEST');
+      expect(result.error?.message).toContain('Tool parameters are required');
     });
 
     it('should handle SSA evaluation errors', async () => {
@@ -219,17 +246,21 @@ describe('AgentGuard', () => {
       const result = await agentGuard.executeTool(
         'test-tool',
         { param1: 'value1' },
-        mockToolExecutor
+        undefined, // context
+        mockToolExecutor // toolExecutor
       );
 
       expect(result.success).toBe(false);
-      expect(result.error?.message).toContain('SSA is unavailable');
+      expect(result.error?.message).toContain('Security evaluation failed');
     });
   });
 
   describe('evaluateTool', () => {
     beforeEach(() => {
-      mockConfig.get.mockReturnValue('test-agent');
+      mockConfig.get.mockImplementation((key: string) => {
+        if (key === 'agentId') return 'test-agent';
+        return undefined;
+      });
     });
 
     it('should evaluate security without executing tool', async () => {
@@ -260,10 +291,7 @@ describe('AgentGuard', () => {
         context: undefined
       });
 
-      expect(result).toEqual({
-        success: true,
-        decision: mockDecision
-      });
+      expect(result).toEqual(mockDecision);
     });
 
     it('should handle evaluation errors', async () => {
@@ -276,33 +304,41 @@ describe('AgentGuard', () => {
         }
       });
 
-      const result = await agentGuard.evaluateTool(
-        'test-tool',
-        { param1: 'value1' }
-      );
-
-      expect(result.success).toBe(false);
-      expect(result.error?.message).toBe('Connection failed');
+      await expect(
+        agentGuard.evaluateTool('test-tool', { param1: 'value1' })
+      ).rejects.toThrow('Security evaluation failed');
     });
   });
 
   describe('getAuditTrail', () => {
+    beforeEach(() => {
+      mockConfig.get.mockImplementation((key: string) => {
+        if (key === 'agentId') return 'test-agent';
+        return undefined;
+      });
+    });
+
     it('should retrieve audit trail', async () => {
       const mockAuditTrail = {
-        entries: [
-          {
-            id: '1',
-            timestamp: new Date().toISOString(),
-            agentId: 'test-agent',
-            toolName: 'test-tool',
-            action: 'allow' as const,
-            reason: 'Safe operation',
-            riskLevel: 'low' as const,
-            requestId: 'req-127'
-          }
-        ],
-        totalCount: 1,
-        hasMore: false
+        success: true,
+        auditTrail: {
+          entries: [
+            {
+              id: 'audit-123',
+              timestamp: new Date().toISOString(),
+              type: 'security_decision' as const,
+              agentId: 'test-agent',
+              toolName: 'test-tool',
+              action: 'allow' as const,
+              reason: 'Safe operation',
+              riskLevel: 'low' as const,
+              requestId: 'req-127'
+            }
+          ],
+          total: 1,
+          limit: 100,
+          offset: 0
+        }
       };
 
       mockSSAClient.getAuditTrail.mockResolvedValue(mockAuditTrail);
@@ -320,9 +356,13 @@ describe('AgentGuard', () => {
       };
 
       mockSSAClient.getAuditTrail.mockResolvedValue({
-        entries: [],
-        totalCount: 0,
-        hasMore: false
+        success: true,
+        auditTrail: {
+          entries: [],
+          total: 0,
+          limit: 50,
+          offset: 10
+        }
       });
 
       await agentGuard.getAuditTrail(filters);
@@ -343,7 +383,7 @@ describe('AgentGuard', () => {
       }];
 
       const mockValidationResult = {
-        isValid: true,
+        valid: true,
         errors: [],
         warnings: []
       };
@@ -359,7 +399,11 @@ describe('AgentGuard', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      mockConfig.get.mockReturnValue('test-agent');
+      mockConfig.get.mockImplementation((key: string) => {
+        if (key === 'agentId') return 'test-agent';
+        if (key === 'debug') return true;
+        return undefined;
+      });
     });
 
     it('should handle tool executor errors gracefully', async () => {
@@ -383,7 +427,8 @@ describe('AgentGuard', () => {
       const result = await agentGuard.executeTool(
         'test-tool',
         { param1: 'value1' },
-        mockToolExecutor
+        undefined, // context
+        mockToolExecutor // toolExecutor
       );
 
       expect(result.success).toBe(false);
@@ -397,7 +442,7 @@ describe('AgentGuard', () => {
         toolName: 'test-tool',
         action: 'unknown-action' as any,
         reason: 'Unknown action',
-        riskLevel: 'medium',
+        riskLevel: 'medium' as const,
         timestamp: new Date().toISOString()
       };
 
@@ -408,9 +453,11 @@ describe('AgentGuard', () => {
 
       const mockToolExecutor = jest.fn();
 
-      await expect(
-        agentGuard.executeTool('test-tool', {}, mockToolExecutor)
-      ).rejects.toThrow(AgentGuardValidationError);
+      const result = await agentGuard.executeTool('test-tool', {}, undefined, mockToolExecutor);
+      
+      expect(result.success).toBe(false);
+      expect(result.error?.code).toBe('POLICY_ERROR');
+      expect(result.error?.message).toContain('Unknown security action: unknown-action');
     });
   });
 
@@ -437,7 +484,7 @@ describe('AgentGuard', () => {
         toolName: 'test-tool',
         action: 'deny',
         reason: 'Tool is risky',
-        riskLevel: 'high',
+        riskLevel: 'high' as const,
         timestamp: new Date().toISOString()
       };
 
@@ -446,7 +493,7 @@ describe('AgentGuard', () => {
         decision: mockDecision
       });
 
-      await agentGuard.executeTool('test-tool', {}, jest.fn());
+      await agentGuard.executeTool('test-tool', {}, undefined, jest.fn());
 
       expect(console.log).toHaveBeenCalledWith(
         '[AgentGuard SDK] Tool denied:',

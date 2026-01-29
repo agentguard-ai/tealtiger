@@ -1,5 +1,5 @@
 {
-  "name": "@ai-security/agent-guard-sdk",
+  "name": "agentguard-sdk",
   "version": "0.1.0",
   "description": "TypeScript/JavaScript SDK for AI Agent Security Platform",
   "main": "dist/index.js",
@@ -14,10 +14,14 @@
     "build:watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "clean": "rimraf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build && npm run test"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "ai",
@@ -31,13 +35,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nagasatish007/ai-agent-security-platform.git",
-    "directory": "packages/agent-guard-sdk"
+    "url": "https://github.com/agentguard/agentguard-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/nagasatish007/ai-agent-security-platform/issues"
+    "url": "https://github.com/agentguard/agentguard-sdk/issues"
   },
-  "homepage": "https://github.com/nagasatish007/ai-agent-security-platform#readme",
+  "homepage": "https://github.com/agentguard/agentguard-sdk#readme",
   "dependencies": {
     "axios": "^1.6.0"
   },

@@ -1,6 +1,6 @@
 # AgentGuard SDK
 
-[![npm version](https://badge.fury.io/js/%40ai-security%2Fagent-guard-sdk.svg)](https://badge.fury.io/js/%40ai-security%2Fagent-guard-sdk)
+[![npm version](https://badge.fury.io/js/agentguard-sdk.svg)](https://badge.fury.io/js/agentguard-sdk)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -11,13 +11,13 @@ TypeScript/JavaScript SDK for the AI Agent Security Platform. Secure your AI age
 ### Installation
 
 ```bash
-npm install @ai-security/agent-guard-sdk
+npm install agentguard-sdk
 ```
 
 ### Basic Usage
 
 ```typescript
-import { AgentGuard } from '@ai-security/agent-guard-sdk';
+import { AgentGuard } from 'agentguard-sdk';
 
 // Initialize the SDK
 const agentGuard = new AgentGuard({
@@ -173,7 +173,7 @@ const result = await agentGuard.executeTool('file-write', { path: '/tmp/test.txt
 ### JavaScript Example
 
 ```javascript
-const { AgentGuard } = require('@ai-security/agent-guard-sdk');
+const { AgentGuard } = require('agentguard-sdk');
 
 const agentGuard = new AgentGuard({
   apiKey: 'test-api-key-12345',
@@ -196,7 +196,7 @@ agentGuard.executeTool('web-search', { query: 'AI security' })
 ### TypeScript Example
 
 ```typescript
-import { AgentGuard, ToolExecutionResult } from '@ai-security/agent-guard-sdk';
+import { AgentGuard, ToolExecutionResult } from 'agentguard-sdk';
 
 interface SearchResult {
   query: string;
@@ -235,7 +235,7 @@ const searchTool = async (query: string): Promise<SearchResult> => {
 The SDK provides comprehensive error handling with specific error types:
 
 ```typescript
-import { isAgentGuardError, AgentGuardErrorCode } from '@ai-security/agent-guard-sdk';
+import { isAgentGuardError, AgentGuardErrorCode } from 'agentguard-sdk';
 
 try {
   const result = await agentGuard.executeTool('my-tool', { param: 'value' });
@@ -307,7 +307,7 @@ expect(decision.action).toBe('allow');
 ### LangChain Integration
 
 ```typescript
-import { AgentGuard } from '@ai-security/agent-guard-sdk';
+import { AgentGuard } from 'agentguard-sdk';
 import { Tool } from 'langchain/tools';
 
 class SecureWebSearchTool extends Tool {
