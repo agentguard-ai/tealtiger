@@ -9,6 +9,7 @@ This guide will help you set up and run the Phase 1A core foundation of the AI A
 - ✅ **Policy Engine** - JSON-based rule evaluation with risk assessment
 - ✅ **Audit Logger** - Decision logging and compliance trail
 - ✅ **Basic Authentication** - API key validation middleware
+- ✅ **Shadow Agent Discovery** - Basic network scanning and agent detection
 - ✅ **Example Agent** - Shows how to integrate
 - ✅ **Advanced Analysis** - Trace analyzer for prompt injection detection (experimental)
 
@@ -40,7 +41,13 @@ This guide will help you set up and run the Phase 1A core foundation of the AI A
 - Detailed error messages
 - API key authentication
 
-**5. Advanced Capabilities (Experimental)**
+**5. Shadow Agent Discovery (Basic)**
+- Network scanning for agent processes
+- AI API call pattern detection
+- Agent fingerprinting and classification
+- Basic agent registry and inventory
+
+**6. Advanced Capabilities (Experimental)**
 - Execution trace analysis
 - Program graph construction (CFG, DFG, PDG)
 - Prompt injection detection

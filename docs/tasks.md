@@ -200,14 +200,72 @@ This implementation plan focuses on building an MVP Developer SDK to achieve 500
 - Prioritize clear error messages and debugging tools
 - Target: 5000+ developer adoption before Series A funding
 
+### Phase 1A Extension: Shadow Agent Discovery (VC-Critical)
+
+**Critical for VC funding**: Addresses the key concern "How do you secure an agent you don't know exists?"
+
+- [ ] 13. Implement Shadow Agent Discovery Service (Phase 1A)
+  - [ ] 13.1 Build basic network scanning for agent detection
+    - Implement port scanning for common agent communication patterns
+    - Add HTTP/HTTPS traffic analysis for AI API calls (OpenAI, Anthropic, etc.)
+    - Create process monitoring for Python/Node.js with AI libraries
+    - _Requirements: 40.1, 40.2, 40.3_
+  
+  - [ ] 13.2 Develop agent fingerprinting and classification
+    - Implement library detection (LangChain, AutoGen, CrewAI signatures)
+    - Add API call pattern analysis for framework identification
+    - Create resource usage profiling for agent behavior
+    - _Requirements: 40.4_
+  
+  - [ ] 13.3 Create basic agent registry and inventory
+    - Build local agent database with discovered agents
+    - Implement manual agent registration for known agents
+    - Add basic metadata collection (framework, version, purpose)
+    - Create simple dashboard for discovered agents
+    - _Requirements: 40.5, 40.9, 40.10_
+  
+  - [ ]* 13.4 Write property test for agent discovery coverage
+    - **Property 19: Shadow Agent Discovery Coverage**
+    - **Validates: Requirements 40.1, 40.2, 40.3**
+  
+  - [ ] 13.5 Implement basic integration attempts for discovered agents
+    - Add automated SDK integration for compatible agents
+    - Create policy injection for discovered agents
+    - Implement security status tracking and updates
+    - _Requirements: 40.7, 11.2_
+
+- [ ] 14. Enhance discovery with continuous monitoring (Phase 1B)
+  - [ ] 14.1 Add real-time agent monitoring and detection
+    - Implement continuous network monitoring
+    - Add process lifecycle tracking (start, stop, restart events)
+    - Create dynamic library loading detection
+    - _Requirements: 40.6_
+  
+  - [ ] 14.2 Build agent behavior analysis and baselines
+    - Implement communication pattern learning
+    - Add baseline behavior establishment over time
+    - Create anomaly detection for unusual agent activities
+    - _Requirements: 11.4_
+  
+  - [ ] 14.3 Create enhanced registry with relationship mapping
+    - Build centralized agent database with full metadata
+    - Implement agent relationship mapping (parent-child, communication flows)
+    - Add version tracking and change detection
+    - Create integration status tracking (secured vs. unsecured)
+    - _Requirements: 40.8, 40.11_
+  
+  - [ ]* 14.4 Write property test for continuous discovery
+    - **Property 20: Continuous Agent Discovery**
+    - **Validates: Requirements 40.6, 11.2**
+
 ## Post-MVP Roadmap (After Developer Adoption Success)
 
 Once the MVP achieves 5000+ developer adoption, implement these comprehensive features for Series A funding:
 
 ### Phase 2: Enterprise Security Platform
 
-- [ ] 13. Implement advanced SLM Classification Service
-  - [ ] 13.1 Deploy Phi-3 models for intent analysis and risk scoring
+- [ ] 15. Implement advanced SLM Classification Service
+  - [ ] 15.1 Deploy Phi-3 models for intent analysis and risk scoring
   - [ ] 13.2 Add behavioral baseline learning and anomaly detection
   - [ ] 13.3 Implement AI-powered threat detection for prompt injection
   - [ ]* 13.4 Write property tests for SLM classification accuracy

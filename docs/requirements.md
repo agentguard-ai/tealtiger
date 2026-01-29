@@ -140,15 +140,18 @@ The AI Agent Security Platform is a production-grade runtime security and govern
 
 ### Requirement 11: Threat Detection and Response
 
-**User Story:** As a security analyst, I want automated detection of malicious agent behavior, so that threats can be identified and mitigated quickly.
+**User Story:** As a security analyst, I want automated detection of malicious agent behavior and comprehensive shadow agent discovery, so that threats can be identified and mitigated quickly, including agents operating without proper governance.
 
 #### Acceptance Criteria
 
 1. WHEN analyzing agent behavior, THE System SHALL detect patterns indicative of prompt injection attacks
-2. THE System SHALL identify unauthorized or shadow agents operating without proper governance
+2. THE System SHALL identify unauthorized or shadow agents operating without proper governance through continuous discovery mechanisms
 3. WHEN suspicious activity is detected, THE System SHALL automatically escalate to human reviewers for sensitive actions
 4. THE System SHALL maintain behavioral baselines for agents and detect anomalous activities
 5. WHEN a threat is confirmed, THE System SHALL automatically contain the affected agent and preserve evidence
+6. THE System SHALL continuously scan network traffic, processes, and system resources to discover unknown agents
+7. WHEN shadow agents are discovered, THE System SHALL classify their risk level and attempt to bring them under governance
+8. THE System SHALL maintain a comprehensive inventory of all discovered agents with their security status
 
 ### Requirement 12: Developer SDK for Security Integration
 
@@ -542,5 +545,42 @@ This requirements document incorporates insights and techniques from the followi
 3. THE System SHALL provide SDK code examples and integration templates for popular development environments
 4. THE System SHALL support CLI automation and scripting for CI/CD pipeline integration
 5. THE System SHALL maintain feature parity between CLI tools and web dashboard functionality
+
+### Requirement 40: Comprehensive Shadow Agent Discovery and Management
+
+**User Story:** As a security administrator, I want comprehensive discovery and management of all agents in my environment, including unknown or shadow agents, so that I can ensure complete security coverage and eliminate blind spots in my agent security posture.
+
+#### Acceptance Criteria
+
+1. THE System SHALL continuously scan network traffic to identify AI API calls and agent communication patterns
+2. THE System SHALL monitor system processes to detect Python, Node.js, and other runtime environments executing agent-related libraries
+3. THE System SHALL perform file system scanning to discover agent configuration files, logs, and deployment artifacts
+4. WHEN an unknown agent is discovered, THE System SHALL attempt to fingerprint its framework (LangChain, AutoGen, CrewAI, etc.) and capabilities
+5. THE System SHALL maintain a comprehensive agent registry with discovered agents, their security status, and risk classification
+6. THE System SHALL provide real-time notifications when new agents are discovered or when known agents change behavior
+7. WHEN shadow agents are identified, THE System SHALL attempt to bring them under governance through automated integration
+8. THE System SHALL track agent relationships and communication flows to map the complete agent ecosystem
+9. THE System SHALL provide a dashboard showing secured vs. unsecured agents with risk metrics and remediation recommendations
+10. THE System SHALL support manual agent registration for agents that cannot be automatically discovered
+11. WHEN agents are decommissioned or removed, THE System SHALL update the registry and remove stale entries
+12. THE System SHALL generate compliance reports showing coverage of all agents in the environment
+
+#### Phase 1A Implementation (Basic Discovery)
+- Network scanning for agent processes and API calls
+- Basic agent fingerprinting and classification
+- Simple agent registry with manual registration support
+- Dashboard showing discovered agents
+
+#### Phase 1B Implementation (Continuous Discovery)
+- Real-time monitoring and continuous discovery
+- Agent behavior analysis and baseline establishment
+- Enhanced registry with relationship mapping
+- Automated integration attempts for discovered agents
+
+#### Phase 2 Implementation (Advanced Discovery)
+- ML-powered agent classification and risk scoring
+- Deep environment analysis (containers, cloud, Kubernetes)
+- Advanced threat detection for rogue agents
+- Enterprise integration with CMDB and ITSM systems
 
 **Note:** All research concepts have been independently implemented and adapted for production use. No source code or proprietary implementations from research papers have been directly copied.

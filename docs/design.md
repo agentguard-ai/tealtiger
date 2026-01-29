@@ -51,6 +51,21 @@ graph TB
         CP[Control Plane Service]
         AS[Audit Service]
         TS[Token Service]
+        SAD[Shadow Agent Discovery]
+        TAS[Trace Analysis Service]
+    end
+    
+    subgraph "Performance & Intelligence"
+        PCS[Performance Cache Service]
+        ESS[Event Streaming Service]
+        MLRS[ML Risk Scoring Service]
+        TIS[Threat Intelligence Service]
+    end
+    
+    subgraph "Enterprise Services"
+        CRS[Compliance Reporting Service]
+        UMS[User Management Service]
+        NMS[Notification Service]
     end
     
     subgraph "Data Layer"
@@ -134,6 +149,55 @@ The platform follows a microservices architecture with clear service boundaries 
    - Provides forensic analysis and attack reconstruction
    - **Research Foundation:** Based on AgentArmor program analysis techniques (Wang et al., 2025)
    - **12-Factor**: Stateless processing, horizontally scalable
+
+8. **Shadow Agent Discovery Service** (NEW - VC-Critical)
+   - Continuously scans environment for unknown agents
+   - Performs network traffic analysis and process monitoring
+   - Maintains comprehensive agent registry and inventory
+   - Provides agent fingerprinting and risk classification
+   - Supports automated integration of discovered agents
+   - **Business Critical:** Addresses key VC concern about securing unknown agents
+   - **12-Factor**: Event-driven architecture, horizontally scalable
+
+9. **Performance Cache Service** (NEW - Performance Critical)
+   - Dedicated caching layer for sub-100ms latency requirements
+   - Policy decision caching with intelligent invalidation
+   - Agent behavior baseline caching for anomaly detection
+   - Threat intelligence caching for real-time lookups
+   - **Performance Critical:** Enables <100ms P95 latency SLA
+   - **12-Factor**: Stateless, horizontally scalable, backing services via URLs
+
+10. **Event Streaming Service** (NEW - Real-Time Processing)
+    - Real-time event processing for agent activities
+    - Security event correlation and alerting
+    - Discovery event streaming for continuous monitoring
+    - Integration with external SIEM/SOAR systems
+    - **Real-Time Critical:** Enables immediate threat response
+    - **12-Factor**: Event-driven, disposable processes, logs as streams
+
+11. **ML Risk Scoring Service** (NEW - Advanced Intelligence)
+    - Machine learning models for advanced risk assessment
+    - Behavioral analysis and anomaly detection
+    - Predictive risk scoring based on patterns
+    - Model management and continuous learning
+    - **Intelligence Critical:** Beyond rule-based policies
+    - **12-Factor**: Stateless processing, model artifacts as backing services
+
+12. **Threat Intelligence Service** (NEW - Proactive Security)
+    - Integration with threat intelligence feeds
+    - Attack pattern detection and IOC management
+    - Proactive threat hunting and prevention
+    - Custom threat modeling capabilities
+    - **Security Critical:** Proactive vs. reactive security
+    - **12-Factor**: External integrations as backing services
+
+13. **Compliance Reporting Service** (NEW - Enterprise Required)
+    - Automated compliance report generation
+    - Evidence collection and audit support
+    - Continuous compliance monitoring
+    - Certification package preparation
+    - **Enterprise Critical:** Required for enterprise sales
+    - **12-Factor**: Admin processes as separate containers
 
 ## Components and Interfaces
 
@@ -231,6 +295,256 @@ interface TraceAnalysisResponse {
 - Maintains property registry with security-relevant metadata
 - Provides detailed forensic analysis and attack reconstruction
 - Supports both real-time and batch analysis modes
+
+### Shadow Agent Discovery Service (NEW - VC-Critical)
+
+**Purpose**: Provides comprehensive discovery and management of all agents in the environment, including unknown or shadow agents operating without proper governance.
+
+**Business Critical**: Directly addresses the key VC concern: "How do you secure an agent you don't know exists?" - a critical differentiator for enterprise adoption and funding.
+
+**Key Interfaces**:
+```typescript
+interface AgentDiscoveryRequest {
+  scanType: 'network' | 'process' | 'filesystem' | 'comprehensive';
+  environment: 'local' | 'container' | 'kubernetes' | 'cloud';
+  filters?: DiscoveryFilter[];
+}
+
+interface DiscoveredAgent {
+  agentId: string;
+  discoveryMethod: 'network_scan' | 'process_monitor' | 'file_scan' | 'api_pattern';
+  framework: 'langchain' | 'autogen' | 'crewai' | 'custom' | 'unknown';
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  securityStatus: 'secured' | 'unsecured' | 'unknown' | 'rogue';
+  metadata: {
+    processId?: number;
+    networkPorts?: number[];
+    configFiles?: string[];
+    apiEndpoints?: string[];
+    libraries?: string[];
+  };
+  firstSeen: Date;
+  lastActivity: Date;
+}
+
+interface AgentRegistry {
+  totalAgents: number;
+  securedAgents: number;
+  shadowAgents: number;
+  rogueAgents: number;
+  agents: DiscoveredAgent[];
+  relationships: AgentRelationship[];
+}
+
+interface AgentIntegrationRequest {
+  agentId: string;
+  integrationMethod: 'automatic' | 'manual' | 'policy_injection';
+  securityPolicies?: string[];
+}
+```
+
+**Implementation Details**:
+- **Network Discovery**: Scans for AI API calls (OpenAI, Anthropic, Azure OpenAI) and agent communication patterns
+- **Process Monitoring**: Monitors Python/Node.js processes with AI libraries (langchain, openai, etc.)
+- **File System Scanning**: Discovers agent configuration files, logs, and deployment artifacts
+- **Agent Fingerprinting**: Classifies agents by framework, capabilities, and risk level
+- **Continuous Monitoring**: Real-time detection of new agents and behavior changes
+- **Automated Integration**: Attempts to bring discovered agents under governance
+- **Relationship Mapping**: Tracks agent communications and dependencies
+- **Risk Assessment**: Scores agents based on behavior, access patterns, and security posture
+
+**Phase 1A Features (MVP)**:
+- Basic network scanning and process monitoring
+- Simple agent fingerprinting and registry
+- Manual agent registration and classification
+- Dashboard showing discovered vs. secured agents
+
+**Phase 1B Features (Enhanced)**:
+- Continuous real-time monitoring
+- Automated integration attempts
+- Agent behavior analysis and baselines
+- Relationship mapping and ecosystem visualization
+
+**Phase 2 Features (Enterprise)**:
+- ML-powered agent classification
+- Deep environment analysis (containers, cloud, K8s)
+- Advanced threat detection for rogue agents
+- Enterprise integration (CMDB, ITSM)
+
+### Performance Cache Service (NEW - Performance Critical)
+
+**Purpose**: Provides dedicated caching layer to achieve sub-100ms latency requirements for enterprise-scale deployments.
+
+**Performance Critical**: Essential for meeting <100ms P95 latency SLA with thousands of concurrent agents.
+
+**Key Interfaces**:
+```typescript
+interface PerformanceCacheService {
+  // Policy decision caching
+  getPolicyDecision(key: string): Promise<PolicyDecision | null>;
+  cachePolicyDecision(key: string, decision: PolicyDecision, ttl: number): Promise<void>;
+  
+  // Agent behavior caching
+  getAgentBaseline(agentId: string): Promise<BehaviorBaseline | null>;
+  updateAgentBaseline(agentId: string, baseline: BehaviorBaseline): Promise<void>;
+  
+  // Threat intelligence caching
+  getThreatData(indicator: string): Promise<ThreatData | null>;
+  cacheThreatData(indicator: string, data: ThreatData, ttl: number): Promise<void>;
+  
+  // Cache management
+  invalidateCache(pattern: string): Promise<void>;
+  getCacheStats(): Promise<CacheStatistics>;
+}
+```
+
+**Implementation Details**:
+- **Multi-Level Caching**: L1 (in-memory), L2 (Redis local), L3 (Redis cluster)
+- **Intelligent Invalidation**: Policy changes trigger selective cache invalidation
+- **Cache Warming**: Proactive caching of frequently accessed data
+- **Performance Monitoring**: Real-time cache hit rates and latency metrics
+- **Distributed Consistency**: Cache coherence across multiple instances
+
+### Event Streaming Service (NEW - Real-Time Processing)
+
+**Purpose**: Provides real-time event processing and streaming for immediate threat response and continuous monitoring.
+
+**Real-Time Critical**: Enables immediate threat detection and response within seconds of suspicious activity.
+
+**Key Interfaces**:
+```typescript
+interface EventStreamingService {
+  // Event publishing
+  publishAgentEvent(event: AgentEvent): Promise<void>;
+  publishSecurityEvent(event: SecurityEvent): Promise<void>;
+  publishDiscoveryEvent(event: DiscoveryEvent): Promise<void>;
+  
+  // Event subscription
+  subscribeToAgentEvents(callback: EventHandler<AgentEvent>): Subscription;
+  subscribeToSecurityEvents(callback: EventHandler<SecurityEvent>): Subscription;
+  subscribeToDiscoveryEvents(callback: EventHandler<DiscoveryEvent>): Subscription;
+  
+  // Stream processing
+  createEventProcessor(config: ProcessorConfig): EventProcessor;
+  deployProcessor(processor: EventProcessor): Promise<void>;
+  
+  // Integration
+  connectSIEM(siemConfig: SIEMConfig): Promise<void>;
+  connectSOAR(soarConfig: SOARConfig): Promise<void>;
+}
+```
+
+**Implementation Details**:
+- **Apache Kafka**: High-throughput, fault-tolerant event streaming
+- **Stream Processing**: Real-time event correlation and pattern detection
+- **Event Sourcing**: Complete audit trail through event logs
+- **SIEM Integration**: Real-time security event forwarding
+- **Scalable Architecture**: Horizontal scaling with partition-based processing
+
+### ML Risk Scoring Service (NEW - Advanced Intelligence)
+
+**Purpose**: Provides machine learning-powered risk assessment beyond traditional rule-based policies.
+
+**Intelligence Critical**: Enables detection of sophisticated attacks that bypass rule-based systems.
+
+**Key Interfaces**:
+```typescript
+interface MLRiskScoringService {
+  // Real-time scoring
+  scoreAgentRequest(request: AgentRequest, context: AgentContext): Promise<RiskScore>;
+  scoreBehaviorPattern(pattern: BehaviorPattern): Promise<RiskAssessment>;
+  
+  // Model management
+  deployModel(modelId: string, model: MLModel): Promise<void>;
+  updateModel(modelId: string, updates: ModelUpdate): Promise<void>;
+  getModelMetrics(modelId: string): Promise<ModelMetrics>;
+  
+  // Training and learning
+  trainModel(trainingData: TrainingDataset): Promise<TrainingResult>;
+  validateModel(validationData: ValidationDataset): Promise<ValidationResult>;
+  
+  // Feature engineering
+  extractFeatures(data: RawData): Promise<FeatureVector>;
+  updateFeatureStore(features: FeatureVector): Promise<void>;
+}
+```
+
+**Implementation Details**:
+- **Multiple ML Models**: Ensemble of models for different threat types
+- **Feature Engineering**: Automated feature extraction from agent behavior
+- **Continuous Learning**: Models improve with feedback and new data
+- **A/B Testing**: Safe deployment of new models with performance comparison
+- **Explainable AI**: Interpretable risk scores with reasoning
+
+### Threat Intelligence Service (NEW - Proactive Security)
+
+**Purpose**: Provides proactive threat detection through integration with threat intelligence feeds and attack pattern analysis.
+
+**Security Critical**: Shifts from reactive to proactive security posture with predictive threat detection.
+
+**Key Interfaces**:
+```typescript
+interface ThreatIntelligenceService {
+  // Threat feed integration
+  addThreatFeed(feedConfig: ThreatFeedConfig): Promise<void>;
+  updateThreatFeeds(): Promise<UpdateResult>;
+  queryThreatIntelligence(indicator: string): Promise<ThreatData>;
+  
+  // IOC management
+  addIOC(ioc: IndicatorOfCompromise): Promise<void>;
+  checkIOCs(data: any): Promise<IOCMatch[]>;
+  updateIOCDatabase(): Promise<void>;
+  
+  // Attack pattern detection
+  detectAttackPatterns(trace: ExecutionTrace): Promise<AttackPattern[]>;
+  analyzeAttackChain(events: SecurityEvent[]): Promise<AttackChainAnalysis>;
+  
+  // Threat hunting
+  huntThreats(huntingQuery: HuntingQuery): Promise<ThreatHuntResult>;
+  createHuntingRule(rule: HuntingRule): Promise<void>;
+}
+```
+
+**Implementation Details**:
+- **Multiple Threat Feeds**: Integration with commercial and open-source feeds
+- **IOC Database**: Comprehensive indicators of compromise database
+- **Pattern Matching**: Advanced pattern detection algorithms
+- **Threat Hunting**: Proactive threat hunting capabilities
+- **Custom Intelligence**: Organization-specific threat intelligence
+
+### Compliance Reporting Service (NEW - Enterprise Required)
+
+**Purpose**: Provides automated compliance reporting and audit support for enterprise customers.
+
+**Enterprise Critical**: Required for enterprise sales and regulatory compliance.
+
+**Key Interfaces**:
+```typescript
+interface ComplianceReportingService {
+  // Report generation
+  generateComplianceReport(framework: ComplianceFramework, timeRange: TimeRange): Promise<ComplianceReport>;
+  generateAuditReport(auditScope: AuditScope): Promise<AuditReport>;
+  
+  // Evidence collection
+  collectAuditEvidence(requirement: ComplianceRequirement): Promise<AuditEvidence>;
+  validateEvidence(evidence: AuditEvidence): Promise<ValidationResult>;
+  
+  // Continuous monitoring
+  assessCompliancePosture(): Promise<CompliancePosture>;
+  monitorComplianceMetrics(): Promise<ComplianceMetrics>;
+  
+  // Certification support
+  prepareCertificationPackage(certification: CertificationType): Promise<CertificationPackage>;
+  trackCertificationStatus(certificationId: string): Promise<CertificationStatus>;
+}
+```
+
+**Implementation Details**:
+- **Multiple Frameworks**: SOC 2, ISO 27001, HIPAA, PCI DSS, GDPR, NIST AI RMF
+- **Automated Evidence**: Continuous evidence collection and validation
+- **Real-Time Monitoring**: Continuous compliance posture assessment
+- **Audit Support**: Complete audit trail and evidence packages
+- **Certification Tracking**: Status tracking for multiple certifications
 
 ## Research Attribution
 
