@@ -1,8 +1,17 @@
 # AI Agent Security Platform - Design Document
 
+> **⚠️ IMPORTANT NOTE**: This document represents the **long-term vision** for the AgentGuard platform (v0.3.0+) and includes research-inspired features planned for future releases. For the current implementation roadmap, see:
+> - **v0.1.1** (Current): Basic MVP - See `packages/agent-guard-sdk/`
+> - **v0.2.0** (In Progress): Competitive features - See `.kiro/specs/competitive-features-implementation/`
+> - **v0.3.0** (Future): Research-inspired features - This document
+>
+> Many features described here (Trace Analysis, Shadow Agent Discovery, ML Risk Scoring, etc.) are **not part of v0.2.0** and will be implemented in future releases.
+
 ## Overview
 
 The AI Agent Security Platform is a production-grade security and governance solution for autonomous AI agents. Built on a microservices architecture, it provides three distinct product offerings: a Developer SDK, AgentOps Runtime Security, and CISO Governance UI.
+
+**Current Status**: This design document describes the complete vision including research-inspired advanced security features planned for v0.3.0 and beyond.
 
 ### Design Principles
 
