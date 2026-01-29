@@ -8,7 +8,7 @@ const express = require('express');
 const router = express.Router();
 
 const policyEngine = require('../core/policyEngine');
-const auditLogger = require('../core/auditLogger');
+const auditLogger = require('../core/databaseAuditLogger');
 const { validateRequest, authenticateAgent } = require('../middleware/validation');
 
 /**

@@ -10,18 +10,32 @@
 
 The AI Agent Security Platform provides comprehensive security controls for autonomous AI agents through three integrated offerings:
 
-- **🛠️ Developer SDK** - Embed security controls early in development
-- **⚡ AgentOps Runtime** - Real-time enforcement and monitoring  
-- **🎯 CISO Governance** - Enterprise policy management and compliance
+- **🛠️ Developer SDK** - Embed security controls early in development *(No database required)*
+- **⚡ AgentOps Runtime** - Real-time enforcement and monitoring *(Requires PostgreSQL)*
+- **🎯 CISO Governance** - Enterprise policy management and compliance *(Requires PostgreSQL)*
 
 ## 🏗️ Architecture
 
-Built on microservices architecture with zero-trust principles:
+```
+Agent Developers          Platform Teams           External Services
+     |                         |                         |
+[SDK Client] ---------> [SSA Server] ------------> [APIs/Tools]
+(No database)         (PostgreSQL required)
+```
 
-- **Security Sidecar Agent (SSA)** - Mediates all agent tool/API calls
-- **Policy Engine** - Deterministic rule evaluation (Rego/Cedar)
-- **SLM Classification** - AI-powered intent analysis and risk scoring
-- **Audit Service** - Tamper-evident logs with Post-Quantum Cryptography
+**Two Distinct User Types:**
+
+### 👨‍💻 **Agent Developers** (SDK Users)
+- Install AgentGuard SDK (`npm install @ai-security/agent-guard-sdk`)
+- Connect to organization's SSA server
+- **No database setup required**
+- Focus on building secure agents
+
+### 🏢 **Platform Teams** (SSA Server Operators)  
+- Deploy SSA server with PostgreSQL
+- Manage security policies and compliance
+- Provide SSA endpoints to developers
+- Handle centralized audit logging
 
 ## 🎯 MVP Goals
 
@@ -32,21 +46,62 @@ Current focus: Developer SDK with core security mediation, basic policy engine, 
 ## 📋 Project Status
 
 - ✅ Requirements & Design Complete
-- 🚧 MVP Development (Developer SDK Focus)
+- ✅ PostgreSQL Integration Complete (Phase 1A)
+- 🚧 SDK Development (Current Focus)
 - ⏳ Enterprise Features (Post-MVP)
 
 ## 🚀 Quick Start
 
-### Agent Integration Methods
+### For Agent Developers (SDK Users)
+
+```bash
+npm install @ai-security/agent-guard-sdk
+```
+
+```javascript
+import { AgentGuard } from '@ai-security/agent-guard-sdk';
+
+const agentGuard = new AgentGuard({
+  apiKey: 'your-api-key',           // From your security team
+  ssaUrl: 'https://ssa.company.com' // Your organization's SSA server
+});
+
+const result = await agentGuard.executeTool('web-search', { query: 'test' });
+```
+
+**📖 [Complete SDK Guide →](SDK-QUICKSTART.md)**
+
+### For Platform Teams (SSA Server Setup)
+
+```bash
+# Start PostgreSQL
+docker-compose up -d postgres
+
+# Setup database
+npm run db:setup
+
+# Start SSA server
+npm start
+```
+
+**📖 [Database Setup Guide →](DATABASE-SETUP.md)**
+
+## 🚀 Deployment Scenarios
+
+Choose the right deployment for your needs:
+
+- **🏠 Local Development** - Individual developers, no database required
+- **🏢 Enterprise Internal** - Centralized SSA server for multiple teams
+- **☁️ SaaS Multi-Tenant** - Hosted AgentGuard service
+- **🌐 Hybrid Cloud** - Multi-region deployment across clouds
+- **🔒 Air-Gapped** - High-security offline environments
+- **🧪 CI/CD Integration** - Automated security testing
+
+**📖 [Complete Deployment Guide →](DEPLOYMENT-SCENARIOS.md)**
+
+## 🔧 Agent Integration Methods
 
 **Critical:** Agents must be **explicitly integrated** with the SSA - security doesn't happen automatically.
-
-#### 1. Manual Integration (Phase 1A - Current)
-```javascript
-// Agent explicitly checks with SSA before tool execution
-async function executeToolSafely(toolName, parameters) {
-  // Check with SSA first
-  const decision = await evaluateSecurity(toolName, parameters);
   
   // Act based on decision
   if (decision.action === 'allow') {

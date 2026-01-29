@@ -10,10 +10,14 @@ const config = {
   // Environment
   nodeEnv: process.env.NODE_ENV || 'development',
   
-  // Database configuration (for future use)
+  // Database configuration
   database: {
     url: process.env.DATABASE_URL || 'postgresql://dev_user:dev_password@localhost:5432/ai_security',
-    maxConnections: process.env.DB_MAX_CONNECTIONS || 10
+    maxConnections: parseInt(process.env.DB_MAX_CONNECTIONS) || 20,
+    idleTimeout: parseInt(process.env.DB_IDLE_TIMEOUT) || 30000,
+    connectionTimeout: parseInt(process.env.DB_CONNECTION_TIMEOUT) || 10000,
+    ssl: process.env.DB_SSL === 'true',
+    logQueries: process.env.DB_LOG_QUERIES === 'true' || process.env.NODE_ENV === 'development'
   },
   
   // Redis configuration (for future use)
