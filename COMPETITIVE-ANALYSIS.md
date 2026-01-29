@@ -2,7 +2,7 @@
 
 *Analysis of 10 key research papers relevant to AgentGuard platform*
 
-## 📊 Research Landscape Overview
+## 📊 Research Landscape Overview ##
 
 The AI agent security field is rapidly evolving with multiple research directions. Here's how AgentGuard positions against the current academic and industry landscape:
 
