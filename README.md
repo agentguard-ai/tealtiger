@@ -61,7 +61,6 @@ tealtiger/
 │       └── pyproject.toml      # PyPI package config
 │
 ├── examples/                   # Usage examples
-├── docs/                       # Documentation
 └── README.md                   # This file
 ```
 
@@ -131,7 +130,6 @@ response = await client.chat.create(
 - **[TypeScript SDK README](./packages/tealtiger-sdk/README.md)** - Full TypeScript documentation
 - **[Python SDK README](./packages/tealtiger-python/README.md)** - Full Python documentation
 - **[Examples](./examples/)** - Working code examples
-- **[API Reference](./docs/)** - Detailed API documentation
 
 ---
 
