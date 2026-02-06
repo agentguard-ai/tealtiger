@@ -1,7 +1,9 @@
 # Enable GitHub Discussions - Manual Steps Required
 
 ## Overview
-GitHub Discussions must be enabled manually through the GitHub web interface. This guide provides step-by-step instructions for enabling discussions on all three TealTiger repositories.
+GitHub Discussions must be enabled manually through the GitHub web interface.
+
+**Important**: GitHub Organizations on the free tier can only enable Discussions on **one repository**. We recommend enabling it on the **main repository** and having SDK repos link to it.
 
 ## Why Discussions?
 - **Community Engagement** - Centralized place for questions, ideas, and announcements
@@ -10,18 +12,23 @@ GitHub Discussions must be enabled manually through the GitHub web interface. Th
 - **Show and Tell** - Let users share their implementations
 - **Feedback Loop** - Gather feature requests and ideas
 
-## Repositories to Enable
+## Recommended Setup
 
-1. **Main Repository**: `agentguard-ai/tealtiger`
-2. **TypeScript SDK**: `agentguard-ai/tealtiger-sdk`
-3. **Python SDK**: `agentguard-ai/tealtiger-python`
+### Enable Discussions On:
+- ✅ **Main Repository**: `agentguard-ai/tealtiger` (ENABLE HERE)
+
+### Link to Main Discussions From:
+- ➡️ **TypeScript SDK**: `agentguard-ai/tealtiger-sdk` (link to main repo)
+- ➡️ **Python SDK**: `agentguard-ai/tealtiger-python` (link to main repo)
+
+This centralizes community discussions in one place, making it easier to manage and for users to find answers.
 
 ## Step-by-Step Instructions
 
-### For Each Repository:
+### Enable on Main Repository Only:
 
-1. **Navigate to Repository Settings**
-   - Go to the repository on GitHub
+1. **Navigate to Main Repository Settings**
+   - Go to https://github.com/agentguard-ai/tealtiger
    - Click "Settings" tab (requires admin access)
 
 2. **Enable Discussions**
@@ -104,15 +111,13 @@ GitHub Discussions must be enabled manually through the GitHub web interface. Th
 
 ## Verification
 
-After enabling discussions on all three repos:
+After enabling discussions on main repo:
 
 - [ ] Main repo has Discussions enabled
-- [ ] TypeScript SDK has Discussions enabled  
-- [ ] Python SDK has Discussions enabled
-- [ ] All 5 categories created on each repo
-- [ ] Welcome discussion created and pinned on each repo
-- [ ] Issue templates link to Discussions (already done via config.yml)
-- [ ] SUPPORT.md links to Discussions (already done)
+- [ ] All 5 categories created
+- [ ] Welcome discussion created and pinned
+- [ ] SDK repos' SUPPORT.md files link to main repo discussions
+- [ ] SDK repos' issue template config.yml links to main repo discussions
 
 ## Benefits
 
@@ -128,22 +133,25 @@ Once enabled, users will be able to:
 
 After enabling discussions:
 
-1. **Announce on Social Media** - Let users know discussions are available
-2. **Monitor Regularly** - Respond to questions and engage with community
-3. **Migrate Common Questions** - Move FAQ from Issues to Discussions
-4. **Create Guides** - Post helpful guides in Announcements
-5. **Highlight Projects** - Feature cool projects in Show and Tell
+1. **Update SDK SUPPORT.md files** - Point to main repo discussions
+2. **Update SDK issue templates** - Point to main repo discussions
+3. **Announce on Social Media** - Let users know discussions are available
+4. **Monitor Regularly** - Respond to questions and engage with community
+5. **Migrate Common Questions** - Move FAQ from Issues to Discussions
+6. **Create Guides** - Post helpful guides in Announcements
+7. **Highlight Projects** - Feature cool projects in Show and Tell
 
 ## Notes
 
+- **Organization Limitation**: Free tier allows Discussions on only ONE repository
 - Discussions cannot be enabled via API or CLI
 - Requires repository admin access
 - Takes effect immediately after enabling
 - Can be disabled later if needed (but discussions will be preserved)
-- Consider enabling on main repo first, then SDKs
+- Centralized discussions are easier to manage than multiple repos
 
 ## Timeline
 
-**Estimated Time**: 15-20 minutes per repository (45-60 minutes total)
+**Estimated Time**: 15-20 minutes (one repository only)
 
 **Priority**: High - Improves community engagement and reduces issue clutter
