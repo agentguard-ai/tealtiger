@@ -14,6 +14,10 @@ Instead, please report them via email to:
 
 https://github.com/agentguard-ai/tealtiger/security/advisories/new
 
+**Note**: If you get a 404 error, Security Advisories may not be enabled yet. In that case, please:
+1. Open a GitHub issue with the title prefix `[SECURITY]` (do NOT include sensitive details)
+2. We will contact you privately to discuss the vulnerability details
+
 ### What to Include
 
 Please include as much of the following information as possible:
