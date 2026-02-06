@@ -46,6 +46,7 @@ Thumbs.db
 
 # Internal documentation and planning (SENSITIVE - DO NOT COMMIT)
 agentguard-internal-docs/
+docs/
 *-INTERNAL-*.md
 *-STRATEGY.md
 *-PLAN.md
