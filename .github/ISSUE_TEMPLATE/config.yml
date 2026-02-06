@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/agentguard-ai/tealtiger/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/agentguard-ai/tealtiger/security/advisories/new
+    about: Report a security vulnerability privately
+  - name: 📧 Email Support
+    url: mailto:support@tealtiger.co.in
+    about: Contact us directly for support

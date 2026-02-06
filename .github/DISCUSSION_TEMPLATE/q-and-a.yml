@@ -1,0 +1,66 @@
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ❓ Ask a Question
+        Have a question about TealTiger? Ask away!
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      options:
+        - Installation/Setup
+        - Usage/How-to
+        - Configuration
+        - Troubleshooting
+        - Best Practices
+        - Architecture/Design
+        - Pricing/Costs
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sdk
+    attributes:
+      label: Which SDK?
+      options:
+        - TypeScript/JavaScript
+        - Python
+        - Both
+        - Not SDK-specific
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know?
+      placeholder: "How do I..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any relevant context about your use case
+      placeholder: "I'm trying to build..."
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried?
+      description: What have you already attempted?
+      placeholder: "I tried..."
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code Sample (if applicable)
+      description: Share relevant code
+      render: typescript
