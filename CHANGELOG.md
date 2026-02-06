@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the AgentGuard SDK will be documented in this file.
+All notable changes to the TealTiger SDK will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] - 2024-01-29
 
 ### Added
-- Initial release of AgentGuard SDK
+- Initial release of TealTiger SDK
 - Core security evaluation functionality
 - Tool execution with security decisions (allow/deny/transform)
 - Security Sidecar Agent (SSA) HTTP client
