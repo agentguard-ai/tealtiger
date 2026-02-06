@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\subtests.py
-# hypothesis_version: 6.151.4
-
-['(<subtest>)', ', ', '-', 'Captured log call', 'Captured stderr call', 'Captured stdout call', 'SUBXFAIL', 'SubTestReport', '_capture_fixture', '_report_type', '_subtest.context', 'call', 'capture', 'capturemanager', 'context', 'failed', 'fd', 'kwargs', 'logging-plugin', 'msg', 's', 'skipped', 'sys', 'u', 'wasxfail', 'xfailed', 'y']

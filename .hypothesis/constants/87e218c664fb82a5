@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anyio\pytest_plugin.py
-# hypothesis_version: 6.151.4
-
-['127.0.0.1', '::1', 'anyio', 'anyio_backend', 'anyio_mode', 'asyncio', 'asyncio_mode', 'auto', 'hypothesis', 'markers', 'module', 'pytestmark', 'request', 'session', 'strict']

@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpx\_content.py
-# hypothesis_version: 6.151.4
-
-[65536, ',', ':', 'ByteStream', 'Content-Length', 'Content-Type', 'Transfer-Encoding', 'application/json', 'aread', 'chunked', 'read', 'utf-8']

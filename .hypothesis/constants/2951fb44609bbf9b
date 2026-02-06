@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response_create_params.py
-# hypothesis_version: 6.151.4
-
-['24h', 'Conversation', 'StreamOptions', 'ToolChoice', 'auto', 'default', 'disabled', 'flex', 'in-memory', 'priority', 'scale']

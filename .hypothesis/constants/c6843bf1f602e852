@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\patch.py
-# hypothesis_version: 6.151.4
-
-['COVERAGE_CORE', 'PATH', 'PYTHONPYCACHEPREFIX', 'Patching _exit', 'Patching execv', 'Patching fork', 'Patching subprocess', '_exit', 'e', 'execv', 'execve', 'fork', 'patch', 'subprocess']

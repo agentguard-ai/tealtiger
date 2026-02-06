@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\_io\pprint.py
-# hypothesis_version: 6.151.4
-
-['(', '(%s)', '(%s,)', '()', '({', ')', ',', ', ', '...', ': ', '=', '[', '[%s]', '[]', '\\S*\\s*', ']', '])', '__create_fn__', '__repr__', '__wrapped__', 'bytearray(', 'depth must be > 0', 'indent must be >= 0', 'mappingproxy(', 'namespace', 'obj', 'width must be != 0', '{', '{...}', '{{{}}}', '{}', '}', '})']

@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response_function_tool_call.py
-# hypothesis_version: 6.151.4
-
-['completed', 'function_call', 'in_progress', 'incomplete']

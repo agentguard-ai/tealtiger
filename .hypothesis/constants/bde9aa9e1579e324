@@ -1,4 +1,0 @@
-# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\cost\pricing.py
-# hypothesis_version: 6.151.4
-
-[0.00025, 0.0003, 0.0005, 0.0006, 0.0008, 0.001, 0.00125, 0.0015, 0.002, 0.0024, 0.0025, 0.003, 0.004, 0.00765, 0.008, 0.01, 0.015, 0.024, 0.03, 0.06, 0.075, 0.12, '2026-01-31', 'anthropic', 'claude-2.0', 'claude-2.1', 'claude-instant-1.2', 'cohere', 'command', 'command-light', 'command-nightly', 'gemini-pro', 'gemini-pro-vision', 'google', 'gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-32k', 'gpt-4-turbo', 'gpt-4-turbo-preview', 'gpt-4-vision-preview', 'openai', 'palm-2']

@@ -1,4 +1,0 @@
-# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\types.py
-# hypothesis_version: 6.151.4
-
-[0.0, 'Additional metadata', 'Execution metadata', 'Policy description', 'Policy identifier', 'Policy name', 'Policy rules', 'Rules that matched', 'Security decision', 'Session identifier', 'User identifier', 'execution_time', 'timestamp']

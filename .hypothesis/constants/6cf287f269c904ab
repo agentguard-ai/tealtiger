@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\pytracer.py
-# hypothesis_version: 6.151.4
-
-[' / ', ' {}', ' | ', '---\nX', '.{:x}.{:x}', '/', '/tmp/debug_trace.txt', '>', '???', 'Empty stack!', 'RESUME', 'RETURN_VALUE', 'YIELD_FROM', 'YIELD_VALUE', 'a', 'call', 'co', 'f_lasti', 'in_atexit', 'line', 'return', 'trace-changed', 'utf-8']

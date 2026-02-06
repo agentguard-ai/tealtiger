@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\shared\reasoning_effort.py
-# hypothesis_version: 6.151.4
-
-['ReasoningEffort', 'high', 'low', 'medium', 'minimal', 'none', 'xhigh']

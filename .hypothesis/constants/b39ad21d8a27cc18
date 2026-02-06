@@ -1,4 +1,0 @@
-# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\cost\types.py
-# hypothesis_version: 6.151.4
-
-['agent', 'alert', 'anthropic', 'azure-openai', 'block', 'cohere', 'critical', 'custom', 'daily', 'google', 'hourly', 'info', 'monthly', 'openai', 'organization', 'project', 'throttle', 'total', 'warning', 'weekly']

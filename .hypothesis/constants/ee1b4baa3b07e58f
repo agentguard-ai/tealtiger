@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\chat\chat_completion_chunk.py
-# hypothesis_version: 6.151.4
-
-['ChatCompletionChunk', 'Choice', 'ChoiceDelta', 'ChoiceDeltaToolCall', 'ChoiceLogprobs', 'assistant', 'auto', 'content_filter', 'default', 'developer', 'flex', 'function', 'function_call', 'length', 'priority', 'scale', 'stop', 'system', 'tool', 'tool_calls', 'user']

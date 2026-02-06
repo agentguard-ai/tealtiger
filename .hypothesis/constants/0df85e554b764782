@@ -1,4 +1,0 @@
-# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\clients\guarded_anthropic.py
-# hypothesis_version: 6.151.4
-
-[500, ', ', 'Anthropic API key', 'Anthropic base URL', 'Enable cost tracking', 'Enable guardrails', 'GuardedAnthropic', 'anthropic', 'assistant', 'content', 'default-agent', 'end_turn', 'input_tokens', 'max_tokens', 'message', 'messages', 'model', 'output_tokens', 'role', 'stop_sequence', 'system', 'text', 'type', 'user']

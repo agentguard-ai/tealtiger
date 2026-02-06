@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\lib\tools\_beta_runner.py
-# hypothesis_version: 6.151.4
-
-['AnyFunctionToolT', 'RunnerItemT', 'X-Stainless-Helper', 'assistant', 'compaction', 'content', 'enabled', 'is_error', 'max_tokens', 'messages', 'model', 'role', 'summary_prompt', 'text', 'tool_result', 'tool_use', 'tool_use_id', 'type', 'user']

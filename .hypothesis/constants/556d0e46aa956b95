@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpx\_decoders.py
-# hypothesis_version: 6.151.4
-
-['br', 'decompress', 'deflate', 'finish', 'gzip', 'identity', 'replace', 'utf-8', 'zstd']

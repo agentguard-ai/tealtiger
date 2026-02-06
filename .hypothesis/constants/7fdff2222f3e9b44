@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\_sync\http_proxy.py
-# hypothesis_version: 6.151.4
-
-[b'%b:%d', b'*/*', b':', b'Accept', b'Basic ', b'CONNECT', b'Host', b'Proxy-Authorization', b'http', 200, 299, '%d %s', 'ascii', 'connect', 'h2', 'http/1.1', 'httpcore.proxy', 'ignore', 'network_stream', 'proxy_auth', 'proxy_headers', 'proxy_url', 'reason_phrase', 'server_hostname', 'ssl_context', 'ssl_object', 'start_tls', 'timeout']

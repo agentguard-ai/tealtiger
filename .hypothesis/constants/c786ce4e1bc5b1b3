@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpx\_transports\__init__.py
-# hypothesis_version: 6.151.4
-
-['ASGITransport', 'AsyncBaseTransport', 'AsyncHTTPTransport', 'BaseTransport', 'HTTPTransport', 'MockTransport', 'WSGITransport']

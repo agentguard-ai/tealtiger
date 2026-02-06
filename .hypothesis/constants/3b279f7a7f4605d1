@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\lib\_old_api.py
-# hypothesis_version: 6.151.4
-
-['Audio', 'ChatCompletion', 'Completion', 'Customer', 'Deployment', 'Edit', 'Embedding', 'Engine', 'ErrorObject', 'File', 'FineTune', 'FineTuningJob', 'Image', 'Model', 'Moderation']

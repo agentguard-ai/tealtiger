@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\stepwise.py
-# hypothesis_version: 6.151.4
-
-['--stepwise', '--stepwise-reset', '--stepwise-skip', '--sw', '--sw-reset', '--sw-skip', 'cache/stepwise', 'call', 'general', 'last_cache_date_str', 'last_failed', 'last_test_count', 'stepwise', 'stepwise_reset', 'stepwise_skip', 'stepwiseplugin', 'store_true', 'workerinput']

@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\setuponly.py
-# hypothesis_version: 6.151.4
-
-[' (fixtures used: {})', ', ', '--setup-only', '--setup-show', '--setuponly', '--setupshow', 'SETUP', 'TEARDOWN', 'cached_param', 'capturemanager', 'debugconfig', 'param', 'request', 'store_true']

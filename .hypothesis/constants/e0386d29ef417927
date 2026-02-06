@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\shared\responses_model.py
-# hypothesis_version: 6.151.4
-
-['ResponsesModel', 'computer-use-preview', 'gpt-5-codex', 'gpt-5-pro', 'gpt-5-pro-2025-10-06', 'gpt-5.1-codex-max', 'o1-pro', 'o1-pro-2025-03-19', 'o3-deep-research', 'o3-pro', 'o3-pro-2025-06-10']

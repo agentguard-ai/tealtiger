@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\_sync\http11.py
-# hypothesis_version: 6.151.4
-
-[b'CONNECT', b'HTTP/', 100, 101, 200, 300, 1024, 'http_version', 'httpcore.http11', 'is_readable', 'network_stream', 'read', 'reason_phrase', 'request', 'response_closed', 'send_request_body', 'send_request_headers', 'timeout', 'write']

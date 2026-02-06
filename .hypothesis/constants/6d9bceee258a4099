@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\lib\tools\_beta_builtin_memory_tool.py
-# hypothesis_version: 6.151.4
-
-['cache_control', 'create', 'delete', 'insert', 'memory', 'memory_20250818', 'name', 'rename', 'str_replace', 'type', 'view']

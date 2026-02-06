@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response_content_part_done_event.py
-# hypothesis_version: 6.151.4
-
-['Part', 'PartReasoningText', 'reasoning_text', 'type']

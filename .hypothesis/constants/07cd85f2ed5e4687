@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\images_response.py
-# hypothesis_version: 6.151.4
-
-['1024x1024', '1024x1536', '1536x1024', 'ImagesResponse', 'Usage', 'high', 'jpeg', 'low', 'medium', 'opaque', 'png', 'transparent', 'webp']

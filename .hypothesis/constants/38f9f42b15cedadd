@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\graders\label_model_grader_param.py
-# hypothesis_version: 6.151.4
-
-['Input', 'InputContent', 'assistant', 'developer', 'input_image', 'label_model', 'message', 'output_text', 'system', 'user']

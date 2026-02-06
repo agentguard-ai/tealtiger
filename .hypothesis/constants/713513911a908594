@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\resources\beta\files.py
-# hypothesis_version: 6.151.4
-
-[',', '/v1/files?beta=true', 'Accept', 'AsyncFiles', 'Content-Type', 'Files', 'after_id', 'anthropic-beta', 'application/binary', 'before_id', 'file', 'files-api-2025-04-14', 'limit', 'multipart/form-data']

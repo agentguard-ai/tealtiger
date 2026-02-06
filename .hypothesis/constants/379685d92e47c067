@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pydantic\config.py
-# hypothesis_version: 6.151.4
-
-['ConfigDict', 'JsonDict', 'JsonValue', '_TypeT', 'all', 'allow', 'always', 'base64', 'config', 'constants', 'float', 'forbid', 'hex', 'ignore', 'infer', 'iso8601', 'keys', 'milliseconds', 'never', 'none', 'null', 'python-re', 'rust-regex', 'seconds', 'serialization', 'strings', 'subclass-instances', 'utf8', 'validation', 'with-config-on-model', 'with_config']

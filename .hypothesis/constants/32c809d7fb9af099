@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\types\parsed_message.py
-# hypothesis_version: 6.151.4
-
-['ParsedContentBlock', 'ParsedMessage', 'ParsedTextBlock', 'ResponseFormatT', 'parsed_output', 'text', 'type']

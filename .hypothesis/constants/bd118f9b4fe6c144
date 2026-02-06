@@ -1,4 +1,0 @@
-# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\guardrails\prompt_injection.py
-# hypothesis_version: 6.151.4
-
-[0.7, 0.75, 0.8, 0.85, 0.95, 0.98, 100, '"""|\\\'\\\'\\\'|```', '&#\\d+;', '1.0.0', 'DAN (mode|prompt)', 'DUDE (mode|prompt)', 'PromptInjection', '[FILTERED_INJECTION]', '\\\\x[0-9a-f]{2}', 'act as (a|an) ', 'action', 'allow', 'block', 'confidence', 'content', 'delimiter', 'description', 'detections', 'developer mode', 'do anything now', 'encoding', 'evil confidant', 'high', 'jailbreak', 'low', 'match', 'medium', 'messages', 'name', 'opposite mode', 'pattern', 'prompt', 'role_playing', 'roleplay as ', 'sensitivity', 'simulate (a|an) ', 'system_leakage', 'text', 'transform', 'transformed_text', 'type', 'version', 'you are now (a|an) ']

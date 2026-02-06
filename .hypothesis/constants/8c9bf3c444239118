@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\mark\__init__.py
-# hypothesis_version: 6.151.4
-
-['--markers', '-k', '-m', ':', 'EXPRESSION', 'HIDDEN_PARAM', 'MARKEXPR', 'MARK_GEN', 'Mark', 'MarkDecorator', 'MarkGenerator', 'ParameterSet', '_names', 'fail_at_collect', 'function', 'general', 'keyword', 'linelist', 'markers', 'markexpr', 'skip', 'store', 'store_true', 'xfail']

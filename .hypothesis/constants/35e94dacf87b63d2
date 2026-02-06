@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\resources\completions.py
-# hypothesis_version: 6.151.4
-
-[600, ',', '/v1/complete', 'AsyncCompletions', 'Completions', 'anthropic-beta', 'max_tokens_to_sample', 'metadata', 'model', 'prompt', 'stop_sequences', 'stream', 'temperature', 'top_k', 'top_p']

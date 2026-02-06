@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pygments\lexers\diff.py
-# hypothesis_version: 6.151.4
-
-[0.9, '#pop', '#push', '( )(.*)(\\n)', '(!.*|---)(\\n)', '((?:< |-).*)(\\n)', '((?:> |\\+).*)(\\n)', '(.*)(\\n)', '(=.*)(\\n)', '(\\s*)({})(.*)(\\n)', '*.darcspatch', '*.diff', '*.dpatch', '*.patch', '*.wdiff', '-', '--- ', '.', '0.10', '2.2', '<', '>', 'Context:', 'Darcs Patch', 'DarcsPatchLexer', 'Diff', 'DiffLexer', 'Index: ', 'New patches:', 'Patch bundle hash:', 'WDiff', 'WDiffLexer', '[^\\]].*\\n', '[^\\n\\[]+', '[^{}[\\]+-]+', '\\+', '\\+\\}', '\\-\\]', '\\[', '\\[\\-', '\\[_[^_]*_]', '\\]', '\\n', '\\{', '\\{\\+', '\\}', 'adddir', 'addfile', 'comment', 'delete', 'deleted', 'diff', 'diff ', 'dpatch', 'https://darcs.net', 'hunk', 'insert', 'inserted', 'move', 'replace', 'rmdir', 'rmfile', 'root', 'specialText', 'text/x-diff', 'text/x-patch', 'udiff', 'wdiff', '|']

@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pydantic\_internal\_mock_val_ser.py
-# hypothesis_version: 6.151.4
-
-['T', 'ValSer', '_attempt_rebuild', '_built_memo', '_code', '_error_message', '_val_or_ser', 'all referenced types', 'serializer', 'validator']

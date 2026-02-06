@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\h11\_readers.py
-# hypothesis_version: 6.151.4
-
-[b'\r\n', b' ', b'1.1', b'[ \\t]+', 200, 999999999, 'READERS', 'ascii', 'chunk_size', 'chunked', 'content-length', 'field_name', 'field_value', 'http/1.0', 'http_version', 'illegal request line', 'reason', 'status_code']

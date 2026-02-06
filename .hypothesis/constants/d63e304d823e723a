@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\h11\_events.py
-# hypothesis_version: 6.151.4
-
-[b'1.1', b'host', 100, 200, 1000, 'ConnectionClosed', 'Data', 'EndOfMessage', 'Event', 'Request', 'Response', 'ascii', 'chunk_end', 'chunk_start', 'data', 'headers', 'http_version', 'method', 'reason', 'status_code', 'target']

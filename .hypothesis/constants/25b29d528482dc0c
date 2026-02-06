@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\h11\_headers.py
-# hypothesis_version: 6.151.4
-
-[b',', b'1.1', b'100-continue', b'[0-9]+', b'chunked', b'content-length', b'expect', b'transfer-encoding', 501, '<Headers(%s)>', 'Request', '_full_items', 'ascii', 'bad Content-Length']

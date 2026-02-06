@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\beta\threads\run.py
-# hypothesis_version: 6.151.4
-
-['IncompleteDetails', 'LastError', 'RequiredAction', 'Run', 'TruncationStrategy', 'Usage', 'auto', 'invalid_prompt', 'last_messages', 'max_prompt_tokens', 'rate_limit_exceeded', 'server_error', 'submit_tool_outputs', 'thread.run']

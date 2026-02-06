@@ -1,4 +1,0 @@
-# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\guardrails\content_moderation.py
-# hypothesis_version: 6.151.4
-
-[0.3, 0.5, 0.8, 5.0, 100, 200, '1.0.0', 'Authorization', 'Content-Type', 'ContentModeration', '[FILTERED]', 'action', 'allow', 'api_key', 'application/json', 'block', 'categories', 'category', 'category_scores', 'content', 'description', 'flagged', 'harassment', 'hate', 'hate/threatening', 'input', 'messages', 'method', 'name', 'pattern', 'prompt', 'results', 'risk_scores', 'score', 'self-harm', 'sexual', 'sexual/minors', 'text', 'threshold', 'thresholds', 'transform', 'transformed_text', 'use_openai', 'version', 'violations', 'violence', 'violence/graphic']

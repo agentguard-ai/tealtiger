@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\unittest.py
-# hypothesis_version: 6.151.4
-
-['Unexpected success', '__init__', '__test__', '__unittest', '__unittest_skip__', '_excinfo', '_twisted_raw_excinfo', 'call', 'class', 'doClassCleanups', 'function', 'runTest', 'setUpClass', 'setup_method', 'tearDown', 'tearDownClass', 'tearDown_exceptions', 'teardown_method', 'twisted', 'unittest', 'usepdb']

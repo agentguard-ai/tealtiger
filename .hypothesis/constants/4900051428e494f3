@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\beta\thread_create_and_run_params.py
-# hypothesis_version: 6.151.4
-
-['Thread', 'ThreadMessage', 'ThreadToolResources', 'ToolResources', 'TruncationStrategy', 'assistant', 'auto', 'file_search', 'last_messages', 'static', 'user']

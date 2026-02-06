@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\web_search_tool_param.py
-# hypothesis_version: 6.151.4
-
-['Filters', 'UserLocation', 'WebSearchToolParam', 'approximate', 'high', 'low', 'medium', 'web_search']

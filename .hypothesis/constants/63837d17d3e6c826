@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\sync.py
-# hypothesis_version: 6.151.4
-
-[16384, 'client_addr', 'is_readable', 'server_addr', 'socket', 'ssl_object', 'win32']

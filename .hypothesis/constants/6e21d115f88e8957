@@ -1,4 +1,0 @@
-# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\inorout.py
-# hypothesis_version: 6.151.4
-
-['-none-', '<', 'Coverage code', 'Include', 'Omit', 'Python stdlib', 'Source directory', 'Source imports', 'Third-party lib', '__file__', '__init__.py', '__main__', '__name__', '__path__', '__spec__', 'already-imported', 'cover_match', 'coverage', 'coverage_paths', 'include', 'include-ignored', 'include_match', 'is in the stdlib', 'memory:', 'module-not-imported', 'module-not-measured', 'module-not-python', 'omit', 'omit_match', 'platlib', 'platstdlib', 'purelib', 'pylib', 'pylib_match', 'scripts', 'source', 'source_in_third', 'source_match', 'source_pkgs', 'source_pkgs_match', 'stdlib', 'stdlib_paths', 'sys.path:', 'sysconfig paths:', 'tests', 'third', 'third_match', 'third_party_paths', 'trace', 'utf-8']
