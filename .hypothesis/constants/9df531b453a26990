@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pytest_asyncio\plugin.py
+# hypothesis_version: 6.151.4
+
+[', ', '--asyncio-debug', '--asyncio-mode', '127.0.0.1', 'AsyncFixtureParams', 'MODE', 'Yield only once.', '_P', '_R', '__func__', '_loop_scope', 'asyncio', 'asyncio: ', 'asyncio_debug', 'asyncio_mode', 'auto', 'bool', 'callspec', 'class', 'false', 'func', 'function', 'hypothesis', 'ignore', 'inner_test', 'is_hypothesis_test', 'loop_scope', 'markers', 'module', 'obj', 'package', 'scope', 'session', 'store_true', 'strict', 'string', 'true']

@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\raises.py
+# hypothesis_version: 6.151.4
+
+['$', '(', '()', '(group)', ')', ', ', '-', 'Base', 'BaseExcT_1', 'BaseExcT_2', 'BaseExcT_co', 'BaseExcT_co_default', 'E', 'ExcT_1', 'ExcT_2', 'P', '\\', '\\1', '^', '`', 'a BaseException type', 'check', 'exception is None', 'expected_exception', 'group', 'match', 'unknown type', '{}()+.*?^$[]']

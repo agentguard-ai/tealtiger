@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pytest_cov\plugin.py
+# hypothesis_version: 6.151.4
+
+[100, '--cov', '--cov-append', '--cov-branch', '--cov-config', '--cov-context', '--cov-fail-under', '--cov-precision', '--cov-report', '--cov-reset', '--no-cov', '--no-cov-on-fail', '.coveragerc', ':', '=', '?', 'CONTEXT', 'CovController', 'FAIL ', 'MIN', 'PATH', 'SOURCE', 'TYPE', '_cov', '_cov_contexts', 'annotate', 'append', 'bold', 'cov', 'cov_source', 'coverage.md', 'default', 'dist', 'distload', 'fail_under', 'fixturenames', 'green', 'html', 'json', 'lcov', 'markdown', 'markdown-append', 'markers', 'no', 'no_cov', 'no_cover', 'not reached', 'numprocesses', 'once', 'precision', 'reached', 'red', 'run', 'setup', 'skip-covered', 'store', 'store_const', 'store_true', 'teardown', 'term', 'term-missing', 'terminalreporter', 'test', 'tests coverage', 'workerid', 'workerinput', 'xml']

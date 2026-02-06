@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\_sync\connection.py
+# hypothesis_version: 6.151.4
+
+[b'https', b'wss', 0.5, 'CONNECTING', 'CONNECTION FAILED', 'ascii', 'close', 'connect', 'connect_tcp', 'connect_unix_socket', 'h2', 'host', 'http/1.1', 'httpcore.connection', 'local_address', 'path', 'port', 'retry', 'server_hostname', 'sni_hostname', 'socket_options', 'ssl_context', 'ssl_object', 'start_tls', 'timeout']

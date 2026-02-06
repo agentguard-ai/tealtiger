@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\debug.py
+# hypothesis_version: 6.151.4
+
+[140, 65535, ' @ ', '$coverage.object_id', '(', ')', '*', ', ', '--{:-<60s}', '-none-', '.', '...', '; ', '<string>', 'API', 'COV', 'COVERAGE_DEBUG_FILE', 'HOME', 'KEY', 'PASS', 'PY', 'PYTEST_CURRENT_TEST', 'SECRET', 'SIGNATURE', 'TEMP', 'TMP', 'TOKEN', '\\bigor.py$', '\\bsite-packages\\b', '\\w', '_', '__dict__', '__init__', 'a', 'argv', 'callers', 'cov:', 'does not exist', 'pid', 'process', 'pytest', 'self', 'show_repr_attr', 'stderr', 'stdout', 'syspath:', 'tmp:', 'utf-8', '{}={!r}', '|']

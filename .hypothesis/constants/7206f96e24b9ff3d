@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\_models.py
+# hypothesis_version: 6.151.4
+
+[b'%b:%d', b'%b://%b%b', b'%b://%b:%d%b', b'/', b':', b'?', b'Basic ', b'Content-Length', b'Host', b'Proxy-Authorization', b'Transfer-Encoding', b'chunked', b'content-length', b'ftp', b'host', b'http', b'https', b'socks5', b'socks5h', b'transfer-encoding', b'ws', b'wss', 443, 1080, 'URL', '_content', 'aclose', 'ascii', 'auth', 'close', 'content', 'header name', 'header value', 'headers', 'host', 'method', 'scheme', 'target', 'url']

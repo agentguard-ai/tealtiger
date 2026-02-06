@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\bytecode.py
+# hypothesis_version: 6.151.4
+
+['<string>', 'JUMP_BACKWARD', 'JUMP_FORWARD', 'NOP', 'NOT_TAKEN', 'RETURN_GENERATOR', 'RETURN_VALUE', '__annotate__', 'exec']

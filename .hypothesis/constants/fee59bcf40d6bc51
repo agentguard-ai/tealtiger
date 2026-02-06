@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\_backends\mock.py
+# hypothesis_version: 6.151.4
+
+['Connection closed', 'h2', 'http/1.1', 'ssl_object']

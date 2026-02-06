@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response_error.py
+# hypothesis_version: 6.151.4
+
+['ResponseError', 'empty_image_file', 'image_file_not_found', 'image_file_too_large', 'image_parse_error', 'image_too_large', 'image_too_small', 'invalid_base64_image', 'invalid_image', 'invalid_image_format', 'invalid_image_mode', 'invalid_image_url', 'invalid_prompt', 'rate_limit_exceeded', 'server_error', 'vector_store_timeout']

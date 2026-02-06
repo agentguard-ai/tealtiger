@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\types\beta\beta_bash_code_execution_tool_result_error.py
+# hypothesis_version: 6.151.4
+
+['invalid_tool_input', 'too_many_requests', 'unavailable']

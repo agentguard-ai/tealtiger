@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\types\raw_message_stop_event.py
+# hypothesis_version: 6.151.4
+
+['RawMessageStopEvent', 'message_stop']

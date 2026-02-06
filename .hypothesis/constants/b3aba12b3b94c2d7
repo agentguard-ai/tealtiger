@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\h11\_connection.py
+# hypothesis_version: 6.151.4
+
+[b'1.1', b'CONNECT', b'GET', b'HEAD', b'chunked', b'close', b'connection', b'content-length', b'keep-alive', b'transfer-encoding', b'upgrade', 101, 200, 204, 300, 304, 431, 1024, 'Connection', 'NEED_DATA', 'PAUSED', 'chunked', 'content-length', 'http/1.0', 'http_version', 'read_eof']

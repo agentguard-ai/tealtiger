@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\resources\beta\messages\messages.py
+# hypothesis_version: 6.151.4
+
+[',', 'Anthropic', 'AsyncAnthropic', 'AsyncMessages', 'BetaToolRunner', 'Messages', 'X-Stainless-Helper', 'anthropic-beta', 'auto', 'beta.messages', 'beta.messages.parse', 'container', 'context_management', 'extra_body', 'extra_headers', 'extra_query', 'format', 'json_schema', 'max_tokens', 'mcp_servers', 'messages', 'metadata', 'model', 'output_config', 'output_format', 'service_tier', 'standard_only', 'stop_sequences', 'stream', 'system', 'temperature', 'thinking', 'timeout', 'tool_choice', 'tools', 'top_k', 'top_p']

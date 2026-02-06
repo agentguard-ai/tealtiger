@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\deprecated.py
+# hypothesis_version: 6.151.4
+
+['pytest_capturelog', 'pytest_catchlog', 'pytest_faulthandler', 'pytest_subtests']

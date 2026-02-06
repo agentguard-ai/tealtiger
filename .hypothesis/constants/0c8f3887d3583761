@@ -1,0 +1,4 @@
+# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\guardrails\pii_detection.py
+# hypothesis_version: 6.151.4
+
+['*', '1.0.0', 'No PII detected', 'PIIDetection', 'action', 'allow', 'block', 'content', 'credit_card', 'description', 'detect_types', 'detections', 'email', 'length', 'mask', 'masked_text', 'messages', 'name', 'phone', 'position', 'prompt', 'redact', 'redacted_text', 'risk_scores', 'ssn', 'text', 'type', 'value', 'version']

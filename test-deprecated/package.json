@@ -1,0 +1,17 @@
+{
+  "name": "test-deprecated",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@nagasatish_ch/agent-guard-sdk": "^0.1.0",
+    "agentguard-sdk": "^0.2.0"
+  }
+}

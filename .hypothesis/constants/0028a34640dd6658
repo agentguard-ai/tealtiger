@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\lib\streaming\_beta_types.py
+# hypothesis_version: 6.151.4
+
+['citation', 'content_block_stop', 'input_json', 'message_stop', 'signature', 'text', 'thinking', 'trailing-strings', 'type', 'utf-8']

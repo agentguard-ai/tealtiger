@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\types\beta\message_create_params.py
+# hypothesis_version: 6.151.4
+
+['Container', 'OutputFormat', 'anthropic-beta', 'auto', 'json_schema', 'standard_only']

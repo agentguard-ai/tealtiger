@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\tool_choice_types_param.py
+# hypothesis_version: 6.151.4
+
+['ToolChoiceTypesParam', 'code_interpreter', 'computer_use_preview', 'file_search', 'image_generation', 'web_search_preview']

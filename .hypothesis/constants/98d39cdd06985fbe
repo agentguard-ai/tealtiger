@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\h11\__init__.py
+# hypothesis_version: 6.151.4
+
+['CLIENT', 'CLOSED', 'Connection', 'ConnectionClosed', 'DONE', 'Data', 'ERROR', 'EndOfMessage', 'Event', 'IDLE', 'LocalProtocolError', 'MUST_CLOSE', 'NEED_DATA', 'PAUSED', 'ProtocolError', 'RemoteProtocolError', 'Request', 'Response', 'SEND_BODY', 'SEND_RESPONSE', 'SERVER', 'SWITCHED_PROTOCOL', 'python-h11/']

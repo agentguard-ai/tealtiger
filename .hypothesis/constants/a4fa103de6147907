@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\_sync\connection_pool.py
+# hypothesis_version: 6.151.4
+
+[b'http', b'socks5', b'socks5h', 'close', 'http', 'https', 'pool', 'timeout', 'ws', 'wss']

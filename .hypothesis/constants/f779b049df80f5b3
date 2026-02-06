@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\sqldata.py
+# hypothesis_version: 6.151.4
+
+[b'01', b'z', ' AND context_id IN (', ' or ', '%Y-%m-%d %H:%M:%S', ')', ', ', '.', '.*', '.coverage', ':memory:', '?', '???', 'Erasing data file', 'Finishing data file', 'IMMEDIATE', 'Initing data file', 'Opening data file', 'PRAGMA temp_store', '_', '_filename', 'argv', 'cant-combine', 'context REGEXP ?', 'dataio', 'dataop', 'dataop2', 'has_arcs', 'lock', 'map_path', 'numbits_union', 'numbits_union_agg', 'process', 'sqlite3_temp_store', 'sys_argv', 'utf-8', 'version', 'when']

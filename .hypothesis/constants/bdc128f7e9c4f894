@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\file_search_tool.py
+# hypothesis_version: 6.151.4
+
+['FileSearchTool', 'Filters', 'RankingOptions', 'auto', 'default-2024-11-15', 'file_search']

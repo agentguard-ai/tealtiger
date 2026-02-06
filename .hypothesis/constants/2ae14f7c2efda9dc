@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_hypothesis_pytestplugin.py
+# hypothesis_version: 6.151.4
+
+['--hypothesis-explain', '--hypothesis-profile', '--hypothesis-seed', '.', '.hypothesis', 'Hypothesis', 'Hypothesis stats', '__func__', '_hypothesis_stats', '_store', '_xml', 'auto', 'capture', 'debug', 'example', 'extra', 'fd', 'function', 'html', 'hypothesis', 'markers', 'native', 'no', 'nodeid', 'norecursedirs', 'normal', 'obj', 'parametrize', 'quiet', 'reproduce_example', 'seed', 'settings', 'stash', 'store', 'store_true', 'tbstyle', 'teardown', 'terminalreporter', 'verbose', 'version_tuple']

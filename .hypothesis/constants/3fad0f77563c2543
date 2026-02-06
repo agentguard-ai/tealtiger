@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\jsonreport.py
+# hypothesis_version: 6.151.4
+
+['JSON report', 'branch_coverage', 'contexts', 'covered_branches', 'covered_lines', 'excluded_lines', 'executed_branches', 'executed_lines', 'files', 'format', 'meta', 'missing_branches', 'missing_lines', 'num_branches', 'num_partial_branches', 'num_statements', 'percent_covered', 'show_contexts', 'start_line', 'summary', 'timestamp', 'totals', 'version']

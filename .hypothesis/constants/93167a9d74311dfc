@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pytest_cov\engine.py
+# hypothesis_version: 6.151.4
+
+[999999, '%s.%s.%06d.%s', '_', 'a', 'annotate', 'config', 'cov_master_host', 'cov_master_topdir', 'cov_worker_data', 'cov_worker_node_id', 'cov_worker_path', 'coverage', 'file', 'html', 'ignore_errors', 'json', 'lcov', 'markdown', 'markdown-append', 'precision', 'sep', 'show_missing', 'skip-covered', 'skip_covered', 'source', 'term', 'term-missing', 'test_function', 'w', 'win32', 'workeroutput', 'xml', '{}.{}.{}-{}-{}']

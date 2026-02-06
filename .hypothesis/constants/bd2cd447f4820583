@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\report.py
+# hypothesis_version: 6.151.4
+
+['   {:9}', ' Cover', ' Cover ', '**TOTAL**', '+', '-', '- |', '-: |', 'BrPart', 'Branch', 'Cover', 'Miss', 'Missing', 'Name', 'No data to report.', 'Stmts', 'TOTAL', '\\_', '_', 'markdown', 'name', 'text', 'total', '{:>10}', '{:>10} |', '{:>7}', '{:>9} |', '{:>{n}}', '{:>{n}} |', '{:>{n}}%', '{:>{n}}% |', '{:{name_len}}', '|', '| {:{name_len}}|', '|{:{name_len}} |']

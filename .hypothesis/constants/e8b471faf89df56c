@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response_input_item.py
+# hypothesis_version: 6.151.4
+
+['ApplyPatchCall', 'ApplyPatchCallOutput', 'ComputerCallOutput', 'FunctionCallOutput', 'ImageGenerationCall', 'ItemReference', 'LocalShellCall', 'LocalShellCallAction', 'LocalShellCallOutput', 'McpApprovalRequest', 'McpApprovalResponse', 'McpCall', 'McpListTools', 'McpListToolsTool', 'Message', 'ResponseInputItem', 'ShellCall', 'ShellCallAction', 'ShellCallOutput', 'apply_patch_call', 'calling', 'completed', 'computer_call_output', 'create_file', 'delete_file', 'developer', 'exec', 'failed', 'function_call_output', 'generating', 'in_progress', 'incomplete', 'item_reference', 'local_shell_call', 'mcp_approval_request', 'mcp_call', 'mcp_list_tools', 'message', 'shell_call', 'shell_call_output', 'system', 'type', 'update_file', 'user']

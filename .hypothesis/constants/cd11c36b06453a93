@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\lib\foundry.py
+# hypothesis_version: 6.151.4
+
+['Authorization', '_DefaultStreamT', '_HttpxClientT', 'api-key', 'str | Awaitable[str]']

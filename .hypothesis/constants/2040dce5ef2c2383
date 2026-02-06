@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response.py
+# hypothesis_version: 6.151.4
+
+['24h', 'Conversation', 'IncompleteDetails', 'Response', 'ToolChoice', 'auto', 'content_filter', 'default', 'disabled', 'flex', 'in-memory', 'max_output_tokens', 'message', 'output_text', 'priority', 'response', 'scale']

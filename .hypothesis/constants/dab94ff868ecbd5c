@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\pagination.py
+# hypothesis_version: 6.151.4
+
+['AsyncPage', 'AsyncPageCursor', 'AsyncTokenPage', 'SyncPage', 'SyncPageCursor', 'SyncTokenPage', '_T', 'after_id', 'before_id', 'page', 'page_token']

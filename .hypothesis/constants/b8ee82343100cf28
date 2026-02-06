@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pygments\lexer.py
+# hypothesis_version: 6.151.4
+
+[b'\x00\x00\xfe\xff', b'\xef\xbb\xbf', b'\xfe\xff', b'\xff\xfe', b'\xff\xfe\x00\x00', 0.0, 110, 1000, 1024, '#', '#pop', '#pop:', '#push', '-', '.*?\n', '=', 'DelegatingLexer', 'ExtendedRegexLexer', 'Lexer', 'LexerContext', 'No such group', 'RegexLexer', '\\', '\\\\', '_tmp_%d', '_tokens', 'analyse_text', 'bygroups', 'chardet', 'default', 'encoding', 'ensurenl', 'filters', 'guess', 'include', 'inencoding', 'inherit', 'line_re', 'regex', 'replace', 'root', 'stack', 'state', 'stripall', 'stripnl', 'tabsize', 'this', 'token_variants', 'tokens', "u'", 'unknown new state ', 'using', 'utf-16', 'utf-16be', 'utf-32', 'utf-32be', 'utf-8', 'words', '\ufeff']

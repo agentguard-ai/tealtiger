@@ -1,0 +1,617 @@
+{
+	"info": {
+		"_postman_id": "ai-agent-security-platform",
+		"name": "AI Agent Security Platform - Phase 1A",
+		"description": "Complete API collection for testing the AI Agent Security Platform MVP.\n\nThis collection includes all endpoints with example requests and expected responses.\n\n**Base URL:** http://localhost:3001\n**Authentication:** X-API-Key header required (minimum 10 characters)\n\n**Test Scenarios:**\n1. Health Check - Verify server is running\n2. Security Evaluation - Test policy decisions\n3. Policy Management - View and validate policies\n4. Audit Trail - Review security decisions\n\n**Example API Key:** test-api-key-12345",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response has correct structure\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property('status', 'healthy');",
+							"    pm.expect(jsonData).to.have.property('service', 'AI Agent Security Platform');",
+							"    pm.expect(jsonData).to.have.property('version');",
+							"    pm.expect(jsonData).to.have.property('timestamp');",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 200ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"health"
+					]
+				},
+				"description": "Health check endpoint to verify the server is running and responsive.\n\n**Expected Response:**\n- Status: 200 OK\n- Body: JSON with status, service name, version, and timestamp\n- Response time: < 200ms"
+			},
+			"response": []
+		},
+		{
+			"name": "Security Evaluation - Web Search (Allow)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Request is allowed\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"    pm.expect(jsonData.decision.action).to.eql('allow');",
+							"    pm.expect(jsonData.decision.riskLevel).to.be.oneOf(['low', 'medium']);",
+							"});",
+							"",
+							"pm.test(\"Response has required fields\", function () {",
+							"    const decision = pm.response.json().decision;",
+							"    pm.expect(decision).to.have.property('requestId');",
+							"    pm.expect(decision).to.have.property('agentId', 'test-agent');",
+							"    pm.expect(decision).to.have.property('toolName', 'web-search');",
+							"    pm.expect(decision).to.have.property('reason');",
+							"    pm.expect(decision).to.have.property('timestamp');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{apiKey}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"agentId\": \"test-agent\",\n  \"toolName\": \"web-search\",\n  \"parameters\": {\n    \"query\": \"AI security best practices\"\n  },\n  \"context\": {\n    \"userAgent\": \"Postman Test\",\n    \"timestamp\": \"{{$timestamp}}\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/security/evaluate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"evaluate"
+					]
+				},
+				"description": "Test security evaluation for a web search request.\n\n**Expected Result:** ALLOW\n**Reason:** Web searches are considered low risk\n**Policy:** allow-search-operations\n\n**Test Validates:**\n- Request is allowed\n- Risk level is low/medium\n- Proper response structure\n- Performance < 100ms"
+			},
+			"response": []
+		},
+		{
+			"name": "Security Evaluation - System Command (Deny)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Request is denied\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"    pm.expect(jsonData.decision.action).to.eql('deny');",
+							"    pm.expect(jsonData.decision.riskLevel).to.be.oneOf(['high', 'critical']);",
+							"});",
+							"",
+							"pm.test(\"Denial reason is provided\", function () {",
+							"    const decision = pm.response.json().decision;",
+							"    pm.expect(decision.reason).to.include('System commands');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{apiKey}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"agentId\": \"test-agent\",\n  \"toolName\": \"system-command\",\n  \"parameters\": {\n    \"command\": \"ls -la\",\n    \"shell\": \"/bin/bash\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/security/evaluate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"evaluate"
+					]
+				},
+				"description": "Test security evaluation for a system command request.\n\n**Expected Result:** DENY\n**Reason:** System commands are blocked for security\n**Policy:** deny-system-commands\n\n**Test Validates:**\n- Request is denied\n- Risk level is high/critical\n- Clear denial reason provided"
+			},
+			"response": []
+		},
+		{
+			"name": "Security Evaluation - File Write (Transform)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Request is transformed\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"    pm.expect(jsonData.decision.action).to.eql('transform');",
+							"});",
+							"",
+							"pm.test(\"Transformation reason provided\", function () {",
+							"    const decision = pm.response.json().decision;",
+							"    pm.expect(decision.reason).to.include('converted to read-only');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{apiKey}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"agentId\": \"test-agent\",\n  \"toolName\": \"file-write\",\n  \"parameters\": {\n    \"path\": \"/tmp/test.txt\",\n    \"content\": \"This is test content\",\n    \"mode\": \"w\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/security/evaluate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"evaluate"
+					]
+				},
+				"description": "Test security evaluation for a file write request.\n\n**Expected Result:** TRANSFORM\n**Reason:** File writes are converted to read-only for safety\n**Policy:** transform-file-write\n\n**Test Validates:**\n- Request is transformed\n- Transformation reason provided\n- Original intent preserved but made safe"
+			},
+			"response": []
+		},
+		{
+			"name": "Security Evaluation - File Read (Allow)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Request is allowed\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"    pm.expect(jsonData.decision.action).to.eql('allow');",
+							"});",
+							"",
+							"pm.test(\"Low risk operation\", function () {",
+							"    const decision = pm.response.json().decision;",
+							"    pm.expect(decision.riskLevel).to.be.oneOf(['low', 'medium']);",
+							"    pm.expect(decision.reason).to.include('Read operation');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{apiKey}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"agentId\": \"test-agent\",\n  \"toolName\": \"file-read\",\n  \"parameters\": {\n    \"path\": \"/tmp/safe-file.txt\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/security/evaluate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"evaluate"
+					]
+				},
+				"description": "Test security evaluation for a file read request.\n\n**Expected Result:** ALLOW\n**Reason:** File reads are considered safe operations\n**Policy:** allow-read-operations\n\n**Test Validates:**\n- Request is allowed\n- Risk level is low/medium\n- Read operations are permitted"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Security Policies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Policies are returned\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"    pm.expect(jsonData.policies).to.have.property('policies');",
+							"    pm.expect(jsonData.policies.policies).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Expected number of policies\", function () {",
+							"    const policies = pm.response.json().policies.policies;",
+							"    pm.expect(policies.length).to.be.at.least(8);",
+							"});",
+							"",
+							"pm.test(\"Policy structure is correct\", function () {",
+							"    const policies = pm.response.json().policies.policies;",
+							"    const firstPolicy = policies[0];",
+							"    pm.expect(firstPolicy).to.have.property('name');",
+							"    pm.expect(firstPolicy).to.have.property('action');",
+							"    pm.expect(firstPolicy).to.have.property('reason');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{apiKey}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/security/policies",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"policies"
+					]
+				},
+				"description": "Retrieve all currently loaded security policies.\n\n**Expected Response:**\n- 8+ default policies\n- Each policy has name, action, reason, conditions\n- Policy version information\n\n**Test Validates:**\n- All policies are loaded\n- Policy structure is correct\n- Version information is present"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Audit Trail",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Audit trail is returned\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"    pm.expect(jsonData.auditTrail).to.have.property('entries');",
+							"    pm.expect(jsonData.auditTrail.entries).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Audit entries have correct structure\", function () {",
+							"    const entries = pm.response.json().auditTrail.entries;",
+							"    if (entries.length > 0) {",
+							"        const firstEntry = entries[0];",
+							"        pm.expect(firstEntry).to.have.property('timestamp');",
+							"        pm.expect(firstEntry).to.have.property('agentId');",
+							"        pm.expect(firstEntry).to.have.property('action');",
+							"        pm.expect(firstEntry).to.have.property('toolName');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{apiKey}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/security/audit/test-agent?limit=10",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"audit",
+						"test-agent"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				},
+				"description": "Retrieve audit trail for a specific agent.\n\n**Parameters:**\n- agentId: test-agent (in URL path)\n- limit: 10 (query parameter)\n\n**Expected Response:**\n- Array of audit entries\n- Each entry has timestamp, agentId, action, toolName\n- Entries sorted by timestamp (newest first)\n\n**Test Validates:**\n- Audit trail is accessible\n- Entry structure is correct\n- Filtering by agent works"
+			},
+			"response": []
+		},
+		{
+			"name": "Validate Policies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Validation result is returned\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.true;",
+							"    pm.expect(jsonData.validation).to.have.property('valid');",
+							"});",
+							"",
+							"pm.test(\"Valid policy is accepted\", function () {",
+							"    const validation = pm.response.json().validation;",
+							"    pm.expect(validation.valid).to.be.true;",
+							"    pm.expect(validation.errors).to.be.an('array').that.is.empty;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "{{apiKey}}",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"policies\": [\n    {\n      \"name\": \"test-policy\",\n      \"description\": \"Test policy for validation\",\n      \"conditions\": [\n        {\n          \"type\": \"tool_name\",\n          \"pattern\": \"test-*\"\n        }\n      ],\n      \"action\": \"allow\",\n      \"reason\": \"Test policy allows test tools\"\n    }\n  ]\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/security/policies/validate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"policies",
+						"validate"
+					]
+				},
+				"description": "Validate a policy configuration before deployment.\n\n**Test Policy:**\n- Name: test-policy\n- Condition: tool_name matches \"test-*\"\n- Action: allow\n\n**Expected Response:**\n- valid: true\n- errors: empty array\n- warnings: may contain suggestions\n\n**Test Validates:**\n- Policy validation works\n- Valid policies are accepted\n- Validation response structure"
+			},
+			"response": []
+		},
+		{
+			"name": "Authentication Test - Missing API Key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.false;",
+							"    pm.expect(jsonData.error.code).to.eql('MISSING_API_KEY');",
+							"    pm.expect(jsonData.error.message).to.include('API key required');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"agentId\": \"test-agent\",\n  \"toolName\": \"web-search\",\n  \"parameters\": {\n    \"query\": \"test\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/security/evaluate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"evaluate"
+					]
+				},
+				"description": "Test authentication failure when API key is missing.\n\n**Expected Result:** 401 Unauthorized\n**Error Code:** MISSING_API_KEY\n**Message:** API key required in X-API-Key header\n\n**Test Validates:**\n- Authentication is enforced\n- Proper error response\n- Security is fail-closed"
+			},
+			"response": []
+		},
+		{
+			"name": "Authentication Test - Invalid API Key",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 401\", function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"pm.test(\"Error message is correct\", function () {",
+							"    const jsonData = pm.response.json();",
+							"    pm.expect(jsonData.success).to.be.false;",
+							"    pm.expect(jsonData.error.code).to.eql('INVALID_API_KEY');",
+							"    pm.expect(jsonData.error.message).to.include('Invalid API key format');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-API-Key",
+						"value": "short",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"agentId\": \"test-agent\",\n  \"toolName\": \"web-search\",\n  \"parameters\": {\n    \"query\": \"test\"\n  }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/security/evaluate",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"security",
+						"evaluate"
+					]
+				},
+				"description": "Test authentication failure when API key is too short.\n\n**API Key:** \"short\" (< 10 characters)\n**Expected Result:** 401 Unauthorized\n**Error Code:** INVALID_API_KEY\n**Message:** Invalid API key format\n\n**Test Validates:**\n- API key length validation\n- Proper error response\n- Security requirements enforced"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "apiKey",
+			"value": "test-api-key-12345",
+			"type": "string"
+		}
+	]
+}

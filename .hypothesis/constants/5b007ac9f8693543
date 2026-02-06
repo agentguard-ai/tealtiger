@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\docstring_parser\epydoc.py
+# hypothesis_version: 6.151.4
+
+['(^@.*?)(?=^@|\\Z)', '.', '.*defaults to (.+)', '?', '@raise:', '\\s+', '^@', 'description', 'is_generator', 'keyword', 'meta', 'param', 'raise', 'return', 'rtype', 'type', 'type_name', 'yield', 'ytype']

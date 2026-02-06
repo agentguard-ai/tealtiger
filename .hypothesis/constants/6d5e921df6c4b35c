@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpx\_config.py
+# hypothesis_version: 6.151.4
+
+[5.0, 100, '********', 'Limits', 'Proxy', 'SSL_CERT_DIR', 'SSL_CERT_FILE', 'Timeout', 'connect', 'create_ssl_context', 'http', 'https', 'pool', 'read', 'socks5', 'socks5h', 'utf-8', 'write']

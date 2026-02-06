@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\config\argparsing.py
+# hypothesis_version: 6.151.4
+
+[0.0, '*', ', ', '-', '--', '<notset>', '=', '???', '@', 'Argument({})', 'Custom options', '_', '_anonymous', '_long_opts: ', '_short_opts: ', 'args', 'bool', 'default', 'default: ', 'dest', 'dest: ', 'file_or_dir', 'float', 'help', 'int', 'linelist', 'override_ini', 'pathlist', 'paths', 'string', 'type', 'type: ', 'width']

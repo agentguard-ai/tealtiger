@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response_function_web_search.py
+# hypothesis_version: 6.151.4
+
+['Action', 'ActionFind', 'ActionOpenPage', 'ActionSearch', 'ActionSearchSource', 'completed', 'failed', 'find', 'in_progress', 'open_page', 'search', 'searching', 'type', 'url', 'web_search_call']

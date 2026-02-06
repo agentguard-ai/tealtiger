@@ -1,0 +1,130 @@
+{
+  "version": "1.0.0",
+  "description": "Default security policies for AI Agent Security Platform MVP",
+  "policies": [
+    {
+      "name": "deny-critical-operations",
+      "description": "Block all critical risk operations",
+      "priority": 1,
+      "conditions": [
+        {
+          "type": "risk_level",
+          "operator": ">=",
+          "value": "critical"
+        }
+      ],
+      "action": "deny",
+      "reason": "Operation exceeds critical risk threshold and is blocked for security"
+    },
+    {
+      "name": "deny-system-commands",
+      "description": "Block system command execution",
+      "priority": 2,
+      "conditions": [
+        {
+          "type": "tool_name",
+          "pattern": "*system*"
+        }
+      ],
+      "action": "deny",
+      "reason": "System commands are not allowed for security reasons"
+    },
+    {
+      "name": "transform-file-write",
+      "description": "Convert file write operations to read-only",
+      "priority": 3,
+      "conditions": [
+        {
+          "type": "tool_name",
+          "pattern": "*file-write*"
+        },
+        {
+          "type": "risk_level",
+          "operator": "<=",
+          "value": "high"
+        }
+      ],
+      "action": "transform",
+      "transformation": {
+        "type": "read_only"
+      },
+      "reason": "File write operation converted to read-only for safety"
+    },
+    {
+      "name": "anonymize-sensitive-data",
+      "description": "Remove sensitive parameters from requests",
+      "priority": 4,
+      "conditions": [
+        {
+          "type": "parameter_exists",
+          "parameter": "password"
+        }
+      ],
+      "action": "transform",
+      "transformation": {
+        "type": "parameter_anonymize",
+        "anonymize_parameters": ["password", "token", "secret", "key"]
+      },
+      "reason": "Sensitive parameters anonymized for security"
+    },
+    {
+      "name": "allow-read-operations",
+      "description": "Allow safe read operations",
+      "priority": 5,
+      "conditions": [
+        {
+          "type": "tool_name",
+          "pattern": "*read*"
+        },
+        {
+          "type": "risk_level",
+          "operator": "<=",
+          "value": "medium"
+        }
+      ],
+      "action": "allow",
+      "reason": "Read operation approved - low security risk"
+    },
+    {
+      "name": "allow-search-operations",
+      "description": "Allow web search and knowledge base queries",
+      "priority": 6,
+      "conditions": [
+        {
+          "type": "tool_name",
+          "pattern": "*search*"
+        }
+      ],
+      "action": "allow",
+      "reason": "Search operation approved - minimal security risk"
+    },
+    {
+      "name": "allow-low-risk",
+      "description": "Allow all low risk operations",
+      "priority": 7,
+      "conditions": [
+        {
+          "type": "risk_level",
+          "operator": "==",
+          "value": "low"
+        }
+      ],
+      "action": "allow",
+      "reason": "Low risk operation approved"
+    },
+    {
+      "name": "require-approval-high-risk",
+      "description": "High risk operations require manual approval (future feature)",
+      "priority": 8,
+      "conditions": [
+        {
+          "type": "risk_level",
+          "operator": "==",
+          "value": "high"
+        }
+      ],
+      "action": "deny",
+      "reason": "High risk operation requires manual approval (not implemented in MVP)"
+    }
+  ]
+}

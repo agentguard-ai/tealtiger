@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\types\web_search_tool_request_error_param.py
+# hypothesis_version: 6.151.4
+
+['invalid_tool_input', 'max_uses_exceeded', 'query_too_long', 'request_too_large', 'too_many_requests', 'unavailable']

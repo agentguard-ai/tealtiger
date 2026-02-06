@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anthropic\resources\beta\__init__.py
+# hypothesis_version: 6.151.4
+
+['AsyncBeta', 'AsyncFiles', 'AsyncMessages', 'AsyncModels', 'AsyncSkills', 'Beta', 'BetaWithRawResponse', 'Files', 'FilesWithRawResponse', 'Messages', 'Models', 'Skills']

@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\control.py
+# hypothesis_version: 6.151.4
+
+[' (disabled)', ', ', '-none-', ':data:', '<Coverage', '>', 'COVERAGE_DEBUG_CALLS', 'CTracer', 'Coverage._init', 'MISSING', '_is_gil_enabled', 'argv', 'atexit', 'build', 'command_line', 'config', 'config_contents', 'config_file', 'configs_attempted', 'configs_read', 'core', 'coverage', 'coverage_module', 'coverage_version', 'cwd', 'data_file', 'def_encoding', 'default', 'dynamic-conflict', 'end', 'environment', 'exclude', 'executable', 'fork', 'fs_encoding', 'get_data', 'gil_enabled', 'implementation', 'multiprocessing', 'no-data-collected', 'none', 'path', 'pathmap', 'pid', 'platform', 'plugins.configurers', 'plugins.file_tracers', 'process', 'pth_files', 'pybehave', 'python', 'sigterm', 'sqlite', 'sys', 'sys: ', 'test_function', 'time', 'trace', 'unavailable']

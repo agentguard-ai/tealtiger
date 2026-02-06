@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\_types.py
+# hypothesis_version: 6.151.4
+
+['APIResponse[Any]', 'BaseModel', 'IncEx', 'ModelT', 'NOT_GIVEN', 'ResponseT', '_T', '_T_co', 'str | URL']

@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpcore\__init__.py
+# hypothesis_version: 6.151.4
+
+['1.0.9', 'AnyIOBackend', 'AsyncConnectionPool', 'AsyncHTTP2Connection', 'AsyncHTTPConnection', 'AsyncHTTPProxy', 'AsyncMockBackend', 'AsyncMockStream', 'AsyncNetworkBackend', 'AsyncNetworkStream', 'AsyncSOCKSProxy', 'ConnectError', 'ConnectTimeout', 'ConnectionInterface', 'ConnectionPool', 'HTTP11Connection', 'HTTP2Connection', 'HTTPConnection', 'HTTPProxy', 'LocalProtocolError', 'MockBackend', 'MockStream', 'NetworkBackend', 'NetworkError', 'NetworkStream', 'Origin', 'PoolTimeout', 'ProtocolError', 'Proxy', 'ProxyError', 'ReadError', 'ReadTimeout', 'RemoteProtocolError', 'Request', 'Response', 'SOCKET_OPTION', 'SOCKSProxy', 'SyncBackend', 'TimeoutException', 'TrioBackend', 'URL', 'UnsupportedProtocol', 'WriteError', 'WriteTimeout', '__', '__module__', 'default_ssl_context', 'httpcore', 'request', 'stream']

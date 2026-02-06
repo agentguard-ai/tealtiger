@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\lib\azure.py
+# hypothesis_version: 6.151.4
+
+[b'/', b'/openai/', b'/realtime', '/audio/speech', '/audio/translations', '/chat/completions', '/completions', '/deployments', '/embeddings', '/images/edits', '/images/generations', '/realtime', '<', '<missing API key>', '>', 'AZURE_OPENAI_API_KEY', 'Authorization', 'OPENAI_API_VERSION', '_DefaultStreamT', '_HttpxClientT', 'api-key', 'api-version', 'api_version', 'azure_ad_token', 'deployment', 'missing API key', 'model', 'str | Awaitable[str]', 'wss']

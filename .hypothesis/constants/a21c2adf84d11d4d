@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\responses\response_code_interpreter_tool_call.py
+# hypothesis_version: 6.151.4
+
+['Output', 'OutputImage', 'OutputLogs', 'completed', 'failed', 'image', 'in_progress', 'incomplete', 'interpreting', 'logs', 'type']

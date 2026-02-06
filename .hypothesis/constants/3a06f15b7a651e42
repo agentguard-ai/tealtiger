@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\types\graders\text_similarity_grader_param.py
+# hypothesis_version: 6.151.4
+
+['bleu', 'cosine', 'fuzzy_match', 'gleu', 'meteor', 'rouge_1', 'rouge_2', 'rouge_3', 'rouge_4', 'rouge_5', 'rouge_l', 'text_similarity']

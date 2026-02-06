@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\anyio\_core\_tempfile.py
+# hypothesis_version: 6.151.4
+
+['b', 'buffering', 'delete', 'delete_on_close', 'dir', 'encoding', 'errors', 'mode', 'newline', 'prefix', 'suffix', 'w+b']

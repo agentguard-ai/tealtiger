@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\reports.py
+# hypothesis_version: 6.151.4
+
+[100, '$report_type', '-', '::', '; ', 'Captured log', 'Captured stderr', 'Captured stdout', 'CollectReport', 'ReprEntry', 'ReprEntryNative', 'TestReport', '__dict__', '_use_item_location', 'auto', 'call', 'chain', 'collect', 'data', 'executable', 'failed', 'id', 'lines', 'longrepr', 'msg', 'node', 'passed', 'reprcrash', 'reprentries', 'reprfileloc', 'reprfuncargs', 'reprlocals', 'reprtraceback', 'result', 'sections', 'setup', 'skipped', 'style', 'sysplatform', 'tbstyle', 'teardown', 'toterminal', 'type', 'version_info', '{}.{}.{}']

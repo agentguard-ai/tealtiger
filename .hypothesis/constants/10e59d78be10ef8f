@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\openai\_exceptions.py
+# hypothesis_version: 6.151.4
+
+[400, 401, 403, 404, 409, 422, 429, 'AuthenticationError', 'BadRequestError', 'ConflictError', 'Connection error.', 'InternalServerError', 'NotFoundError', 'RateLimitError', 'Request timed out.', 'code', 'param', 'type', 'x-request-id']

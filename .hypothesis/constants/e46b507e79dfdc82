@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\h11\_abnf.py
+# hypothesis_version: 6.151.4
+
+['({HEXDIG}){{1,20}}', '({field_content})?', ';.*', '[ \\t]*', '[0-9A-Fa-f]', '[0-9]{3}', '[\\x21-\\x7e]', '[^\\x00\\s]', '{vchar}+']

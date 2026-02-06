@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\pygments\lexers\__init__.py
+# hypothesis_version: 6.151.4
+
+[0.0, 0.5, 1.0, '*', 'CustomLexer', 'Lean3Lexer', 'LeanLexer', 'Python3Lexer', 'PythonLexer', 'PythonTracebackLexer', '__all__', 'encoding', 'find_lexer_class', 'get_lexer_by_name', 'guess_lexer', 'inencoding', 'load_lexer_from_file', 'rb', 'utf8']

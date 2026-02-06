@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\h11\_writers.py
+# hypothesis_version: 6.151.4
+
+[b'\r\n', b'%s %s HTTP/1.1\r\n', b'%s: %s\r\n', b'%x\r\n', b'0\r\n', b'1.1', b'HTTP/1.1 %s %s\r\n', b'host', 'I only send HTTP/1.1', 'WRITERS', 'ascii', 'chunked', 'content-length', 'http/1.0']

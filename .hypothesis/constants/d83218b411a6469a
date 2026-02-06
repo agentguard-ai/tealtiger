@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\httpx\_exceptions.py
+# hypothesis_version: 6.151.4
+
+['CloseError', 'ConnectError', 'ConnectTimeout', 'CookieConflict', 'DecodingError', 'HTTPError', 'HTTPStatusError', 'InvalidURL', 'LocalProtocolError', 'NetworkError', 'PoolTimeout', 'ProtocolError', 'ProxyError', 'ReadError', 'ReadTimeout', 'RemoteProtocolError', 'RequestError', 'RequestNotRead', 'ResponseNotRead', 'StreamClosed', 'StreamConsumed', 'StreamError', 'TimeoutException', 'TooManyRedirects', 'TransportError', 'UnsupportedProtocol', 'WriteError', 'WriteTimeout']

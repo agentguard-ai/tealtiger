@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\coverage\collector.py
+# hypothesis_version: 6.151.4
+
+[268435455, 'T', 'check_include', 'concur_id_func', 'disable_plugin', 'eventlet', 'file_tracers', 'gevent', 'greenlet', 'module', 'nothing', 'post_fork', 'self._collectors:', 'should_start_context', 'switch_context', 'thread', 'threading', '|']

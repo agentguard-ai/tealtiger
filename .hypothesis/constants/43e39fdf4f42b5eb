@@ -1,0 +1,4 @@
+# file: C:\Users\satis\OneDrive\AI Agent Security Platform\packages\agentguard-python\src\agentguard\clients\guarded_openai.py
+# hypothesis_version: 6.151.4
+
+[500, ', ', 'Enable cost tracking', 'Enable guardrails', 'GuardedOpenAI', 'OpenAI API key', 'OpenAI base URL', 'Organization ID', 'assistant', 'completion_tokens', 'content', 'default-agent', 'finish_reason', 'function', 'index', 'max_tokens', 'message', 'messages', 'model', 'openai', 'prompt_tokens', 'role', 'system', 'total_tokens', 'user']

@@ -1,0 +1,4 @@
+# file: C:\Users\satis\AppData\Roaming\Python\Python314\site-packages\_pytest\config\findpaths.py
+# hypothesis_version: 6.151.4
+
+['-', '.cfg', '.ini', '.pytest.ini', '.pytest.toml', '.toml', '::', '=', 'file', 'ini', 'ini_options', 'override', 'pyproject.toml', 'pytest', 'pytest.ini', 'pytest.toml', 'setup.cfg', 'setup.py', 'toml', 'tool', 'tool:pytest', 'tox.ini', 'utf-8']
