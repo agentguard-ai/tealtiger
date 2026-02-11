@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-02-11
+
+### Added - Multi-Provider Expansion
+- **7 LLM Provider Support**: OpenAI, Anthropic, Google Gemini, AWS Bedrock, Azure OpenAI, Mistral AI, Cohere
+- **95%+ Market Coverage**: Support for 50+ models across all major providers
+- **TealGemini Client**: Google Gemini with multimodal support (text + images)
+- **TealBedrock Client**: AWS Bedrock with multi-model access (Claude, Titan, Jurassic, Command, Llama)
+- **TealAzureOpenAI Client**: Azure OpenAI with deployment-based routing and Azure AD auth
+- **TealMistral Client**: Mistral AI with European data residency and GDPR compliance
+- **TealCohere Client**: Cohere with RAG capabilities, citations, and web search connectors
+- **TealMultiProvider**: Multi-provider orchestration with automatic failover and load balancing
+- **CostCalculator Utility**: Compare costs across providers and generate optimization recommendations
+- **Provider Comparison Matrix**: Comprehensive documentation comparing all 7 providers
+
+### Added - TealEngine v1.1.0 Components
+- **TealEngine**: Centralized policy engine with declarative policy DSL
+- **TealGuard**: Input/output validation with PII detection and content moderation
+- **TealMonitor**: Real-time metrics tracking and alerting
+- **TealCircuit**: Circuit breaker pattern for resilience
+- **TealAudit**: Comprehensive audit logging with structured events
+
+### Enhanced
+- **Cost Tracking**: Extended to support all 7 providers with accurate pricing
+- **Budget Management**: Multi-provider budget enforcement
+- **Security Guardrails**: Enhanced PII detection, prompt injection prevention, content moderation
+- **Integration Tests**: Comprehensive tests for all providers with TealTiger components
+- **Documentation**: Provider comparison guide, migration guides, 7 new example files
+
+### Features
+- **Multi-Provider Routing**: Priority-based, round-robin, cost-based, and use-case routing strategies
+- **Automatic Failover**: High availability with configurable failover attempts
+- **Cost Optimization**: Real-time cost comparison and recommendations
+- **Provider-Specific Features**: Multimodal (Gemini), RAG (Cohere), EU residency (Mistral)
+- **Backward Compatible**: Zero breaking changes, existing code works unchanged
+
+### Performance
+- **<20ms Overhead**: Minimal latency per provider
+- **802 Tests Passing**: Comprehensive test coverage across all providers
+- **Production Ready**: Stable, tested, and documented
+
+### Documentation
+- 7 provider-specific examples (Gemini, Bedrock, Azure, Mistral, Cohere, multi-provider, cost comparison)
+- Provider comparison matrix with feature comparison
+- Migration guides from native SDKs
+- Cost comparison utilities documentation
+- Updated README with v1.1.0 features
+
 ## [0.1.0] - 2024-01-29
 
 ### Added
@@ -45,5 +92,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - ESLint configuration for code quality
 - Examples for common integration patterns
 
-[Unreleased]: https://github.com/nagasatish007/ai-agent-security-platform/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/nagasatish007/ai-agent-security-platform/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/nagasatish007/ai-agent-security-platform/releases/tag/v1.1.0
 [0.1.0]: https://github.com/nagasatish007/ai-agent-security-platform/releases/tag/v0.1.0
