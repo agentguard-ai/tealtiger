@@ -30,13 +30,22 @@ There are many ways to contribute to TealTiger SDK:
 
 2. **Clone your fork**
    ```bash
+<<<<<<< HEAD
    git clone https://github.com/YOUR_USERNAME/tealtiger.git
    cd tealtiger
+=======
+   git clone https://github.com/YOUR_USERNAME/tealtiger-typescript.git
+   cd tealtiger-typescript
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
    ```
 
 3. **Add upstream remote**
    ```bash
+<<<<<<< HEAD
    git remote add upstream https://github.com/agentguard-ai/tealtiger.git
+=======
+   git remote add upstream https://github.com/agentguard-ai/tealtiger-typescript.git
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
    ```
 
 4. **Install dependencies**
@@ -122,7 +131,11 @@ git push origin feature/your-feature-name
 
 ### 6. Create a Pull Request
 
+<<<<<<< HEAD
 1. Go to the [TealTiger repository](https://github.com/agentguard-ai/tealtiger)
+=======
+1. Go to the [TealTiger TypeScript SDK repository](https://github.com/agentguard-ai/tealtiger-typescript)
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 2. Click "New Pull Request"
 3. Select your fork and branch
 4. Fill out the PR template
@@ -385,20 +398,34 @@ Violations may result in:
 2. Temporary ban
 3. Permanent ban
 
+<<<<<<< HEAD
 Report violations to the repository maintainers via GitHub.
+=======
+Report violations to: support@tealtiger.co.in
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 ## 🏆 Recognition
 
 Contributors will be:
+<<<<<<< HEAD
 - Listed in our [Contributors](https://github.com/agentguard-ai/tealtiger/graphs/contributors) page
+=======
+- Listed in our [Contributors](https://github.com/agentguard-ai/tealtiger-typescript/graphs/contributors) page
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 - Mentioned in release notes for significant contributions
 - Invited to our contributors Discord channel (coming soon)
 
 ## 📞 Getting Help
 
+<<<<<<< HEAD
 - **Questions?** Open a [Discussion](https://github.com/agentguard-ai/tealtiger/discussions)
 - **Bug?** Open an [Issue](https://github.com/agentguard-ai/tealtiger/issues)
 - **Security?** See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities
+=======
+- **Questions?** Open a [Discussion](https://github.com/agentguard-ai/tealtiger-typescript/discussions)
+- **Bug?** Open an [Issue](https://github.com/agentguard-ai/tealtiger-typescript/issues)
+- **Security?** Email support@tealtiger.co.in
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 ## 📄 License
 

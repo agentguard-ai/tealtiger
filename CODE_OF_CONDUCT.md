@@ -59,7 +59,12 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
+<<<<<<< HEAD
 reported to the community leaders responsible for enforcement via GitHub.
+=======
+reported to the community leaders responsible for enforcement at
+agentguard@proton.me.
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 All complaints will be reviewed and investigated promptly and fairly.
 

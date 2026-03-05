@@ -10,9 +10,12 @@ build/
 # Test coverage
 coverage/
 .nyc_output/
+<<<<<<< HEAD
 htmlcov/
 .coverage
 .hypothesis/
+=======
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 # Environment variables
 .env
@@ -43,6 +46,7 @@ temp/
 # OS files
 Thumbs.db
 .DS_Store
+<<<<<<< HEAD
 
 # Internal documentation and planning (SENSITIVE - DO NOT COMMIT)
 agentguard-internal-docs/
@@ -132,3 +136,5 @@ postman/
 
 # Internal source (if this is just a monorepo wrapper)
 src/
+=======
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a

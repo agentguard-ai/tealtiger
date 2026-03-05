@@ -12,7 +12,11 @@ Instead, please report them via email to:
 
 **Please use GitHub Security Advisories to report vulnerabilities:**
 
+<<<<<<< HEAD
 https://github.com/agentguard-ai/tealtiger/security/advisories/new
+=======
+https://github.com/agentguard-ai/tealtiger-sdk/security/advisories/new
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 **Note**: If you get a 404 error, Security Advisories may not be enabled yet. In that case, please:
 1. Open a GitHub issue with the title prefix `[SECURITY]` (do NOT include sensitive details)
@@ -110,13 +114,21 @@ const client = new TealOpenAI({
 - Use certificate pinning for high-security environments
 
 ```typescript
+<<<<<<< HEAD
 // ✅ Good - HTTPS URL
+=======
+// ✅ Good - HTTPS (OpenAI/Anthropic APIs use HTTPS by default)
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 const client = new TealOpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
 // Note: TealTiger uses OpenAI/Anthropic APIs directly
+<<<<<<< HEAD
 // No separate SSA URL needed for v1.0.0
+=======
+// All connections are HTTPS by default
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 ```
 
 ### Input Validation
@@ -217,11 +229,18 @@ We welcome security researchers to audit our code:
 
 ### Documentation
 
+<<<<<<< HEAD
 - [Security Best Practices](https://tealtiger.co.in/docs/security)
 - [API Security Guide](https://tealtiger.co.in/docs/api-security)
 - [Threat Model](https://tealtiger.co.in/docs/threat-model)
 
 ### Tools
+=======
+- [Security Best Practices](https://github.com/agentguard-ai/tealtiger#readme)
+- [API Documentation](https://github.com/agentguard-ai/tealtiger-sdk#readme)
+
+### Examples
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 - [Security Examples](https://github.com/agentguard-ai/tealtiger/tree/main/examples)
 
@@ -233,8 +252,13 @@ We recognize security researchers who help us improve:
 
 ## 📞 Contact
 
+<<<<<<< HEAD
 - **Security Issues**: Use [GitHub Security Advisories](https://github.com/agentguard-ai/tealtiger/security/advisories/new)
 - **GitHub**: [agentguard-ai/tealtiger](https://github.com/agentguard-ai/tealtiger)
+=======
+- **Security Issues**: Use [GitHub Security Advisories](https://github.com/agentguard-ai/tealtiger-sdk/security/advisories/new)
+- **GitHub**: [agentguard-ai/tealtiger-sdk](https://github.com/agentguard-ai/tealtiger-sdk)
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 ## 📄 Disclosure Policy
 
@@ -265,4 +289,8 @@ We credit security researchers in:
 
 ---
 
+<<<<<<< HEAD
 **Thank you for helping keep TealTiger secure!** 🔒
+=======
+**Thank you for helping keep TealTiger SDK secure!** 🔒
+>>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
