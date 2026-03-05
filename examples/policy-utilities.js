@@ -14,11 +14,7 @@ const {
   PolicyValidator,
   PolicySimulator,
   createPolicySimulator
-<<<<<<< HEAD
 } = require('tealtiger');
-=======
-} = require('../dist/index');
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 async function main() {
   console.log('🛡️  TealTiger SDK Policy Utilities Examples\n');
