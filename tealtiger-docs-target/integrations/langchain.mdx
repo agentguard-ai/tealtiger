@@ -1,0 +1,601 @@
+---
+title: LangChain Integration
+description: Add security, cost control, and governance to your LangChain agents and applications.
+---
+
+# LangChain Integration
+
+Integrate TealTiger with LangChain to add policy enforcement, cost tracking, and audit logging to your agents without changing your code.
+
+## Why integrate TealTiger with LangChain?
+
+LangChain is powerful but lacks built-in governance. TealTiger adds:
+
+- **Security controls** - Block dangerous tools, enforce access policies
+- **Cost management** - Track and limit LLM spending
+- **Audit logging** - Record all agent decisions
+- **Compliance** - Automatic PII redaction and evidence trails
+
+## Quick start
+
+Install both packages:
+
+```bash
+npm install tealtiger langchain
+# or
+pip install tealtiger langchain
+```
+
+Wrap your LangChain model with TealTiger:
+
+<CodeGroup>
+```typescript TypeScript
+import { TealTiger } from 'tealtiger';
+import { ChatOpenAI } from 'langchain/chat_models/openai';
+
+// Initialize TealTiger with policies
+const teal = new TealTiger({
+  policies: {
+    tools: {
+      web_search: { allowed: true },
+      file_delete: { allowed: false }
+    },
+    budget: {
+      maxCostPerRequest: 0.50,
+      maxCostPerDay: 100.00
+    }
+  }
+});
+
+// Wrap your LangChain model
+const model = teal.wrap(new ChatOpenAI({
+  modelName: 'gpt-4',
+  temperature: 0
+}));
+
+// Use it like normal - TealTiger handles governance
+const response = await model.call([
+  { role: 'user', content: 'Hello!' }
+]);
+```
+
+```python Python
+from tealtiger import TealTiger
+from langchain.chat_models import ChatOpenAI
+
+# Initialize TealTiger with policies
+teal = TealTiger({
+    "policies": {
+        "tools": {
+            "web_search": {"allowed": True},
+            "file_delete": {"allowed": False}
+        },
+        "budget": {
+            "maxCostPerRequest": 0.50,
+            "maxCostPerDay": 100.00
+        }
+    }
+})
+
+# Wrap your LangChain model
+model = teal.wrap(ChatOpenAI(
+    model_name="gpt-4",
+    temperature=0
+))
+
+# Use it like normal - TealTiger handles governance
+response = model.invoke([
+    {"role": "user", "content": "Hello!"}
+])
+```
+</CodeGroup>
+
+## Integration patterns
+
+TealTiger supports three integration patterns with LangChain:
+
+### Pattern 1: Model wrapping (recommended)
+
+Wrap the LLM to add governance to all calls:
+
+```typescript
+const model = teal.wrap(new ChatOpenAI());
+```
+
+**Pros:**
+- Simplest integration
+- Works with all LangChain features
+- No code changes needed
+
+**Cons:**
+- Less granular control
+
+### Pattern 2: Tool interception
+
+Intercept tool calls before execution:
+
+```typescript
+import { Tool } from 'langchain/tools';
+
+class GovernedTool extends Tool {
+  constructor(private teal: TealTiger, private baseTool: Tool) {
+    super();
+  }
+  
+  async _call(input: string): Promise<string> {
+    // Check policy before executing
+    const decision = await this.teal.evaluate({
+      action: 'tool.execute',
+      tool: this.baseTool.name,
+      arguments: { input }
+    });
+    
+    if (decision.action === 'DENY') {
+      throw new Error(`Tool blocked: ${decision.reason_codes.join(', ')}`);
+    }
+    
+    // Execute the tool
+    return await this.baseTool._call(input);
+  }
+}
+```
+
+**Pros:**
+- Fine-grained control
+- Can govern specific tools differently
+
+**Cons:**
+- More code to write
+- Need to wrap each tool
+
+### Pattern 3: Agent callback
+
+Use LangChain callbacks to intercept actions:
+
+```typescript
+import { BaseCallbackHandler } from 'langchain/callbacks';
+
+class TealTigerCallback extends BaseCallbackHandler {
+  constructor(private teal: TealTiger) {
+    super();
+  }
+  
+  async handleToolStart(tool: any, input: string) {
+    const decision = await this.teal.evaluate({
+      action: 'tool.execute',
+      tool: tool.name,
+      arguments: { input }
+    });
+    
+    if (decision.action === 'DENY') {
+      throw new Error('Tool blocked by policy');
+    }
+  }
+}
+
+// Use the callback
+const agent = await initializeAgentExecutorWithOptions(
+  tools,
+  model,
+  {
+    callbacks: [new TealTigerCallback(teal)]
+  }
+);
+```
+
+**Pros:**
+- Non-invasive
+- Works with existing code
+
+**Cons:**
+- Callback API can be complex
+- Limited control over execution flow
+
+## Complete example: LangChain agent with governance
+
+Here's a complete example of a LangChain agent with TealTiger governance:
+
+<CodeGroup>
+```typescript TypeScript
+import { TealTiger, PolicyMode } from 'tealtiger';
+import { ChatOpenAI } from 'langchain/chat_models/openai';
+import { initializeAgentExecutorWithOptions } from 'langchain/agents';
+import { Calculator } from 'langchain/tools/calculator';
+import { WebBrowser } from 'langchain/tools/webbrowser';
+
+// 1. Initialize TealTiger with comprehensive policies
+const teal = new TealTiger({
+  policies: {
+    // Tool access policies
+    tools: {
+      calculator: { allowed: true },
+      web_browser: {
+        allowed: true,
+        conditions: {
+          // Only allow in production with approval
+          environment: 'production',
+          requireApproval: true
+        }
+      },
+      file_system: { allowed: false },
+      database: { allowed: false }
+    },
+    
+    // Cost policies
+    budget: {
+      maxCostPerRequest: 0.50,
+      maxCostPerDay: 100.00,
+      maxTokens: 4000
+    },
+    
+    // Security policies
+    security: {
+      detectPII: true,
+      redactPII: true,
+      blockPromptInjection: true
+    }
+  },
+  
+  // Audit configuration
+  audit: {
+    enabled: true,
+    outputs: ['console', 'file'],
+    redactPII: true
+  },
+  
+  // Start in MONITOR mode, enforce critical policies
+  mode: {
+    defaultMode: PolicyMode.MONITOR,
+    policyModes: {
+      'tools.file_system': PolicyMode.ENFORCE,
+      'tools.database': PolicyMode.ENFORCE
+    }
+  }
+});
+
+// 2. Create LangChain tools
+const tools = [
+  new Calculator(),
+  new WebBrowser({ model: new ChatOpenAI() })
+];
+
+// 3. Wrap the model with TealTiger
+const model = teal.wrap(new ChatOpenAI({
+  modelName: 'gpt-4',
+  temperature: 0,
+  maxTokens: 4000
+}));
+
+// 4. Create the agent
+const agent = await initializeAgentExecutorWithOptions(
+  tools,
+  model,
+  {
+    agentType: 'zero-shot-react-description',
+    verbose: true
+  }
+);
+
+// 5. Use the agent (with governance)
+async function runAgent(query: string) {
+  try {
+    const result = await agent.call({ input: query });
+    console.log('Result:', result.output);
+    
+    // Get cost metrics
+    const metrics = await teal.getCostMetrics();
+    console.log('Cost today:', metrics.costToday);
+    console.log('Budget remaining:', metrics.budgetRemaining);
+    
+    return result;
+  } catch (error) {
+    console.error('Agent failed:', error.message);
+    throw error;
+  }
+}
+
+// Example queries
+await runAgent('What is 25 * 4?');  // Allowed (calculator)
+await runAgent('Search the web for AI news');  // Requires approval
+await runAgent('Delete all files');  // Blocked (file_system)
+```
+
+```python Python
+from tealtiger import TealTiger, PolicyMode
+from langchain.chat_models import ChatOpenAI
+from langchain.agents import initialize_agent, AgentType, Tool
+from langchain.tools import Calculator
+
+# 1. Initialize TealTiger with comprehensive policies
+teal = TealTiger({
+    "policies": {
+        # Tool access policies
+        "tools": {
+            "calculator": {"allowed": True},
+            "web_browser": {
+                "allowed": True,
+                "conditions": {
+                    "environment": "production",
+                    "requireApproval": True
+                }
+            },
+            "file_system": {"allowed": False},
+            "database": {"allowed": False}
+        },
+        
+        # Cost policies
+        "budget": {
+            "maxCostPerRequest": 0.50,
+            "maxCostPerDay": 100.00,
+            "maxTokens": 4000
+        },
+        
+        # Security policies
+        "security": {
+            "detectPII": True,
+            "redactPII": True,
+            "blockPromptInjection": True
+        }
+    },
+    
+    # Audit configuration
+    "audit": {
+        "enabled": True,
+        "outputs": ["console", "file"],
+        "redactPII": True
+    },
+    
+    # Start in MONITOR mode, enforce critical policies
+    "mode": {
+        "defaultMode": PolicyMode.MONITOR,
+        "policyModes": {
+            "tools.file_system": PolicyMode.ENFORCE,
+            "tools.database": PolicyMode.ENFORCE
+        }
+    }
+})
+
+# 2. Create LangChain tools
+tools = [
+    Tool(
+        name="Calculator",
+        func=lambda x: eval(x),
+        description="Useful for math calculations"
+    )
+]
+
+# 3. Wrap the model with TealTiger
+model = teal.wrap(ChatOpenAI(
+    model_name="gpt-4",
+    temperature=0,
+    max_tokens=4000
+))
+
+# 4. Create the agent
+agent = initialize_agent(
+    tools,
+    model,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# 5. Use the agent (with governance)
+async def run_agent(query: str):
+    try:
+        result = agent.run(query)
+        print(f"Result: {result}")
+        
+        # Get cost metrics
+        metrics = await teal.get_cost_metrics()
+        print(f"Cost today: {metrics['costToday']}")
+        print(f"Budget remaining: {metrics['budgetRemaining']}")
+        
+        return result
+    except Exception as error:
+        print(f"Agent failed: {str(error)}")
+        raise error
+
+# Example queries
+await run_agent("What is 25 * 4?")  # Allowed (calculator)
+await run_agent("Search the web for AI news")  # Requires approval
+await run_agent("Delete all files")  # Blocked (file_system)
+```
+</CodeGroup>
+
+## What gets governed?
+
+TealTiger governs these LangChain components:
+
+### LLM calls
+
+Every call to the language model is checked:
+
+- Cost limits
+- Token limits
+- Model restrictions
+- PII detection
+
+### Tool executions
+
+Every tool call is evaluated:
+
+- Tool allowlists/denylists
+- Role-based access
+- Approval requirements
+- Audit logging
+
+### Agent actions
+
+Every agent decision is tracked:
+
+- Action history
+- Cost attribution
+- Decision reasoning
+- Compliance evidence
+
+## Policy examples for LangChain
+
+### Example 1: Safe research agent
+
+Allow research but block dangerous operations:
+
+```typescript
+policies: {
+  tools: {
+    // Allow research tools
+    web_search: { allowed: true },
+    wikipedia: { allowed: true },
+    calculator: { allowed: true },
+    
+    // Block dangerous tools
+    file_system: { allowed: false },
+    shell_command: { allowed: false },
+    database: { allowed: false }
+  }
+}
+```
+
+### Example 2: Cost-controlled agent
+
+Limit spending per request and per day:
+
+```typescript
+policies: {
+  budget: {
+    maxCostPerRequest: 0.25,  // $0.25 per request
+    maxCostPerDay: 50.00,     // $50 per day
+    maxTokens: 2000,          // 2K tokens max
+    
+    // Downgrade model if budget is low
+    degradeWhenBudgetBelow: 10.00,
+    degradeToModel: 'gpt-3.5-turbo'
+  }
+}
+```
+
+### Example 3: Compliance-ready agent
+
+Ensure HIPAA/GDPR compliance:
+
+```typescript
+policies: {
+  compliance: {
+    // Automatic PII redaction
+    detectPII: true,
+    redactPII: true,
+    piiPatterns: ['SSN', 'EMAIL', 'PHONE', 'ADDRESS'],
+    
+    // Audit everything
+    auditAllActions: true,
+    retentionDays: 2555,  // 7 years
+    
+    // Require approval for sensitive operations
+    requireApprovalFor: [
+      'patient_data_export',
+      'medical_record_access'
+    ]
+  }
+}
+```
+
+## Monitoring and debugging
+
+### View cost metrics
+
+```typescript
+const metrics = await teal.getCostMetrics();
+
+console.log({
+  costToday: metrics.costToday,
+  costThisMonth: metrics.costThisMonth,
+  requestCount: metrics.requestCount,
+  budgetRemaining: metrics.budgetRemaining
+});
+```
+
+### View audit logs
+
+```typescript
+const logs = await teal.getAuditLogs({
+  startDate: '2026-03-01',
+  endDate: '2026-03-07',
+  action: 'tool.execute'
+});
+
+logs.forEach(log => {
+  console.log(`${log.timestamp}: ${log.action} - ${log.decision}`);
+});
+```
+
+### Debug policy decisions
+
+```typescript
+// Enable verbose logging
+const teal = new TealTiger({
+  policies: { /* ... */ },
+  debug: true  // Shows why decisions were made
+});
+```
+
+## Best practices
+
+1. **Start in MONITOR mode** - Test policies without blocking
+2. **Wrap at the model level** - Simplest integration point
+3. **Set conservative budgets** - Start low and increase
+4. **Enable audit logging** - Track all decisions
+5. **Use role-based policies** - Different rules for different users
+6. **Test with real queries** - Validate policies with actual usage
+
+## Common issues
+
+### Issue 1: Policies not enforcing
+
+**Problem**: Policies are evaluated but not blocking requests
+
+**Solution**: Check that you're in ENFORCE mode:
+
+```typescript
+mode: {
+  defaultMode: PolicyMode.ENFORCE  // Not MONITOR
+}
+```
+
+### Issue 2: High costs despite limits
+
+**Problem**: Costs exceed budget limits
+
+**Solution**: Ensure budget policies are enforced:
+
+```typescript
+mode: {
+  policyModes: {
+    'budget.daily_limit': PolicyMode.ENFORCE
+  }
+}
+```
+
+### Issue 3: Tools not being governed
+
+**Problem**: Tool calls bypass policies
+
+**Solution**: Use tool interception pattern or wrap individual tools
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Policy overview" icon="shield-check" href="/policy/overview">
+    Learn how to write policies
+  </Card>
+  
+  <Card title="Cookbook examples" icon="book" href="/cookbook/index">
+    See real-world examples
+  </Card>
+  
+  <Card title="API reference" icon="code" href="/api-reference/typescript/index">
+    Explore the API
+  </Card>
+  
+  <Card title="Other integrations" icon="plug" href="/integrations/index">
+    View all integrations
+  </Card>
+</CardGroup>

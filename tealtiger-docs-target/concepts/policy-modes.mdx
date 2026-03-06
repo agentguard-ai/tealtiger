@@ -1,0 +1,472 @@
+---
+title: Policy Modes
+description: Safely roll out policies using MONITOR and ENFORCE modes - test before you block.
+---
+
+# Policy Modes
+
+Policy modes let you test policies in production without breaking anything. Think of them as a safety switch that separates "what would happen" from "what actually happens."
+
+## Why policy modes matter
+
+Imagine deploying a new security policy that accidentally blocks legitimate user requests. Without policy modes, you'd have to:
+
+1. Deploy the policy
+2. Hope it works correctly
+3. Deal with angry users if it doesn't
+4. Roll back and start over
+
+With policy modes, you can:
+
+1. Deploy in MONITOR mode
+2. See what would be blocked (without actually blocking)
+3. Tune the policy based on real traffic
+4. Switch to ENFORCE mode with confidence
+
+## The three modes
+
+TealTiger supports three policy modes:
+
+### MONITOR mode (recommended for new policies)
+
+Policies are evaluated and violations are logged, but nothing is blocked.
+
+```typescript
+const teal = new TealTiger({
+  policies: {
+    tools: {
+      file_delete: { allowed: false }
+    }
+  },
+  mode: {
+    defaultMode: PolicyMode.MONITOR
+  }
+});
+
+// In MONITOR mode:
+const decision = await teal.evaluate(request);
+// decision.action === 'DENY', but request still proceeds
+// Violation is logged for analysis
+```
+
+**Use MONITOR mode when:**
+- Testing new policies in production
+- Measuring impact before enforcement
+- Tuning policy thresholds
+- Validating policy logic
+
+**What happens:**
+- ✅ Policies are evaluated
+- ✅ Decisions are recorded
+- ✅ Audit logs are created
+- ❌ Actions are NOT blocked
+
+### ENFORCE mode (production enforcement)
+
+Policies are evaluated and violations are blocked.
+
+```typescript
+const teal = new TealTiger({
+  policies: {
+    tools: {
+      file_delete: { allowed: false }
+    }
+  },
+  mode: {
+    defaultMode: PolicyMode.ENFORCE
+  }
+});
+
+// In ENFORCE mode:
+const decision = await teal.evaluate(request);
+if (decision.action === 'DENY') {
+  throw new Error('Request blocked by policy');
+}
+```
+
+**Use ENFORCE mode when:**
+- Policies have been validated in MONITOR mode
+- You're confident in policy behavior
+- Ready for production enforcement
+
+**What happens:**
+- ✅ Policies are evaluated
+- ✅ Decisions are recorded
+- ✅ Audit logs are created
+- ✅ Actions ARE blocked
+
+### REPORT_ONLY mode (visibility only)
+
+Similar to MONITOR, but with minimal logging overhead.
+
+```typescript
+const teal = new TealTiger({
+  mode: {
+    defaultMode: PolicyMode.REPORT_ONLY
+  }
+});
+```
+
+**Use REPORT_ONLY mode when:**
+- You want visibility without enforcement
+- Minimizing performance impact
+- Initial policy exploration
+
+## Per-policy mode overrides
+
+You can set different modes for different policies:
+
+```typescript
+const teal = new TealTiger({
+  policies: {
+    tools: {
+      file_delete: { allowed: false },
+      file_write: { allowed: false },
+      customer_data_read: { allowed: true }
+    }
+  },
+  mode: {
+    // Default: monitor everything
+    defaultMode: PolicyMode.MONITOR,
+    
+    // Override: enforce critical policies
+    policyModes: {
+      'tools.file_delete': PolicyMode.ENFORCE,  // Always block deletes
+      'tools.file_write': PolicyMode.MONITOR    // Monitor writes
+    }
+  }
+});
+```
+
+This lets you:
+- Enforce critical policies immediately
+- Monitor less critical policies
+- Roll out enforcement incrementally
+
+## Recommended rollout sequence
+
+Follow this sequence for safe policy deployment:
+
+### Phase 1: MONITOR mode (1-2 weeks)
+
+Deploy new policies in MONITOR mode to measure impact.
+
+```typescript
+// Week 1-2: Monitor mode
+mode: {
+  defaultMode: PolicyMode.MONITOR
+}
+```
+
+**What to watch:**
+- How many requests would be blocked?
+- Are there false positives?
+- What's the violation rate?
+
+**Example metrics:**
+```
+Total requests: 10,000
+Would be blocked: 150 (1.5%)
+False positives: 5 (0.05%)
+```
+
+### Phase 2: Tune policies (1 week)
+
+Adjust policies based on MONITOR mode data.
+
+```typescript
+// Adjust thresholds based on real traffic
+policies: {
+  budget: {
+    maxCostPerRequest: 0.50  // Was 0.25, too strict
+  }
+}
+```
+
+### Phase 3: Selective ENFORCE (1 week)
+
+Enforce critical policies, keep others in MONITOR.
+
+```typescript
+// Week 4: Enforce critical policies only
+mode: {
+  defaultMode: PolicyMode.MONITOR,
+  policyModes: {
+    'tools.file_delete': PolicyMode.ENFORCE,
+    'budget.daily_limit': PolicyMode.ENFORCE
+  }
+}
+```
+
+### Phase 4: Full ENFORCE (ongoing)
+
+Switch all policies to ENFORCE mode.
+
+```typescript
+// Week 5+: Full enforcement
+mode: {
+  defaultMode: PolicyMode.ENFORCE
+}
+```
+
+## Monitoring policy impact
+
+Track these metrics during rollout:
+
+### Violation rate
+
+```typescript
+const metrics = await teal.getMetrics();
+
+console.log({
+  totalRequests: metrics.totalRequests,
+  violations: metrics.violations,
+  violationRate: (metrics.violations / metrics.totalRequests) * 100
+});
+
+// Output:
+// {
+//   totalRequests: 10000,
+//   violations: 150,
+//   violationRate: 1.5
+// }
+```
+
+### False positive rate
+
+```typescript
+// Track user complaints or manual reviews
+const falsePositives = await getFalsePositiveCount();
+const falsePositiveRate = (falsePositives / metrics.violations) * 100;
+
+console.log(`False positive rate: ${falsePositiveRate}%`);
+// Target: under 5%
+```
+
+### Policy effectiveness
+
+```typescript
+// Compare before/after metrics
+const beforeMetrics = {
+  unauthorizedRefunds: 10,
+  budgetOverruns: 5,
+  dataLeaks: 2
+};
+
+const afterMetrics = {
+  unauthorizedRefunds: 0,  // 100% reduction
+  budgetOverruns: 0,       // 100% reduction
+  dataLeaks: 0             // 100% reduction
+};
+```
+
+## Mode behavior comparison
+
+| Feature | REPORT_ONLY | MONITOR | ENFORCE |
+|---------|-------------|---------|---------|
+| Evaluate policies | ✅ | ✅ | ✅ |
+| Record decisions | ✅ | ✅ | ✅ |
+| Create audit logs | ✅ | ✅ | ✅ |
+| Block violations | ❌ | ❌ | ✅ |
+| Log violations | ✅ | ✅ | ✅ |
+| Performance impact | Minimal | Low | Low |
+
+## What doesn't change between modes
+
+Policy modes only affect enforcement. These stay the same:
+
+- ✅ Policy evaluation logic
+- ✅ Condition matching
+- ✅ Risk score calculation
+- ✅ Reason code generation
+- ✅ Audit event structure
+- ✅ Decision determinism
+
+## Complete example
+
+Here's a complete example showing mode-aware handling:
+
+<CodeGroup>
+```typescript TypeScript
+import { TealTiger, PolicyMode, DecisionAction } from 'tealtiger';
+
+const teal = new TealTiger({
+  policies: {
+    tools: {
+      file_delete: { allowed: false }
+    }
+  },
+  mode: {
+    defaultMode: PolicyMode.MONITOR,
+    policyModes: {
+      'tools.file_delete': PolicyMode.ENFORCE
+    }
+  }
+});
+
+async function executeAction(action: string) {
+  const decision = await teal.evaluate({
+    action: 'tool.execute',
+    tool: action
+  });
+  
+  // Check if we should enforce
+  const shouldEnforce = decision.mode === 'ENFORCE';
+  
+  if (decision.action === DecisionAction.DENY) {
+    if (shouldEnforce) {
+      // ENFORCE mode: actually block
+      throw new Error(`Action blocked: ${decision.reason_codes.join(', ')}`);
+    } else {
+      // MONITOR mode: log but allow
+      console.warn(`Would block: ${decision.reason_codes.join(', ')}`);
+      await logViolation(decision);
+      // Continue execution
+    }
+  }
+  
+  // Execute the action
+  return await performAction(action);
+}
+
+// Example 1: file_delete (ENFORCE mode)
+try {
+  await executeAction('file_delete');
+} catch (error) {
+  console.error('Blocked:', error.message);
+  // Output: "Blocked: Action blocked: TOOL_NOT_ALLOWED"
+}
+
+// Example 2: file_write (MONITOR mode)
+try {
+  await executeAction('file_write');
+  console.log('Executed (with warning)');
+  // Output: "Would block: TOOL_NOT_ALLOWED"
+  // Output: "Executed (with warning)"
+} catch (error) {
+  // Won't throw in MONITOR mode
+}
+```
+
+```python Python
+from tealtiger import TealTiger, PolicyMode, DecisionAction
+
+teal = TealTiger({
+    "policies": {
+        "tools": {
+            "file_delete": {"allowed": False}
+        }
+    },
+    "mode": {
+        "defaultMode": PolicyMode.MONITOR,
+        "policyModes": {
+            "tools.file_delete": PolicyMode.ENFORCE
+        }
+    }
+})
+
+async def execute_action(action: str):
+    decision = await teal.evaluate({
+        "action": "tool.execute",
+        "tool": action
+    })
+    
+    # Check if we should enforce
+    should_enforce = decision["mode"] == "ENFORCE"
+    
+    if decision["action"] == DecisionAction.DENY:
+        if should_enforce:
+            # ENFORCE mode: actually block
+            raise Exception(f"Action blocked: {', '.join(decision['reason_codes'])}")
+        else:
+            # MONITOR mode: log but allow
+            print(f"Would block: {', '.join(decision['reason_codes'])}")
+            await log_violation(decision)
+            # Continue execution
+    
+    # Execute the action
+    return await perform_action(action)
+
+# Example 1: file_delete (ENFORCE mode)
+try:
+    await execute_action("file_delete")
+except Exception as error:
+    print(f"Blocked: {str(error)}")
+    # Output: "Blocked: Action blocked: TOOL_NOT_ALLOWED"
+
+# Example 2: file_write (MONITOR mode)
+try:
+    await execute_action("file_write")
+    print("Executed (with warning)")
+    # Output: "Would block: TOOL_NOT_ALLOWED"
+    # Output: "Executed (with warning)"
+except Exception as error:
+    # Won't throw in MONITOR mode
+    pass
+```
+</CodeGroup>
+
+## Best practices
+
+1. **Always start in MONITOR mode** - Never deploy new policies directly to ENFORCE
+2. **Monitor for at least 1 week** - Give yourself time to see patterns
+3. **Set violation rate targets** - Aim for under 5% false positives
+4. **Enforce critical policies first** - Start with high-risk operations
+5. **Document mode changes** - Track when and why you changed modes
+6. **Alert on high violation rates** - Get notified if violations spike
+
+## Common pitfalls
+
+### Pitfall 1: Skipping MONITOR mode
+
+```typescript
+// ❌ Bad: Deploy directly to ENFORCE
+mode: {
+  defaultMode: PolicyMode.ENFORCE
+}
+
+// ✅ Good: Start with MONITOR
+mode: {
+  defaultMode: PolicyMode.MONITOR
+}
+```
+
+### Pitfall 2: Not monitoring long enough
+
+```typescript
+// ❌ Bad: Switch to ENFORCE after 1 day
+// Not enough data to validate
+
+// ✅ Good: Monitor for 1-2 weeks
+// See patterns across different times/days
+```
+
+### Pitfall 3: Ignoring false positives
+
+```typescript
+// ❌ Bad: Accept 20% false positive rate
+// Users will be frustrated
+
+// ✅ Good: Tune until under 5%
+// Adjust thresholds based on real traffic
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Decision model" icon="sitemap" href="/concepts/decision-model">
+    Understand how decisions are made
+  </Card>
+  
+  <Card title="Policy authoring" icon="pen" href="/policy/policy-authoring-guide">
+    Write custom policies
+  </Card>
+  
+  <Card title="Audit schema" icon="file-lines" href="/audit/audit-event-schema">
+    See what gets logged
+  </Card>
+  
+  <Card title="Troubleshooting" icon="wrench" href="/guides/troubleshooting">
+    Debug policy issues
+  </Card>
+</CardGroup>

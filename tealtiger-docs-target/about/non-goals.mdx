@@ -1,0 +1,200 @@
+---
+title: Non‑Goals
+description: Explicitly defines what TealTiger does not aim to solve in v1.1.0, to ensure clarity of scope and correct expectations.
+---
+
+> **Version:** v1.1.0  
+> **Applies to:** SDK, Policy Engine, Audit & Telemetry  
+> **Audience:** Developers, Security Architects, Platform Owners
+
+## Purpose
+
+This document clearly states what **TealTiger is intentionally not designed to do** in the current release.  
+Defining non‑goals is critical to:
+
+- Prevent misuse of the SDK
+- Avoid overlapping responsibilities with other platforms
+- Keep TealTiger focused, predictable, and composable
+- Enable safe evolution across future versions (v1.2.x, v1.3.x)
+
+---
+
+## Non‑Goals in v1.1.0
+
+### 1. TealTiger is **not a model hosting or inference platform**
+
+TealTiger does **not**:
+- Host LLMs, ML models, or agent runtimes
+- Replace OpenAI, Anthropic, Bedrock, Vertex AI, or self‑hosted inference stacks
+- Manage GPU scheduling, batching, or inference optimization
+
+TealTiger operates **around** AI systems, not **inside** them.
+
+---
+
+### 2. TealTiger is **not a prompt engineering or prompt optimization tool**
+
+TealTiger does **not**:
+- Generate, refine, or optimize prompts
+- Suggest better prompt templates
+- Perform automatic prompt rewriting or tuning
+
+Prompt design remains a **developer responsibility**.  
+TealTiger only **evaluates and governs** prompt behavior when policies are applied.
+
+---
+
+### 3. TealTiger is **not a replacement for IAM, KMS, or Secrets Managers**
+
+TealTiger does **not**:
+- Manage user authentication or authorization
+- Store API keys, secrets, or credentials
+- Replace IAM systems (AWS IAM, Azure AD, GCP IAM)
+- Replace KMS or secret vaults
+
+TealTiger **consumes identity context**, it does not own identity.
+
+---
+
+### 4. TealTiger is **not a SIEM or log analytics platform**
+
+TealTiger does **not**:
+- Provide dashboards for long‑term log analysis
+- Correlate events across infrastructure sources
+- Replace SIEM, XDR, or SOAR platforms
+
+Instead:
+- TealTiger emits **structured audit events**
+- Events are designed to be forwarded to SIEM/log platforms
+
+---
+
+### 5. TealTiger is **not a data loss prevention (DLP) engine**
+
+TealTiger does **not**:
+- Classify or discover sensitive data at rest
+- Perform deep content inspection across enterprise datasets
+- Replace enterprise DLP products
+
+TealTiger focuses on **AI interaction governance**, not enterprise data discovery.
+
+---
+
+### 6. TealTiger is **not a real‑time incident response or blocking system**
+
+In v1.1.0, TealTiger does **not**:
+- Automatically quarantine agents or workloads
+- Trigger automated incident response playbooks
+- Perform kill‑switch actions across infrastructure
+
+Policy enforcement is **deterministic and scoped**, not reactive incident handling.
+
+---
+
+### 7. TealTiger is **not an AI ethics or fairness evaluation framework**
+
+TealTiger does **not**:
+- Evaluate model bias, fairness, or societal impact
+- Certify models for ethical compliance
+- Perform human‑value alignment assessments
+
+TealTiger enforces **technical governance**, not ethical judgments.
+
+---
+
+### 8. TealTiger is **not a business cost optimization or FinOps platform**
+
+TealTiger does **not**:
+- Perform budget forecasting or chargeback
+- Optimize vendor pricing or contracts
+- Replace FinOps tooling
+
+Cost governance in v1.1.0 is:
+- **Policy‑driven**
+- **Contextual**
+- **Focused on AI usage behavior**, not finance operations
+
+---
+
+### 9. TealTiger is **not a UI‑first or dashboard‑centric product**
+
+TealTiger does **not**:
+- Rely on heavy UI workflows
+- Require dashboards for core functionality
+- Enforce UI‑based configuration
+
+TealTiger is **SDK‑first**, **API‑driven**, and **infrastructure‑friendly**.
+
+---
+
+### 10. TealTiger is **not designed to make security decisions opaque**
+
+TealTiger does **not**:
+- Use black‑box or probabilistic enforcement
+- Hide why a policy passed or failed
+- Apply undocumented heuristics
+
+All decisions are:
+- Policy‑defined
+- Deterministic
+- Auditable
+
+---
+
+## Intentional Design Philosophy
+
+TealTiger is intentionally **narrow but deep**.
+
+It focuses on:
+- AI policy enforcement
+- Cost, security, and reliability governance
+- Deterministic, explainable decisions
+- Developer‑native integration
+
+Anything outside this scope is **explicitly left to adjacent systems**.
+
+---
+
+## Forward‑Looking Note
+
+Some non‑goals in v1.1.0 **may evolve** in future versions:
+
+- v1.2.x: Expanded governance controls
+- v1.3.x: Platform‑level intelligence and coordination
+
+However, TealTiger will **never become a monolithic AI platform**.
+
+---
+
+## Summary
+
+If you are looking for:
+- AI governance ✅
+- Cost, security, and reliability controls ✅
+- Deterministic enforcement ✅
+
+TealTiger is the right tool.
+
+If you are looking for:
+- Model hosting
+- Prompt generation
+- SIEM dashboards
+- FinOps forecasting
+
+TealTiger intentionally stays out of that space.
+
+---
+
+### Related Reading
+
+- [Anti‑Patterns →](/about/anti-patterns)
+- [Best Practices →](/about/best-practices)
+
+---
+
+### About (v1.1.0)
+
+**Prev:** [Goals](/about/goals)  
+**Next:** [Anti‑Patterns](/about/anti-patterns)
+
+**See also:** [Best Practices](/about/best-practices) · [Decision Philosophy](/about/decision-philosophy)

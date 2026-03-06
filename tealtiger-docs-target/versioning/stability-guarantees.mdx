@@ -1,0 +1,103 @@
+---
+title: Stability Guarantees
+description: Versioned guarantees for TealTiger v1.1.0—what is stable, what may evolve, and what is forbidden.
+version: v1.1.0
+status: stable
+doc_type: versioning
+machine_readable: true
+
+stable_id: tealtiger.stability_guarantees.v1_1_0
+
+applies_to:
+  - policy-engine
+  - audit
+  - docs
+
+governance_domain:
+  - cost
+  - security
+  - reliability
+---
+
+## Purpose
+
+This document defines TealTiger’s **versioned stability guarantees** for v1.1.0.
+
+It clarifies:
+- what is guaranteed stable
+- what may evolve safely
+- what is considered a breaking change
+- when new IDs or new schema versions are required
+
+These guarantees exist to preserve determinism, auditability, reproducibility, and long-lived tooling compatibility.
+
+---
+
+## Machine-Readable Contract
+
+```yaml
+machine_spec:
+  version: v1.1.0
+  id: tealtiger.stability_guarantees.contract
+  type: stability_guarantees
+  stability_levels: [immutable, stable_within_v1_1_x, expandable, experimental, deprecated]
+  scope:
+    version_line: v1.1.x
+    applies_to:
+      - policy-engine
+      - audit
+      - docs
+  invariants:
+    - id: determinism
+      stability: stable_within_v1_1_x
+      description: Same inputs + same policy version yields the same decision outcome.
+    - id: stable_ids
+      stability: stable_within_v1_1_x
+      description: Published stable_id values are immutable and must not be reused for different semantics.
+```
+
+---
+
+## Stability Categories (v1.1.x)
+
+### Immutable (cannot change)
+
+- stable_id values
+- decision lifecycle stage IDs
+- golden corpus test case IDs
+- audit schema identity (tealtiger.audit_event@1.1.0)
+
+### Stable within v1.1.x (additive only)
+
+- policy semantics
+- audit required fields
+- machine_spec contracts
+
+### Expandable
+
+- reason code catalogs
+- golden corpus test cases
+
+---
+
+## Allowed Changes in v1.1.x
+
+- add optional audit fields under extensions.*
+- add reason codes and families
+- add golden corpus test cases
+
+---
+
+## Forbidden Changes in v1.1.x
+
+- change decision outcome for same inputs
+- reuse stable_id for new semantics
+- rename lifecycle stage IDs
+- change reason code meaning
+- change audit schema identity
+
+---
+
+## Summary
+
+TealTiger v1.1.0 guarantees deterministic behavior, stable audit contracts, and immutable identifiers. Any breaking change requires a new version or ID.

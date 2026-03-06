@@ -1,0 +1,104 @@
+---
+title: v1.1.0 Scope
+description: Defines the functional scope, inclusions, and exclusions for TealTiger v1.1.0.
+---
+
+## Overview
+
+This document defines the **scope of TealTiger v1.1.0**.
+
+v1.1.0 is a **foundational governance and control release**, focused on establishing **deterministic policy enforcement**, **auditability**, and **cost‑aware decisioning** for AI and agent workloads.
+
+The goal of this version is **trust, clarity, and stability** — not full autonomy or advanced orchestration.
+
+---
+
+## Design Intent of v1.1.0
+
+TealTiger v1.1.0 is designed to:
+
+- Establish a **stable policy and governance core**
+- Enable **security, cost, and risk visibility**
+- Support **monitor and enforce** policy modes
+- Be **SDK‑first** and developer‑friendly
+- Provide **enterprise‑grade audit foundations**
+
+This version intentionally avoids complex runtime orchestration or autonomous agent control.
+
+---
+
+## In‑Scope Capabilities (v1.1.0)
+
+### 1. Policy Evaluation Framework
+
+Included:
+- Deterministic policy evaluation
+- Condition → action execution model
+- Logical composition of conditions (`AND`, `OR`, `NOT`)
+- Policy modes:
+  - `monitor`
+  - `enforce`
+
+Policies can evaluate **security**, **cost**, **risk**, and **governance** signals.
+
+---
+
+### 2. Conditions and Actions
+
+Included:
+- Input, model, cost, risk, and execution context conditions
+- Enforcement actions:
+  - `allow`
+  - `restrict`
+  - `block`
+- Transformation actions:
+  - `redact`
+  - `mask`
+- Cost control actions:
+  - token limits
+  - model switching
+- Observability actions:
+  - logging
+  - metrics emission
+
+Actions are ordered, auditable, and policy‑driven.
+
+---
+
+### 3. Risk Scoring (v1.1.0)
+
+Included:
+- Normalized risk scores (`0–100`)
+- Domain‑level risk signals:
+  - security
+  - cost
+  - governance
+  - reliability
+- Composite risk score calculation
+- Policy threshold evaluation on risk scores
+
+Risk scoring is deterministic and versioned.
+
+---
+
+### 4. Reason Codes
+
+Included:
+- Structured, machine‑readable reason codes
+- Domain‑based taxonomy:
+  - SECURITY
+  - COST
+  - RISK
+  - GOVERNANCE
+  - RELIABILITY
+- Multiple reason codes per decision
+- Stable identifiers for audit and automation
+
+Reason codes explain *why* a decision was made.
+
+---
+
+### 5. Cost Metadata
+
+Included:
+- Token usage metadata (input/output/total)

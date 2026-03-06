@@ -1,0 +1,80 @@
+---
+title: Python SDK API Reference
+description: Complete API reference for TealTiger Python SDK v1.1.x
+version: v1.1.x
+---
+
+# Python SDK API Reference
+
+Complete API documentation for TealTiger Python SDK v1.1.x with Enterprise Adoption Features.
+
+## Installation
+
+```bash
+pip install tealtiger
+```
+
+## Quick Start
+
+```python
+from tealtiger import TealEngine, PolicyMode, ExecutionContext
+
+# Create engine with policy mode configuration
+engine = TealEngine(
+    mode={
+        "default": PolicyMode.ENFORCE,
+        "overrides": {
+            "cost-limit": PolicyMode.MONITOR
+        }
+    }
+)
+
+# Create execution context for traceability
+context = ExecutionContext.create(
+    actor={"id": "user-123", "type": "user"}
+)
+
+# Evaluate with context
+decision = await engine.evaluate(request, context)
+```
+
+## Enterprise Features (v1.1.x)
+
+<CardGroup cols={2}>
+  <Card title="Decision Contract" icon="scale-balanced" href="/api-reference/python/decision">
+    Deterministic decision model with typed actions and reason codes
+  </Card>
+  <Card title="Execution Context" icon="diagram-project" href="/api-reference/python/execution-context">
+    Correlation IDs and traceability for distributed systems
+  </Card>
+  <Card title="Policy Testing" icon="vial" href="/api-reference/python/policy-testing">
+    Test harness for CI/CD integration and policy validation
+  </Card>
+</CardGroup>
+
+## Core Modules
+
+<CardGroup cols={2}>
+  <Card title="TealEngine" icon="engine" href="/api-reference/python/teal-engine">
+    Policy evaluation engine with mode-based enforcement
+  </Card>
+  <Card title="TealGuard" icon="shield" href="/api-reference/python/teal-guard">
+    Guardrail checks for content safety
+  </Card>
+  <Card title="TealCircuit" icon="circle-nodes" href="/api-reference/python/teal-circuit">
+    Circuit breaker for reliability
+  </Card>
+  <Card title="TealAudit" icon="file-lines" href="/api-reference/python/teal-audit">
+    Audit logging with security-by-default redaction
+  </Card>
+</CardGroup>
+
+## SDK Features
+
+The Python SDK v1.1.x includes all enterprise features with full parity to TypeScript:
+
+- **Policy Rollout Modes** - ENFORCE, MONITOR, REPORT_ONLY for gradual rollout
+- **Deterministic Decision Contract** - Stable typed Decision object with versioning
+- **Execution Context** - Correlation IDs and traceability for distributed systems
+- **Audit Logging** - Versioned audit events with security-by-default redaction
+- **Policy Test Harness** - CLI/library test runner for CI/CD integration

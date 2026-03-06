@@ -1,0 +1,293 @@
+---
+title: LangSmith Integration
+description: Export TealTiger governance decisions to LangSmith for LangChain debugging and monitoring.
+---
+
+# LangSmith Integration
+
+Integrate TealTiger with LangSmith to combine governance decisions with LangChain application monitoring.
+
+## Why integrate TealTiger with LangSmith?
+
+LangSmith provides debugging and monitoring for LangChain apps. Adding TealTiger gives you:
+
+- **Governance visibility** - See policy decisions in LangSmith traces
+- **Debug blocked requests** - Understand why agents were stopped
+- **Cost tracking** - Monitor governance overhead
+- **Compliance evidence** - Audit trails for LangChain workflows
+
+## Quick start
+
+Install both packages:
+
+```bash
+npm install tealtiger langsmith
+# or
+pip install tealtiger langsmith
+```
+
+Configure TealTiger to export to LangSmith:
+
+<CodeGroup>
+```typescript TypeScript
+import { TealTiger } from 'tealtiger';
+import { Client } from 'langsmith';
+
+// Initialize LangSmith
+const langsmith = new Client({
+  apiKey: process.env.LANGSMITH_API_KEY
+});
+
+// Configure TealTiger to export to LangSmith
+const teal = new TealTiger({
+  policies: { /* ... */ },
+  telemetry: {
+    langsmith: {
+      enabled: true,
+      client: langsmith,
+      exportDecisions: true,
+      exportCosts: true,
+      projectName: 'my-ai-agent'
+    }
+  }
+});
+
+// Use TealTiger - decisions automatically exported
+const decision = await teal.evaluate(request);
+```
+
+```python Python
+from tealtiger import TealTiger
+from langsmith import Client
+
+# Initialize LangSmith
+langsmith = Client(api_key=os.environ["LANGSMITH_API_KEY"])
+
+# Configure TealTiger to export to LangSmith
+teal = TealTiger({
+    "policies": {},
+    "telemetry": {
+        "langsmith": {
+            "enabled": True,
+            "client": langsmith,
+            "exportDecisions": True,
+            "exportCosts": True,
+            "projectName": "my-ai-agent"
+        }
+    }
+})
+
+# Use TealTiger - decisions automatically exported
+decision = await teal.evaluate(request)
+```
+</CodeGroup>
+
+## What gets exported?
+
+TealTiger exports governance data as LangSmith runs:
+
+### Decision runs
+
+```json
+{
+  "name": "tealtiger.decision",
+  "run_type": "chain",
+  "inputs": {
+    "action": "tool.execute",
+    "tool": "web_search"
+  },
+  "outputs": {
+    "decision": "DENY",
+    "reason_codes": ["TOOL_NOT_ALLOWED"],
+    "risk_score": 85
+  },
+  "extra": {
+    "policy_id": "security.tool_access.v1",
+    "mode": "ENFORCE"
+  }
+}
+```
+
+### Cost tracking
+
+```json
+{
+  "name": "tealtiger.cost",
+  "run_type": "chain",
+  "outputs": {
+    "estimated_cost": 0.05,
+    "tokens_input": 1000,
+    "tokens_output": 500
+  }
+}
+```
+
+## Complete example with LangChain
+
+<CodeGroup>
+```typescript TypeScript
+import { TealTiger } from 'tealtiger';
+import { Client } from 'langsmith';
+import { ChatOpenAI } from 'langchain/chat_models/openai';
+import { initializeAgentExecutorWithOptions } from 'langchain/agents';
+
+// Initialize LangSmith
+const langsmith = new Client({
+  apiKey: process.env.LANGSMITH_API_KEY
+});
+
+// Initialize TealTiger with LangSmith export
+const teal = new TealTiger({
+  policies: {
+    tools: {
+      calculator: { allowed: true },
+      web_search: { allowed: false }
+    },
+    budget: {
+      maxCostPerRequest: 0.50
+    }
+  },
+  telemetry: {
+    langsmith: {
+      enabled: true,
+      client: langsmith,
+      exportDecisions: true,
+      exportCosts: true,
+      projectName: 'calculator-agent'
+    }
+  }
+});
+
+// Wrap model with TealTiger
+const model = teal.wrap(new ChatOpenAI({
+  modelName: 'gpt-4',
+  callbacks: [
+    {
+      handleLLMStart: async (llm, prompts) => {
+        // TealTiger automatically evaluates and exports to LangSmith
+      }
+    }
+  ]
+}));
+
+// Create agent
+const agent = await initializeAgentExecutorWithOptions(
+  [calculatorTool],
+  model,
+  {
+    agentType: 'zero-shot-react-description',
+    verbose: true
+  }
+);
+
+// Run agent (governance decisions appear in LangSmith)
+const result = await agent.call({
+  input: 'What is 25 * 4?'
+});
+```
+
+```python Python
+from tealtiger import TealTiger
+from langsmith import Client
+from langchain.chat_models import ChatOpenAI
+from langchain.agents import initialize_agent, AgentType
+from langchain.callbacks import LangChainTracer
+
+# Initialize LangSmith
+langsmith = Client(api_key=os.environ["LANGSMITH_API_KEY"])
+tracer = LangChainTracer(project_name="calculator-agent")
+
+# Initialize TealTiger with LangSmith export
+teal = TealTiger({
+    "policies": {
+        "tools": {
+            "calculator": {"allowed": True},
+            "web_search": {"allowed": False}
+        },
+        "budget": {
+            "maxCostPerRequest": 0.50
+        }
+    },
+    "telemetry": {
+        "langsmith": {
+            "enabled": True,
+            "client": langsmith,
+            "exportDecisions": True,
+            "exportCosts": True,
+            "projectName": "calculator-agent"
+        }
+    }
+})
+
+# Wrap model with TealTiger
+model = teal.wrap(ChatOpenAI(
+    model_name="gpt-4",
+    callbacks=[tracer]
+))
+
+# Create agent
+agent = initialize_agent(
+    [calculator_tool],
+    model,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# Run agent (governance decisions appear in LangSmith)
+result = agent.run("What is 25 * 4?")
+```
+</CodeGroup>
+
+## Viewing in LangSmith
+
+TealTiger decisions appear in LangSmith:
+
+1. **Run view** - See governance decisions in the run tree
+2. **Inputs/Outputs** - Policy evaluation details
+3. **Metadata** - Reason codes, risk scores, policy IDs
+4. **Cost tracking** - Governance costs alongside LLM costs
+5. **Filtering** - Filter runs by decision action
+
+## Debugging with LangSmith
+
+Use LangSmith to debug policy decisions:
+
+### View blocked requests
+
+Filter runs by `tealtiger.decision = DENY` to see all blocked requests.
+
+### Analyze patterns
+
+Group by `reason_codes` to see common blocking reasons.
+
+### Cost analysis
+
+Compare costs before and after adding TealTiger governance.
+
+## Best practices
+
+1. **Use project names** - Organize by application
+2. **Export costs** - Track governance overhead
+3. **Link runs** - Connect TealTiger decisions to LangChain runs
+4. **Monitor denials** - Create alerts for high denial rates
+5. **Debug in LangSmith** - Use the UI to understand policy behavior
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Langfuse integration" icon="eye" href="/integrations/langfuse">
+    Alternative LLM observability
+  </Card>
+  
+  <Card title="LangChain integration" icon="link" href="/integrations/langchain">
+    LangChain governance guide
+  </Card>
+  
+  <Card title="Audit schema" icon="file-lines" href="/audit/audit-event-schema">
+    Learn about audit events
+  </Card>
+  
+  <Card title="Other integrations" icon="plug" href="/integrations/index">
+    View all integrations
+  </Card>
+</CardGroup>

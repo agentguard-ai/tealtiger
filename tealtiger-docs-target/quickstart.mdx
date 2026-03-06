@@ -1,0 +1,463 @@
+---
+title: Quickstart
+description: Get started with TealTiger in under 10 minutes. Add security policies, cost tracking, and audit logging to your AI agents.
+---
+
+# Quickstart
+
+Get TealTiger running in your AI application in under 10 minutes. This guide walks you through adding security policies, cost tracking, and audit logging to a simple AI agent.
+
+## What you'll build
+
+A production-ready AI agent with:
+
+- **Security policies** that block dangerous operations (like `file_delete`)
+- **Cost tracking** to monitor LLM spending
+- **Audit logging** with automatic PII redaction
+- **Correlation IDs** for end-to-end traceability
+
+By the end, you'll have a working agent that enforces policies before executing tools and logs every decision with full traceability.
+
+---
+
+## Prerequisites
+
+- Node.js 16+ (for TypeScript) or Python 3.8+ (for Python)
+- An OpenAI or Anthropic API key
+- 10 minutes
+
+---
+
+## Installation
+
+<CodeGroup>
+```bash TypeScript
+npm install tealtiger
+```
+
+```bash Python
+pip install tealtiger
+```
+</CodeGroup>
+
+---
+
+## Step 1: Initialize TealTiger
+
+Create a new file and initialize TealTiger with your first policy.
+
+<CodeGroup>
+```typescript TypeScript
+import { TealTiger } from 'tealtiger';
+
+// Initialize TealTiger with security policies
+const teal = new TealTiger({
+  policies: {
+    tools: {
+      // Block dangerous file operations
+      file_delete: { allowed: false },
+      file_write: { allowed: false },
+      
+      // Allow safe read operations
+      customer_data_read: { allowed: true },
+      search_documents: { allowed: true }
+    }
+  },
+  
+  // Enable audit logging with PII redaction
+  audit: {
+    enabled: true,
+    redactPII: true,
+    outputs: ['console'] // or 'file', 'http'
+  },
+  
+  // Set cost limits
+  budget: {
+    maxCostPerRequest: 0.50, // $0.50 per request
+    maxCostPerDay: 100.00,   // $100 per day
+    currency: 'USD'
+  }
+});
+```
+
+```python Python
+from tealtiger import TealTiger
+
+# Initialize TealTiger with security policies
+teal = TealTiger({
+    "policies": {
+        "tools": {
+            # Block dangerous file operations
+            "file_delete": {"allowed": False},
+            "file_write": {"allowed": False},
+            
+            # Allow safe read operations
+            "customer_data_read": {"allowed": True},
+            "search_documents": {"allowed": True}
+        }
+    },
+    
+    # Enable audit logging with PII redaction
+    "audit": {
+        "enabled": True,
+        "redactPII": True,
+        "outputs": ["console"]  # or 'file', 'http'
+    },
+    
+    # Set cost limits
+    "budget": {
+        "maxCostPerRequest": 0.50,  # $0.50 per request
+        "maxCostPerDay": 100.00,    # $100 per day
+        "currency": "USD"
+    }
+})
+```
+</CodeGroup>
+
+---
+
+## Step 2: Wrap your LLM calls
+
+Wrap your existing LLM calls with TealTiger to add security and cost tracking.
+
+<CodeGroup>
+```typescript TypeScript
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+async function callAgent(userMessage: string) {
+  // Create execution context for traceability
+  const context = teal.createContext({
+    userId: 'user-123',
+    sessionId: 'session-456',
+    environment: 'production'
+  });
+  
+  // Make LLM call with TealTiger protection
+  const response = await teal.guard(
+    () => openai.chat.completions.create({
+      model: 'gpt-4',
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: userMessage }
+      ],
+      tools: [
+        {
+          type: 'function',
+          function: {
+            name: 'customer_data_read',
+            description: 'Read customer data',
+            parameters: {
+              type: 'object',
+              properties: {
+                customerId: { type: 'string' }
+              }
+            }
+          }
+        }
+      ]
+    }),
+    context
+  );
+  
+  return response;
+}
+```
+
+```python Python
+from openai import OpenAI
+
+openai = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+async def call_agent(user_message: str):
+    # Create execution context for traceability
+    context = teal.create_context({
+        "userId": "user-123",
+        "sessionId": "session-456",
+        "environment": "production"
+    })
+    
+    # Make LLM call with TealTiger protection
+    response = await teal.guard(
+        lambda: openai.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": user_message}
+            ],
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "customer_data_read",
+                        "description": "Read customer data",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "customerId": {"type": "string"}
+                            }
+                        }
+                    }
+                }
+            ]
+        ),
+        context
+    )
+    
+    return response
+```
+</CodeGroup>
+
+---
+
+## Step 3: Enforce policies on tool calls
+
+Before executing any tool, check if it's allowed by your policies.
+
+<CodeGroup>
+```typescript TypeScript
+async function executeTool(toolName: string, args: any, context: any) {
+  // Check if tool is allowed
+  const decision = await teal.evaluate({
+    action: 'tool.execute',
+    tool: toolName,
+    arguments: args,
+    context
+  });
+  
+  // Handle the decision
+  if (decision.action === 'DENY') {
+    console.error(`Tool ${toolName} blocked:`, decision.reason_codes);
+    throw new Error(`Tool execution denied: ${decision.reason_codes.join(', ')}`);
+  }
+  
+  if (decision.action === 'REQUIRE_APPROVAL') {
+    console.warn(`Tool ${toolName} requires approval`);
+    // Implement approval workflow
+  }
+  
+  // Tool is allowed - execute it
+  console.log(`Executing tool: ${toolName}`);
+  const result = await actuallyExecuteTool(toolName, args);
+  
+  // Log the execution
+  await teal.logToolExecution({
+    tool: toolName,
+    arguments: args,
+    result,
+    context,
+    correlationId: decision.correlation_id
+  });
+  
+  return result;
+}
+
+// Example: Try to execute a blocked tool
+try {
+  await executeTool('file_delete', { path: '/important/file.txt' }, context);
+} catch (error) {
+  console.error('Tool execution failed:', error.message);
+  // Output: Tool execution denied: TOOL_NOT_ALLOWED
+}
+```
+
+```python Python
+async def execute_tool(tool_name: str, args: dict, context: dict):
+    # Check if tool is allowed
+    decision = await teal.evaluate({
+        "action": "tool.execute",
+        "tool": tool_name,
+        "arguments": args,
+        "context": context
+    })
+    
+    # Handle the decision
+    if decision["action"] == "DENY":
+        print(f"Tool {tool_name} blocked:", decision["reason_codes"])
+        raise Exception(f"Tool execution denied: {', '.join(decision['reason_codes'])}")
+    
+    if decision["action"] == "REQUIRE_APPROVAL":
+        print(f"Tool {tool_name} requires approval")
+        # Implement approval workflow
+    
+    # Tool is allowed - execute it
+    print(f"Executing tool: {tool_name}")
+    result = await actually_execute_tool(tool_name, args)
+    
+    # Log the execution
+    await teal.log_tool_execution({
+        "tool": tool_name,
+        "arguments": args,
+        "result": result,
+        "context": context,
+        "correlationId": decision["correlation_id"]
+    })
+    
+    return result
+
+# Example: Try to execute a blocked tool
+try:
+    await execute_tool("file_delete", {"path": "/important/file.txt"}, context)
+except Exception as error:
+    print("Tool execution failed:", str(error))
+    # Output: Tool execution denied: TOOL_NOT_ALLOWED
+```
+</CodeGroup>
+
+---
+
+## Step 4: View audit logs
+
+TealTiger automatically logs all decisions and tool executions with PII redaction.
+
+```json Example audit log
+{
+  "schema_version": "1.0.0",
+  "event_type": "policy.evaluation",
+  "timestamp": "2026-03-06T10:30:00.000Z",
+  "correlation_id": "req-a1b2c3d4",
+  "trace_id": "trace-xyz789",
+  
+  "decision": {
+    "action": "DENY",
+    "reason_codes": ["TOOL_NOT_ALLOWED"],
+    "risk_score": 95,
+    "mode": "ENFORCE"
+  },
+  
+  "context": {
+    "userId": "user-***",
+    "sessionId": "session-***",
+    "environment": "production"
+  },
+  
+  "tool": {
+    "name": "file_delete",
+    "arguments": "[REDACTED]"
+  },
+  
+  "cost": {
+    "estimated": 0.002,
+    "currency": "USD"
+  }
+}
+```
+
+<Note>
+PII is automatically redacted from audit logs. User IDs, session IDs, and sensitive arguments are hashed or removed.
+</Note>
+
+---
+
+## Step 5: Monitor costs
+
+Check your current spending and budget status.
+
+<CodeGroup>
+```typescript TypeScript
+// Get current cost metrics
+const metrics = await teal.getCostMetrics();
+
+console.log('Cost metrics:', {
+  today: metrics.costToday,
+  thisMonth: metrics.costThisMonth,
+  budgetRemaining: metrics.budgetRemaining,
+  requestCount: metrics.requestCount
+});
+
+// Output:
+// {
+//   today: 12.45,
+//   thisMonth: 234.56,
+//   budgetRemaining: 87.55,
+//   requestCount: 1523
+// }
+```
+
+```python Python
+# Get current cost metrics
+metrics = await teal.get_cost_metrics()
+
+print("Cost metrics:", {
+    "today": metrics["costToday"],
+    "thisMonth": metrics["costThisMonth"],
+    "budgetRemaining": metrics["budgetRemaining"],
+    "requestCount": metrics["requestCount"]
+})
+
+# Output:
+# {
+#   "today": 12.45,
+#   "thisMonth": 234.56,
+#   "budgetRemaining": 87.55,
+#   "requestCount": 1523
+# }
+```
+</CodeGroup>
+
+---
+
+## What's happening under the hood?
+
+When you call `teal.guard()` or `teal.evaluate()`, TealTiger:
+
+1. **Evaluates policies** - Checks if the action is allowed based on your policy configuration
+2. **Tracks costs** - Estimates and tracks LLM API costs against your budget
+3. **Logs decisions** - Creates audit events with automatic PII redaction
+4. **Adds traceability** - Generates correlation IDs to link related events
+5. **Enforces limits** - Blocks requests that exceed cost or rate limits
+
+All of this happens in under 5ms with zero external dependencies.
+
+---
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Write your first policy" icon="shield-check" href="/getting-started/first-policy">
+    Learn how to write custom security policies for your AI agents
+  </Card>
+  
+  <Card title="Explore examples" icon="code" href="/cookbook/index">
+    See real-world examples like HIPAA compliance and budget management
+  </Card>
+  
+  <Card title="API reference" icon="book" href="/api-reference/typescript/index">
+    Dive into the complete API documentation
+  </Card>
+  
+  <Card title="Core concepts" icon="lightbulb" href="/concepts/decision-lifecycle">
+    Understand how TealTiger makes decisions
+  </Card>
+</CardGroup>
+
+---
+
+## Troubleshooting
+
+### Installation fails
+
+Make sure you're using Node.js 16+ or Python 3.8+. If you're behind a corporate proxy, configure npm or pip to use your proxy.
+
+### Policies aren't enforcing
+
+Check that you're calling `teal.evaluate()` before executing tools. The `guard()` method only wraps LLM calls, not tool executions.
+
+### Audit logs contain sensitive data
+
+Ensure `redactPII: true` is set in your audit configuration. By default, TealTiger redacts all PII, but you can disable this for development.
+
+### Cost tracking is inaccurate
+
+TealTiger estimates costs based on token counts and provider pricing. For exact costs, integrate with your LLM provider's billing API.
+
+---
+
+## Get help
+
+- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
+- **GitHub**: [github.com/agentguard-ai/tealtiger](https://github.com/agentguard-ai/tealtiger)
+- **Email**: [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)

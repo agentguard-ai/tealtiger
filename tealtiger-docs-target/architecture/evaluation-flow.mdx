@@ -1,0 +1,25 @@
+---
+title: Evaluation Flow
+description: How requests are evaluated and decisions are produced.
+---
+
+> **Version:** v1.1.0  
+> This page documents behavior guaranteed in TealTiger v1.1.0.
+
+
+# Evaluation Flow
+
+```mermaid
+sequenceDiagram
+  participant App
+  participant Engine
+  participant Audit
+  App->>Engine: evaluate(RequestContext)
+  Engine->>Audit: policy.evaluation
+  Engine-->>App: Decision
+```
+
+## Notes
+
+- Mode influences enforcement behavior.
+- Decisions are deterministic for the same inputs.

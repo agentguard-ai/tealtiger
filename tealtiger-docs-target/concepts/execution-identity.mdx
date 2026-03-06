@@ -1,0 +1,129 @@
+---
+title: Execution Identity
+description: How TealTiger represents agent and user identity for least-privilege governance and audit evidence in v1.1.0.
+
+version: v1.1.0
+status: stable
+doc_type: concept
+machine_readable: true
+
+stable_id: tealtiger.execution_identity.v1_1_0
+
+applies_to:
+  - policy-engine
+  - audit
+
+governance_domain:
+  - security
+  - cost
+  - reliability
+---
+
+import { Callout } from "mintlify/components";
+
+> **Version:** v1.1.0  
+> This page documents behavior guaranteed in TealTiger v1.1.0. API names may evolve, but **identity semantics** are stable.
+
+# Execution Identity
+
+## Purpose
+
+In agentic systems, “who did this?” is often ambiguous.
+
+TealTiger treats identity as a **first-class governance signal** so you can:
+
+- apply least privilege policies
+- scope tool/model access
+- attribute cost
+- trace actions for audit and incident response
+
+Identity is used in:
+
+- policy conditions
+- decision explanations (reason codes)
+- audit event evidence
+
+---
+
+## Identity model (v1.1.0)
+
+TealTiger supports identity at multiple layers:
+
+- **Actor identity**: the user or system initiating the request
+- **Agent identity**: the agent/service performing actions
+- **Tool identity**: which tool/connector executed the action (when applicable)
+
+<Callout type="info">
+Identity is not only security. It is also cost attribution and reliability scoping.
+</Callout>
+
+---
+
+## Stable identity fields (recommended)
+
+For deterministic governance, provide stable identifiers:
+
+- `actor.id` (end user or calling service)
+- `actor.type` (user/service)
+- `agent.id` (agent instance or deployment)
+- `agent.role` (trusted/untrusted/system)
+- `tenant_id` / `org_id` (multi-tenant context)
+- `environment` (prod/staging/dev)
+
+### Why stable IDs matter
+
+- Policies can allowlist/denylist identities deterministically.
+- Audit events remain attributable across time.
+
+---
+
+## Identity-based governance patterns
+
+### 1) Least privilege tool access
+
+- Trusted service identities may access privileged tools.
+- Untrusted identities are restricted or denied.
+
+### 2) Cost attribution
+
+- Attribute spend to actor/tenant.
+- Apply different budgets by identity class.
+
+### 3) Reliability scoping
+
+- Apply stricter timeouts or degrade behavior for unknown identities.
+
+---
+
+## Safe defaults
+
+If required identity context is missing, policies should default to safe behavior.
+
+Common pattern:
+
+- missing identity → `DENY` with `INPUT_MISSING_IDENTITY`
+
+<Callout type="warning">
+Do not rely on user-provided free text identity. Treat identity as structured, verified metadata from your application.
+</Callout>
+
+---
+
+## Audit evidence
+
+Identity should be recorded in the AuditEvent as **structured metadata**, not raw content.
+
+Recommended:
+
+- include stable IDs
+- avoid storing sensitive personal attributes
+- apply redaction rules to identity fields if needed
+
+---
+
+## Related reading
+
+- /policy/conditions-and-actions
+- /policy/reason-codes
+- /audit/audit-event-schema
+- /concepts/audit-and-redaction

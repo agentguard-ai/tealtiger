@@ -1,0 +1,313 @@
+---
+title: Decision Lifecycle
+description: How policy decisions flow through evaluation, enforcement, and audit in TealTiger.
+
+version: v1.1.0
+status: stable
+doc_type: concept
+machine_readable: true
+
+applies_to:
+  - policy-engine
+  - audit
+
+governance_domain:
+  - cost
+  - security
+  - reliability
+---
+
+## Purpose
+
+This document explains the **end-to-end decision lifecycle** in TealTiger.
+
+It ties together all core concepts introduced in v1.1.0:
+
+- Conditions and actions
+- Risk scores
+- Reason codes
+- Cost metadata
+- Audit and telemetry
+- Logging behavior
+
+Every request evaluated by TealTiger follows this **deterministic lifecycle**.
+
+---
+
+> **Jump to:** /policy/policy-authoring-guide · /policy/overview · /audit/audit-event-schema
+
+Understanding the lifecycle helps you:
+
+- Predict policy behavior
+- Debug enforcement decisions
+- Explain outcomes to auditors and stakeholders
+- Trust that governance is applied consistently
+
+TealTiger treats decision-making as a **first-class, observable process**.
+
+---
+
+## Concept Overview
+
+```yaml
+machine_spec:
+  version: v1.1.0
+  id: tealtiger.decision_lifecycle
+  type: lifecycle_definition
+  stages:
+    - id: ingress
+      name: Request Ingress
+    - id: signals
+      name: Signal Collection
+    - id: risk
+      name: Risk Evaluation
+    - id: policy_eval
+      name: Policy Evaluation
+    - id: decision
+      name: Decision Resolution
+    - id: reason_codes
+      name: Reason Code Emission
+    - id: actions
+      name: Action Execution
+    - id: audit
+      name: Audit Event Generation
+    - id: telemetry
+      name: Logging and Telemetry
+  invariants:
+    - id: deterministic
+      description: Same inputs and policy version yields the same outputs.
+    - id: auditability
+      description: Every decision produces structured audit evidence.
+```
+
+Conceptually, the lifecycle looks like this:
+
+1. Request enters the system
+2. Signals are collected
+3. Risk is evaluated
+4. Policies are evaluated
+5. A decision is produced
+6. Actions are executed
+7. Audit and logging events are emitted
+
+Each step is deterministic and auditable.
+
+---
+
+## Lifecycle Stages
+
+### Step 1: Request Ingress
+
+A request enters your application or agent runtime.
+
+At this point:
+- No policy decisions have been made
+- No actions have been taken
+- The request is untouched
+
+TealTiger observes the request but does not modify it yet.
+
+---
+
+### Step 2: Signal Collection
+
+TealTiger collects **signals** required for evaluation.
+
+Typical signals include:
+
+- Cost estimates and token usage
+- Execution identity and environment
+- Model and provider metadata
+- Historical or contextual indicators
+
+Signals are normalized and prepared for evaluation.
+
+---
+
+### Step 3: Risk Evaluation
+
+Using collected signals, TealTiger computes **risk scores**.
+
+Risk is evaluated across domains:
+
+- Security
+- Cost
+- Governance
+- Reliability
+
+Each domain produces a score, which contributes to a composite risk score in the `0–100` range.
+
+Risk scoring is deterministic and versioned.
+
+---
+
+### Step 4: Policy Evaluation
+
+Policies are evaluated using the **condition → action** model.
+
+During this step:
+
+- Conditions are evaluated in a deterministic order
+- Logical operators (AND, OR, NOT) are applied
+- Policies may or may not match the request
+
+Only policies whose conditions evaluate to `true` proceed.
+
+---
+
+### Step 5: Decision Resolution
+
+Based on matching policies, TealTiger resolves a **single decision**:
+
+- ALLOW
+- RESTRICT
+- BLOCK
+
+The decision reflects:
+- Policy mode (monitor or enforce)
+- Policy priority and matching rules
+- Risk and cost thresholds
+
+There are no hidden overrides or probabilistic outcomes.
+
+---
+
+### Step 6: Reason Code Emission
+
+For every decision, TealTiger emits **reason codes**.
+
+Reason codes explain:
+
+- Why a policy matched
+- Why a threshold was crossed
+- Why an action was taken
+
+Multiple reason codes may be emitted for a single decision.
+
+Reason codes are stable, machine-readable identifiers.
+
+---
+
+### Step 7: Action Execution
+
+If the policy mode is **enforce**, actions are executed.
+
+Actions may include:
+
+- Blocking the request
+- Redacting or masking data
+- Limiting tokens
+- Switching models
+- Emitting logs or metrics
+
+Actions execute **only after** the decision is finalized.
+
+---
+
+## Audit and Telemetry
+
+### Step 8: Audit Event Generation
+
+TealTiger emits a structured **audit event** capturing the full decision.
+
+Audit events include:
+
+- Policy identifiers and versions
+- Decision outcome
+- Risk scores
+- Reason codes
+- Actions executed
+- Correlation identifiers
+
+Audit events are versioned, structured, and redacted by default.
+
+---
+
+### Step 9: Logging and Telemetry
+
+In parallel with audit events, TealTiger emits **structured logs**.
+
+Logging behavior:
+
+- Respects redaction rules
+- Avoids raw prompts and completions by default
+- Reflects decision severity
+- Is safe for production environments
+
+Telemetry may be exported to logging systems or SIEM tools.
+
+---
+
+## Monitor vs Enforce Lifecycle
+
+The lifecycle is identical in both modes, with one difference.
+
+### Monitor Mode
+
+- Decisions are evaluated
+- Actions are not enforced
+- Audit and logging still occur
+
+### Enforce Mode
+
+- Decisions are applied
+- Actions are executed
+- Enforcement is deterministic
+
+This allows safe policy rollout and validation.
+
+---
+
+## Determinism Guarantees
+
+The decision lifecycle is designed to be:
+
+- Deterministic
+- Explainable
+- Reproducible
+- Auditable
+
+Given the same inputs, the lifecycle will always produce the same outcome.
+
+---
+
+## What This Lifecycle Does Not Do
+
+In v1.1.0, the lifecycle does not:
+
+- Modify policies dynamically
+- Learn or adapt behavior automatically
+- Orchestrate agent planning or reasoning
+- Execute multi-step workflows
+
+Those capabilities are intentionally out of scope.
+
+---
+
+## Summary
+
+The TealTiger decision lifecycle ensures that:
+
+- Policies are applied consistently
+- Decisions are explainable
+- Enforcement is predictable
+- Governance is defensible
+
+This lifecycle is the backbone of TealTiger v1.1.0.
+
+---
+
+## Related Reading
+
+- /policy/conditions-and-actions
+- /policy/risk-scores
+- /policy/reason-codes
+- /audit/audit-event-schema
+
+---
+
+### Next in the lifecycle
+
+- **Write policies:** /policy/policy-authoring-guide  
+- **Understand enforcement decisions:** /policy/conditions-and-actions  
+- **See what gets emitted:** /audit/audit-event-schema

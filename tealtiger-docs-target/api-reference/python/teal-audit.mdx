@@ -1,0 +1,474 @@
+---
+title: TealAudit
+description: Audit logging with security-by-default redaction
+version: v1.1.x
+---
+
+# TealAudit
+
+`TealAudit` provides comprehensive audit logging with versioned events and security-by-default redaction.
+
+## Overview
+
+TealAudit enables:
+- **Versioned audit events** with stable schema
+- **Security-by-default redaction** (never logs raw prompts/responses)
+- **Context propagation** for end-to-end traceability
+- **Multiple output targets** (console, file, custom)
+
+## Class
+
+```python
+from tealtiger import TealAudit
+from tealtiger.core.audit import AuditConfig, AuditOutput, AuditFilter, RedactionLevel
+from tealtiger.core.audit.types import AuditEvent
+from tealtiger.core.context import ExecutionContext
+from typing import List, Optional
+
+class TealAudit:
+    def __init__(
+        self,
+        outputs: List[AuditOutput],
+        max_events: int = 10000,
+        enable_storage: bool = True,
+        config: Optional[AuditConfig] = None
+    ):
+        ...
+    
+    def log(
+        self,
+        event: AuditEvent,
+        context: Optional[ExecutionContext] = None
+    ) -> None:
+        ...
+    
+    def query(self, filter: Optional[AuditFilter] = None) -> List[AuditEvent]:
+        ...
+    
+    def export(
+        self,
+        format: str = 'json',
+        filter: Optional[AuditFilter] = None
+    ) -> str:
+        ...
+    
+    def propagate_context(
+        self,
+        event: AuditEvent,
+        context: ExecutionContext
+    ) -> AuditEvent:
+        ...
+```
+
+## Configuration
+
+```python
+from pydantic import BaseModel
+from enum import Enum
+
+class RedactionLevel(str, Enum):
+    HASH = 'hash'
+    REDACT = 'redact'
+    NONE = 'none'
+
+class AuditConfig(BaseModel):
+    input_redaction: RedactionLevel = RedactionLevel.HASH
+    output_redaction: RedactionLevel = RedactionLevel.HASH
+    debug_mode: bool = False
+    detect_pii: bool = True
+```
+
+## Creating an Audit Logger
+
+### Basic Configuration
+
+```python
+from tealtiger import TealAudit
+from tealtiger.core.audit import ConsoleOutput, AuditConfig, RedactionLevel
+
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        input_redaction=RedactionLevel.HASH,
+        output_redaction=RedactionLevel.HASH,
+        detect_pii=True
+    )
+)
+```
+
+### Multiple Outputs
+
+```python
+from tealtiger.core.audit import ConsoleOutput, FileOutput, CustomOutput
+
+def custom_handler(event):
+    # Send to external logging service
+    logging_service.send(event)
+
+audit = TealAudit(
+    outputs=[
+        ConsoleOutput(),
+        FileOutput('./logs/audit.log'),
+        CustomOutput(custom_handler)
+    ]
+)
+```
+
+### Debug Mode (Development Only)
+
+```python
+# ⚠️ WARNING: Debug mode logs raw content - NEVER use in production
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        debug_mode=True,  # Includes raw prompts/responses
+        input_redaction=RedactionLevel.NONE,
+        output_redaction=RedactionLevel.NONE
+    )
+)
+```
+
+## Logging Events
+
+### Basic Event Logging
+
+```python
+from tealtiger.core.audit.types import AuditEvent, AuditEventType
+from tealtiger import DecisionAction
+from datetime import datetime
+
+audit.log(AuditEvent(
+    schema_version='1.0.0',
+    event_type=AuditEventType.POLICY_EVALUATION,
+    timestamp=datetime.utcnow().isoformat() + 'Z',
+    correlation_id='req-12345',
+    action=DecisionAction.ALLOW,
+    risk_score=25
+))
+```
+
+### With Context Propagation
+
+```python
+from tealtiger.core.context import create_execution_context
+
+context = create_execution_context(user_id='user-123')
+
+event = AuditEvent(
+    schema_version='1.0.0',
+    event_type=AuditEventType.POLICY_EVALUATION,
+    timestamp=datetime.utcnow().isoformat() + 'Z',
+    correlation_id=context.correlation_id,
+    action=DecisionAction.ALLOW,
+    risk_score=25
+)
+
+# Context fields automatically propagated
+audit.log(event, context)
+```
+
+### Logging Decisions
+
+```python
+decision = engine.evaluate_with_mode(request, context)
+
+audit.log(AuditEvent(
+    schema_version='1.0.0',
+    event_type=AuditEventType.POLICY_EVALUATION,
+    timestamp=datetime.utcnow().isoformat() + 'Z',
+    correlation_id=decision.correlation_id,
+    trace_id=decision.trace_id,
+    policy_id=decision.policy_id,
+    mode=decision.mode,
+    action=decision.action,
+    risk_score=decision.risk_score,
+    reason_codes=decision.reason_codes,
+    metadata=decision.metadata
+), context)
+```
+
+## Querying Events
+
+### Query by Correlation ID
+
+```python
+from tealtiger.core.audit import AuditFilter
+
+events = audit.query(AuditFilter(
+    correlation_id='req-12345'
+))
+
+print(f"Found {len(events)} events")
+for event in events:
+    print(f"{event.timestamp}: {event.event_type}")
+```
+
+### Query by Time Range
+
+```python
+from datetime import datetime
+
+events = audit.query(AuditFilter(
+    start_time=datetime(2024, 1, 1),
+    end_time=datetime(2024, 1, 31)
+))
+```
+
+### Query by Cost
+
+```python
+expensive_events = audit.query(AuditFilter(
+    min_cost=1.0  # Events costing $1 or more
+))
+```
+
+### Query by Agent
+
+```python
+agent_events = audit.query(AuditFilter(
+    agents=['agent-001', 'agent-002']
+))
+```
+
+## Exporting Events
+
+### JSON Export
+
+```python
+json_data = audit.export('json', AuditFilter(
+    correlation_id='req-12345'
+))
+
+with open('./audit-export.json', 'w') as f:
+    f.write(json_data)
+```
+
+### CSV Export
+
+```python
+csv_data = audit.export('csv', AuditFilter(
+    start_time=datetime(2024, 1, 1),
+    end_time=datetime(2024, 1, 31)
+))
+
+with open('./audit-export.csv', 'w') as f:
+    f.write(csv_data)
+```
+
+## Context Propagation
+
+### Manual Context Propagation
+
+```python
+from tealtiger.core.context import create_execution_context
+
+context = create_execution_context(
+    user_id='user-123',
+    environment='production'
+)
+
+event = AuditEvent(
+    schema_version='1.0.0',
+    event_type=AuditEventType.POLICY_EVALUATION,
+    timestamp=datetime.utcnow().isoformat() + 'Z',
+    correlation_id='temp-id',
+    action=DecisionAction.ALLOW,
+    risk_score=0
+)
+
+# Propagate context fields into event
+enriched_event = audit.propagate_context(event, context)
+
+audit.log(enriched_event)
+```
+
+## Redaction Levels
+
+### HASH (Default)
+
+```python
+# Inputs/outputs are hashed (SHA-256)
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        input_redaction=RedactionLevel.HASH,
+        output_redaction=RedactionLevel.HASH
+    )
+)
+
+# Logged event contains hashes, not raw content
+```
+
+### REDACT
+
+```python
+# Inputs/outputs are replaced with [REDACTED]
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        input_redaction=RedactionLevel.REDACT,
+        output_redaction=RedactionLevel.REDACT
+    )
+)
+```
+
+### NONE (Debug Only)
+
+```python
+# ⚠️ WARNING: Raw content logged - NEVER use in production
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        input_redaction=RedactionLevel.NONE,
+        output_redaction=RedactionLevel.NONE,
+        debug_mode=True
+    )
+)
+```
+
+## Custom Redaction Rules
+
+```python
+from tealtiger.core.audit import CustomRedactionRule
+
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        input_redaction=RedactionLevel.HASH,
+        output_redaction=RedactionLevel.HASH,
+        custom_redaction=[
+            CustomRedactionRule(
+                pattern=r'api[_-]?key[:\s=]+[\w-]+',
+                replacement='[API_KEY_REDACTED]'
+            ),
+            CustomRedactionRule(
+                pattern=r'password[:\s=]+\S+',
+                replacement='[PASSWORD_REDACTED]'
+            )
+        ]
+    )
+)
+```
+
+## Integration with TealEngine
+
+```python
+from tealtiger import TealEngine, TealAudit
+from tealtiger.core.audit import ConsoleOutput, AuditEventType
+from tealtiger.core.context import create_execution_context
+
+engine = TealEngine(config)
+audit = TealAudit(outputs=[ConsoleOutput()])
+
+context = create_execution_context(user_id='user-123')
+decision = engine.evaluate_with_mode(request, context)
+
+# Log decision with context
+audit.log(AuditEvent(
+    schema_version='1.0.0',
+    event_type=AuditEventType.POLICY_EVALUATION,
+    timestamp=datetime.utcnow().isoformat() + 'Z',
+    correlation_id=decision.correlation_id,
+    trace_id=decision.trace_id,
+    policy_id=decision.policy_id,
+    mode=decision.mode,
+    action=decision.action,
+    risk_score=decision.risk_score,
+    reason_codes=decision.reason_codes,
+    duration=decision.metadata.get('evaluation_time_ms'),
+    metadata=decision.metadata
+), context)
+```
+
+## Performance
+
+TealAudit targets:
+- **< 1ms per log operation** (p99, async writes)
+- **< 0.5ms for context propagation** (p99)
+- **Non-blocking** (never blocks application flow)
+
+## Best Practices
+
+### Always Use Redaction in Production
+
+```python
+# ❌ Bad: No redaction in production
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        input_redaction=RedactionLevel.NONE,
+        output_redaction=RedactionLevel.NONE
+    )
+)
+
+# ✅ Good: Security-by-default redaction
+audit = TealAudit(
+    outputs=[ConsoleOutput()],
+    config=AuditConfig(
+        input_redaction=RedactionLevel.HASH,
+        output_redaction=RedactionLevel.HASH,
+        detect_pii=True
+    )
+)
+```
+
+### Propagate Context
+
+```python
+# ✅ Good: Always propagate context
+decision = engine.evaluate_with_mode(request, context)
+
+audit.log(AuditEvent(
+    schema_version='1.0.0',
+    event_type=AuditEventType.POLICY_EVALUATION,
+    timestamp=datetime.utcnow().isoformat() + 'Z',
+    correlation_id=decision.correlation_id,
+    action=decision.action,
+    risk_score=decision.risk_score
+), context)
+```
+
+### Query by Correlation ID
+
+```python
+# ✅ Good: Use correlation_id for investigation
+correlation_id = 'user-reported-issue-id'
+
+events = audit.query(AuditFilter(correlation_id=correlation_id))
+
+print(f"Found {len(events)} events for investigation")
+for event in events:
+    print(f"{event.timestamp}: {event.event_type} - {event.action}")
+```
+
+## Type Hints
+
+```python
+from typing import List, Optional
+from tealtiger import TealAudit
+from tealtiger.core.audit.types import AuditEvent
+from tealtiger.core.audit import AuditFilter
+from tealtiger.core.context import ExecutionContext
+
+def log_with_context(
+    audit: TealAudit,
+    event: AuditEvent,
+    context: Optional[ExecutionContext] = None
+) -> None:
+    """Log event with optional context."""
+    audit.log(event, context)
+
+def query_events(
+    audit: TealAudit,
+    filter: Optional[AuditFilter] = None
+) -> List[AuditEvent]:
+    """Query events with optional filter."""
+    return audit.query(filter)
+```
+
+## Related Documentation
+
+- [Execution Context](/api-reference/python/execution-context)
+- [Decision Contract](/api-reference/python/decision)
+- [Audit Event Schema](/audit/audit-event-schema)
+- [Security Best Practices](/about/best-practices)

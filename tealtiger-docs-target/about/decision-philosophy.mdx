@@ -1,0 +1,236 @@
+---
+title: Decision Philosophy
+description: Why TealTiger favors deterministic enforcement over probabilistic decisions.
+
+version: v1.1.0
+status: stable
+doc_type: about
+machine_readable: true
+
+applies_to:
+  - policy-engine
+
+governance_domain:
+  - security
+  - reliability
+---
+
+## Purpose
+
+TealTiger is a governance system for AI workloads across **cost, security, and reliability**.  
+For governance to work at scale, decisions must be:
+
+- **Predictable**
+- **Explainable**
+- **Auditable**
+- **Reproducible**
+
+This document explains why TealTiger is intentionally **deterministic** (policy-defined, explainable outcomes) instead of **probabilistic** (adaptive or “AI-like” decisions).
+
+---
+
+## The Core Principle
+
+> **Governance decisions must be reproducible.**  
+> If the same inputs produce different outcomes, you don’t have governance — you have uncertainty.
+
+TealTiger is built to produce the same decision for the same:
+- policy version
+- inputs
+- execution context
+
+This is not a limitation. It is a safety feature.
+
+---
+
+## Deterministic vs Probabilistic Decisions
+
+### Deterministic (TealTiger’s model)
+
+- Same inputs → same decision
+- Decisions are traceable to explicit policy conditions
+- Failures are explainable with reason codes
+- Audits are meaningful and defensible
+
+### Probabilistic (what we avoid in v1.1.0)
+
+- Same inputs → sometimes different decision
+- Decisions depend on thresholds, model confidence, hidden heuristics, or adaptive learning
+- Explanations are incomplete or post-hoc
+- Audits become “best effort”
+
+---
+
+## Why Deterministic > Probabilistic (for Governance)
+
+### 1) Auditability requires repeatability
+
+A core output of TealTiger is governance evidence:
+- policy decision record
+- reason codes
+- redaction decisions
+- telemetry emitted
+
+If a decision can vary for identical inputs, you cannot:
+- replay incidents reliably
+- reproduce enforcement outcomes
+- provide strong audit trails
+
+Determinism enables “re-run the same event, get the same result.”
+
+---
+
+### 2) Security enforcement must minimize surprise
+
+Security failures often happen during:
+- edge conditions
+- partial outages
+- unexpected input combinations
+
+Probabilistic enforcement can create “decision drift”:
+- today’s request passes
+- tomorrow’s identical request fails
+
+This destroys trust and causes teams to bypass controls.
+
+Deterministic policy enforcement builds reliability and user confidence.
+
+---
+
+### 3) Developers need debuggability, not mystery
+
+A deterministic system supports a clean mental model:
+
+- **Which condition triggered?**
+- **Which action was applied?**
+- **Which policy version caused it?**
+
+Probabilistic decisions tend to produce support tickets like:
+- “It failed randomly”
+- “It worked yesterday”
+- “We can’t reproduce it locally”
+
+TealTiger chooses boring, debuggable behavior.
+
+---
+
+### 4) Governance is a contract, not a suggestion
+
+Governance is only effective if it behaves like a contract:
+- stable
+- explicit
+- enforced consistently
+
+Probabilistic outcomes turn governance into:
+- “it might block”
+- “it might redact”
+- “it might downgrade risk”
+
+That uncertainty is unacceptable for regulated or mission-critical systems.
+
+---
+
+### 5) Incident response depends on deterministic evidence
+
+When things go wrong, teams need:
+- exact inputs
+- exact decision outputs
+- exact policy version
+- exact reason codes
+
+If the system cannot reproduce the decision, the post-incident analysis becomes opinion, not evidence.
+
+Determinism supports forensic confidence.
+
+---
+
+## Where Probabilistic Signals Still Fit (Without Probabilistic Enforcement)
+
+TealTiger can consume probabilistic signals *as inputs* — without making the enforcement itself probabilistic.
+
+Examples:
+- classifier outputs (e.g., “toxicity_score=0.72”)
+- anomaly flags (e.g., “suspicious=true”)
+- model-reported confidence values
+
+**Important:** These are treated as inputs that policies evaluate deterministically.
+
+> The *signals* may be probabilistic, but the *decision* is deterministic.
+
+This keeps enforcement explainable and stable.
+
+---
+
+## Recommended Pattern: Deterministic Decisions with “Risk-Aware” Inputs
+
+A strong approach is:
+
+1. Collect signals (scores, flags, metadata)
+2. Normalize them into stable inputs
+3. Enforce deterministic policies using thresholds that you explicitly own
+
+This gives you:
+- clear reasoning
+- predictable enforcement
+- stable audits
+
+---
+
+## Design Guardrails in v1.1.0
+
+In v1.1.0, TealTiger prioritizes:
+
+- Policy-defined conditions and actions
+- Clear reason codes for every decision
+- Stable audit event schema
+- Reproducible behavior across environments
+
+If it can’t be explained and replayed, it doesn’t belong in governance.
+
+---
+
+## Forward-Looking Note
+
+Future versions may introduce:
+- richer signals
+- smarter detection inputs
+- improved policy authoring ergonomics
+
+But TealTiger will continue to treat enforcement as:
+- explicit
+- deterministic
+- explainable
+
+We may evolve the inputs — but not the requirement for reproducible decisions.
+
+---
+
+## Summary
+
+TealTiger chooses determinism because governance requires:
+- **Consistency**
+- **Explainability**
+- **Audit-grade evidence**
+- **Developer trust**
+
+Probabilistic “AI-like” enforcement may be attractive,
+but for security, cost, and reliability governance it is a liability.
+
+Deterministic decisions keep governance boring — and boring is safe.
+
+---
+
+### Related Reading
+
+- /about/non-goals
+- /about/anti-patterns
+- /about/best-practices
+
+---
+
+### About (v1.1.0)
+
+**Prev:** [Best Practices](/about/best-practices)  
+**Back to start:** [Goals](/about/goals)
+
+**See also:** [Non‑Goals](/about/non-goals) · [Anti‑Patterns](/about/anti-patterns)

@@ -1,0 +1,385 @@
+---
+title: Configuration
+description: Configure policy modes, logging, audit, cost controls, and enforcement behavior in TealTiger v1.1.0.
+---
+
+## Overview
+
+This document describes the **configuration surface** of TealTiger v1.1.0.
+
+Configuration controls **how TealTiger behaves**, not what policies mean.  
+All configuration options are:
+
+- Explicit
+- Deterministic
+- Backward compatible within v1.1.x
+- Safe by default
+
+This page is the authoritative reference for runtime behavior.
+
+---
+
+## Configuration Principles
+
+TealTiger configuration follows these principles:
+
+- Secure by default
+- Explicit over implicit
+- No hidden behavior changes
+- Policy behavior is not altered by configuration
+- Configuration affects execution, visibility, and enforcement
+
+---
+
+## Configuration Scope (v1.1.0)
+
+In v1.1.0, configuration controls:
+
+- Policy enforcement mode
+- Logging behavior
+- Audit emission
+- Cost estimation and limits
+- Redaction and data minimization
+- Error handling behavior
+
+Configuration does **not** modify:
+- Policy logic
+- Condition semantics
+- Reason code meaning
+- Risk score calculation
+
+---
+
+## Policy Mode Configuration
+
+Controls how policies are applied.
+
+### `policy.mode`
+
+Allowed values:
+- `monitor`
+- `enforce`
+
+Behavior:
+
+- `monitor`  
+  Policies are evaluated but actions are not enforced.
+
+- `enforce`  
+  Policies are evaluated and actions are executed.
+
+Policy mode can be:
+- Global (applies to all policies)
+- Policy-specific (overrides global mode)
+
+Default:
+- `monitor`
+
+---
+
+## Logging Configuration
+
+Controls structured logging behavior.
+
+### `logging.enabled`
+
+- `true` → logging enabled
+- `false` → logging disabled
+
+Default:
+- `true`
+
+---
+
+### `logging.level`
+
+Controls verbosity.
+
+Allowed values:
+- `DEBUG`
+- `INFO`
+- `WARN`
+- `ERROR`
+
+Default:
+- `INFO`
+
+---
+
+### `logging.format`
+
+Controls log structure.
+
+Allowed values:
+- `json` (recommended)
+
+Default:
+- `json`
+
+---
+
+### `logging.include_content`
+
+Controls whether prompts or completions are logged.
+
+Allowed values:
+- `false` (default)
+- `true` (explicit opt-in)
+
+Default:
+- `false`
+
+Enabling this is **strongly discouraged** in production.
+
+---
+
+## Audit Configuration
+
+Controls emission of audit events.
+
+### `audit.enabled`
+
+- `true` → audit events emitted
+- `false` → audit events disabled
+
+Default:
+- `true`
+
+Audit events are always structured and versioned.
+
+---
+
+### `audit.schema_version`
+
+Controls which audit schema is used.
+
+Allowed values:
+- `1.1.0`
+
+Default:
+- `1.1.0`
+
+Changing this is not recommended unless explicitly required.
+
+---
+
+### `audit.redaction_mode`
+
+Controls how sensitive data is handled in audit events.
+
+Allowed values:
+- `metadata-only`
+- `hash-only`
+- `partial`
+
+Default:
+- `metadata-only`
+
+---
+
+## Cost Configuration
+
+Controls cost estimation and enforcement behavior.
+
+### `cost.estimation.enabled`
+
+- `true` → estimate cost before execution
+- `false` → skip estimation
+
+Default:
+- `true`
+
+Cost estimation is required for cost-based policies.
+
+---
+
+### `cost.currency`
+
+Currency used for normalization.
+
+Allowed values:
+- `USD`
+
+Default:
+- `USD`
+
+---
+
+### `cost.budget.enforcement`
+
+Controls whether budget violations trigger actions.
+
+Allowed values:
+- `monitor`
+- `enforce`
+
+Default:
+- `monitor`
+
+This allows cost guardrails to be tested safely.
+
+---
+
+## Risk Configuration
+
+Controls how risk scores are used.
+
+### `risk.scoring.enabled`
+
+- `true` → compute risk scores
+- `false` → disable risk scoring
+
+Default:
+- `true`
+
+Disabling risk scoring may reduce policy effectiveness.
+
+---
+
+### `risk.threshold_behavior`
+
+Controls how threshold crossings are handled.
+
+Allowed values:
+- `strict`
+- `lenient`
+
+Behavior:
+- `strict` → thresholds are enforced exactly
+- `lenient` → thresholds may allow buffer zones
+
+Default:
+- `strict`
+
+---
+
+## Redaction Configuration
+
+Controls data minimization.
+
+### `redaction.enabled`
+
+- `true` → redaction applied
+- `false` → redaction disabled
+
+Default:
+- `true`
+
+---
+
+### `redaction.strategy`
+
+Allowed values:
+- `metadata-only`
+- `hash-only`
+- `partial`
+
+Default:
+- `metadata-only`
+
+Redaction applies to:
+- Logs
+- Audit events
+- Error responses
+
+---
+
+## Error Handling Configuration
+
+Controls how enforcement errors are surfaced.
+
+### `errors.return_reason_codes`
+
+- `true` → include reason codes in errors
+- `false` → suppress reason codes
+
+Default:
+- `true`
+
+---
+
+### `errors.fail_open`
+
+Controls behavior on internal failures.
+
+- `true` → allow request on internal error
+- `false` → block request on internal error
+
+Default:
+- `false`
+
+Fail-closed behavior is recommended for security-critical workloads.
+
+---
+
+## Environment-Specific Configuration
+
+Configuration can vary by environment.
+
+Typical environments:
+- `dev`
+- `test`
+- `stage`
+- `prod`
+
+Recommended pattern:
+- `dev` → monitor, verbose logging
+- `prod` → enforce, minimal logging
+
+---
+
+## Configuration Precedence
+
+When multiple configurations apply:
+
+1. Policy-specific configuration
+2. Environment-level configuration
+3. Global configuration
+4. Default values
+
+Higher precedence always overrides lower precedence.
+
+---
+
+## Configuration Stability Guarantees
+
+Within v1.1.x:
+
+- Configuration keys will not be renamed
+- Meanings will not change
+- Defaults will not change silently
+- New options will be additive only
+
+Breaking configuration changes require a major version bump.
+
+---
+
+## What Configuration Does Not Do
+
+Configuration does not:
+
+- Modify policy logic
+- Change reason code meaning
+- Alter risk score ranges
+- Introduce non-deterministic behavior
+
+Configuration controls **execution**, not **governance intent**.
+
+---
+
+## Best Practices
+
+- Start in `monitor` mode
+- Enable enforcement gradually
+- Keep content logging disabled
+- Treat configuration as code
+- Version configuration changes
+
+---
+
+## Next
+
+- See Policy Design to define governance intent
+- See Decision Lifecycle to understand evaluation flow
+- See Audit and Telemetry for evidence generation
+- See Stability Guarantees for compatibility expectations

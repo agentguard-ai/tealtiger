@@ -1,0 +1,410 @@
+---
+title: TealAudit
+description: Audit logging with security-by-default redaction
+version: v1.1.x
+---
+
+# TealAudit
+
+`TealAudit` provides comprehensive audit logging with versioned events and security-by-default redaction.
+
+## Overview
+
+TealAudit enables:
+- **Versioned audit events** with stable schema
+- **Security-by-default redaction** (never logs raw prompts/responses)
+- **Context propagation** for end-to-end traceability
+- **Multiple output targets** (console, file, custom)
+
+## Class
+
+```typescript
+class TealAudit {
+  constructor(config: TealAuditConfig);
+  
+  log(event: AuditEvent, context?: ExecutionContext): void;
+  query(filter?: AuditFilter): AuditEvent[];
+  export(format: 'json' | 'csv', filter?: AuditFilter): string;
+  propagateContext(event: AuditEvent, context: ExecutionContext): AuditEvent;
+}
+```
+
+## Configuration
+
+```typescript
+interface TealAuditConfig {
+  outputs: AuditOutput[];
+  maxEvents?: number;
+  enableStorage?: boolean;
+  config?: {
+    inputRedaction?: RedactionLevel;
+    outputRedaction?: RedactionLevel;
+    debugMode?: boolean;
+    detectPII?: boolean;
+  };
+}
+
+enum RedactionLevel {
+  HASH = 'hash',
+  REDACT = 'redact',
+  NONE = 'none'
+}
+```
+
+## Creating an Audit Logger
+
+### Basic Configuration
+
+```typescript
+import { TealAudit, ConsoleOutput } from '@tealtiger/sdk';
+
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    inputRedaction: RedactionLevel.HASH,
+    outputRedaction: RedactionLevel.HASH,
+    detectPII: true
+  }
+});
+```
+
+### Multiple Outputs
+
+```typescript
+import { ConsoleOutput, FileOutput, CustomOutput } from '@tealtiger/sdk';
+
+const audit = new TealAudit({
+  outputs: [
+    new ConsoleOutput(),
+    new FileOutput('./logs/audit.log'),
+    new CustomOutput((event) => {
+      // Send to external logging service
+      loggingService.send(event);
+    })
+  ]
+});
+```
+
+### Debug Mode (Development Only)
+
+```typescript
+// ⚠️ WARNING: Debug mode logs raw content - NEVER use in production
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    debugMode: true, // Includes raw prompts/responses
+    inputRedaction: RedactionLevel.NONE,
+    outputRedaction: RedactionLevel.NONE
+  }
+});
+```
+
+## Logging Events
+
+### Basic Event Logging
+
+```typescript
+import { AuditEvent, AuditEventType, DecisionAction } from '@tealtiger/sdk';
+
+audit.log({
+  schema_version: '1.0.0',
+  event_type: AuditEventType.POLICY_EVALUATION,
+  timestamp: new Date().toISOString(),
+  correlation_id: 'req-12345',
+  action: DecisionAction.ALLOW,
+  risk_score: 25
+});
+```
+
+### With Context Propagation
+
+```typescript
+import { ExecutionContext } from '@tealtiger/sdk';
+
+const context = ExecutionContext.create({
+  actor: { id: 'user-123', type: 'user' }
+});
+
+const event: AuditEvent = {
+  schema_version: '1.0.0',
+  event_type: AuditEventType.POLICY_EVALUATION,
+  timestamp: new Date().toISOString(),
+  correlation_id: context.correlation_id,
+  action: DecisionAction.ALLOW,
+  risk_score: 25
+};
+
+// Context fields automatically propagated
+audit.log(event, context);
+```
+
+### Logging Decisions
+
+```typescript
+const decision = await engine.evaluate(request, context);
+
+audit.log({
+  schema_version: '1.0.0',
+  event_type: AuditEventType.POLICY_EVALUATION,
+  timestamp: new Date().toISOString(),
+  correlation_id: decision.correlation_id,
+  trace_id: decision.trace_id,
+  policy_id: decision.policy_id,
+  mode: decision.mode,
+  action: decision.action,
+  risk_score: decision.risk_score,
+  reason_codes: decision.reason_codes,
+  metadata: decision.metadata
+}, context);
+```
+
+## Querying Events
+
+### Query by Correlation ID
+
+```typescript
+const events = audit.query({
+  correlation_id: 'req-12345'
+});
+
+console.log(`Found ${events.length} events`);
+events.forEach(event => {
+  console.log(`${event.timestamp}: ${event.event_type}`);
+});
+```
+
+### Query by Time Range
+
+```typescript
+const events = audit.query({
+  start_time: new Date('2024-01-01'),
+  end_time: new Date('2024-01-31')
+});
+```
+
+### Query by Cost
+
+```typescript
+const expensiveEvents = audit.query({
+  min_cost: 1.0 // Events costing $1 or more
+});
+```
+
+### Query by Agent
+
+```typescript
+const agentEvents = audit.query({
+  agents: ['agent-001', 'agent-002']
+});
+```
+
+## Exporting Events
+
+### JSON Export
+
+```typescript
+const json = audit.export('json', {
+  correlation_id: 'req-12345'
+});
+
+fs.writeFileSync('./audit-export.json', json);
+```
+
+### CSV Export
+
+```typescript
+const csv = audit.export('csv', {
+  start_time: new Date('2024-01-01'),
+  end_time: new Date('2024-01-31')
+});
+
+fs.writeFileSync('./audit-export.csv', csv);
+```
+
+## Context Propagation
+
+### Manual Context Propagation
+
+```typescript
+const context = ExecutionContext.create({
+  actor: { id: 'user-123', type: 'user' },
+  environment: 'production'
+});
+
+const event: AuditEvent = {
+  schema_version: '1.0.0',
+  event_type: AuditEventType.POLICY_EVALUATION,
+  timestamp: new Date().toISOString(),
+  correlation_id: 'temp-id',
+  action: DecisionAction.ALLOW,
+  risk_score: 0
+};
+
+// Propagate context fields into event
+const enrichedEvent = audit.propagateContext(event, context);
+
+audit.log(enrichedEvent);
+```
+
+## Redaction Levels
+
+### HASH (Default)
+
+```typescript
+// Inputs/outputs are hashed (SHA-256)
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    inputRedaction: RedactionLevel.HASH,
+    outputRedaction: RedactionLevel.HASH
+  }
+});
+
+// Logged event contains hashes, not raw content
+```
+
+### REDACT
+
+```typescript
+// Inputs/outputs are replaced with [REDACTED]
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    inputRedaction: RedactionLevel.REDACT,
+    outputRedaction: RedactionLevel.REDACT
+  }
+});
+```
+
+### NONE (Debug Only)
+
+```typescript
+// ⚠️ WARNING: Raw content logged - NEVER use in production
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    inputRedaction: RedactionLevel.NONE,
+    outputRedaction: RedactionLevel.NONE,
+    debugMode: true
+  }
+});
+```
+
+## Custom Redaction Rules
+
+```typescript
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    inputRedaction: RedactionLevel.HASH,
+    outputRedaction: RedactionLevel.HASH,
+    customRedaction: [
+      {
+        pattern: /api[_-]?key[:\s=]+[\w-]+/gi,
+        replacement: '[API_KEY_REDACTED]'
+      },
+      {
+        pattern: /password[:\s=]+\S+/gi,
+        replacement: '[PASSWORD_REDACTED]'
+      }
+    ]
+  }
+});
+```
+
+## Integration with TealEngine
+
+```typescript
+import { TealEngine, TealAudit, ExecutionContext } from '@tealtiger/sdk';
+
+const engine = new TealEngine(config);
+const audit = new TealAudit({ outputs: [new ConsoleOutput()] });
+
+const context = ExecutionContext.create({ actor });
+const decision = await engine.evaluate(request, context);
+
+// Log decision with context
+audit.log({
+  schema_version: '1.0.0',
+  event_type: AuditEventType.POLICY_EVALUATION,
+  timestamp: new Date().toISOString(),
+  correlation_id: decision.correlation_id,
+  trace_id: decision.trace_id,
+  policy_id: decision.policy_id,
+  mode: decision.mode,
+  action: decision.action,
+  risk_score: decision.risk_score,
+  reason_codes: decision.reason_codes,
+  duration: decision.metadata.evaluation_time_ms,
+  metadata: decision.metadata
+}, context);
+```
+
+## Performance
+
+TealAudit targets:
+- **< 1ms per log operation** (p99, async writes)
+- **< 0.5ms for context propagation** (p99)
+- **Non-blocking** (never blocks application flow)
+
+## Best Practices
+
+### Always Use Redaction in Production
+
+```typescript
+// ❌ Bad: No redaction in production
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    inputRedaction: RedactionLevel.NONE,
+    outputRedaction: RedactionLevel.NONE
+  }
+});
+
+// ✅ Good: Security-by-default redaction
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    inputRedaction: RedactionLevel.HASH,
+    outputRedaction: RedactionLevel.HASH,
+    detectPII: true
+  }
+});
+```
+
+### Propagate Context
+
+```typescript
+// ✅ Good: Always propagate context
+const decision = await engine.evaluate(request, context);
+
+audit.log({
+  schema_version: '1.0.0',
+  event_type: AuditEventType.POLICY_EVALUATION,
+  timestamp: new Date().toISOString(),
+  correlation_id: decision.correlation_id,
+  action: decision.action,
+  risk_score: decision.risk_score
+}, context);
+```
+
+### Query by Correlation ID
+
+```typescript
+// ✅ Good: Use correlation_id for investigation
+const correlation_id = 'user-reported-issue-id';
+
+const events = audit.query({ correlation_id });
+
+console.log(`Found ${events.length} events for investigation`);
+events.forEach(event => {
+  console.log(`${event.timestamp}: ${event.event_type} - ${event.action}`);
+});
+```
+
+## Related Documentation
+
+- [Execution Context](/api-reference/typescript/execution-context)
+- [Decision Contract](/api-reference/typescript/decision)
+- [Audit Event Schema](/audit/audit-event-schema)
+- [Security Best Practices](/about/best-practices)

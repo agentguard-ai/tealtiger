@@ -1,0 +1,589 @@
+---
+title: Security Best Practices
+description: Security configuration and best practices for TealTiger v1.1.0
+---
+
+# Security Best Practices
+
+This guide covers security best practices for deploying TealTiger in production environments.
+
+## Audit Redaction
+
+### Use Security-by-Default Configuration
+
+Always configure TealAudit with strong redaction in production:
+
+```typescript
+import { TealAudit, RedactionLevel, FileOutput } from "tealtiger";
+
+const audit = new TealAudit({
+  outputs: [new FileOutput("./audit.log")],
+  config: {
+    input_redaction: RedactionLevel.HASH,    // Hash prompts
+    output_redaction: RedactionLevel.HASH,   // Hash responses
+    detect_pii: true,                        // Auto-detect PII
+    debug_mode: false                        // Never enable in production
+  }
+});
+```
+
+### Redaction Levels
+
+Choose appropriate redaction levels based on your security requirements:
+
+| Level | Description | Use Case |
+|-------|-------------|----------|
+| `NONE` | No redaction | ❌ Never use in production |
+| `PARTIAL` | Redact known PII patterns | ⚠️ Use only if you need partial visibility |
+| `HASH` | One-way hash of content | ✅ Recommended for production |
+| `REMOVE` | Remove content entirely | ✅ Maximum security |
+
+**Recommendation**: Use `HASH` for inputs/outputs you may need to correlate, and `REMOVE` for highly sensitive fields.
+
+### PII Detection
+
+Enable automatic PII detection to catch sensitive data:
+
+```typescript
+const audit = new TealAudit({
+  config: {
+    detect_pii: true,
+    pii_patterns: [
+      // Built-in patterns: SSN, credit cards, emails, phone numbers
+      // Add custom patterns if needed
+      /CUSTOM-ID-\d{6}/g
+    ]
+  }
+});
+```
+
+**Detected PII types**:
+- Social Security Numbers (SSN)
+- Credit card numbers
+- Email addresses
+- Phone numbers
+- IP addresses
+- Custom patterns (regex)
+
+### Debug Mode Warning
+
+**⚠️ CRITICAL**: Never enable debug mode in production:
+
+```typescript
+// ❌ NEVER DO THIS IN PRODUCTION
+const audit = new TealAudit({
+  config: {
+    debug_mode: true  // Disables ALL redaction
+  }
+});
+```
+
+Debug mode disables all redaction and logs raw prompts/responses. Only use in local development.
+
+## Credential Management
+
+### Never Hardcode Secrets
+
+**❌ Bad**:
+```typescript
+const engine = new TealEngine({
+  policies: {
+    api_keys: {
+      openai: "sk-1234567890"  // NEVER DO THIS
+    }
+  }
+});
+```
+
+**✅ Good**:
+```typescript
+const engine = new TealEngine({
+  policies: {
+    api_keys: {
+      openai: process.env.OPENAI_API_KEY
+    }
+  }
+});
+```
+
+### Use Environment Variables
+
+Store sensitive configuration in environment variables:
+
+```bash
+# .env (never commit this file)
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+AUDIT_LOG_PATH=/secure/path/audit.log
+```
+
+```typescript
+import dotenv from "dotenv";
+dotenv.config();
+
+const audit = new TealAudit({
+  outputs: [new FileOutput(process.env.AUDIT_LOG_PATH)]
+});
+```
+
+### Rotate Credentials Regularly
+
+Implement credential rotation:
+1. Generate new credentials
+2. Update environment variables
+3. Restart application
+4. Revoke old credentials after grace period
+
+## Audit Log Security
+
+### Secure Storage
+
+Store audit logs in a secure location with appropriate access controls:
+
+```typescript
+// ❌ Bad: World-readable location
+const audit = new TealAudit({
+  outputs: [new FileOutput("/tmp/audit.log")]
+});
+
+// ✅ Good: Restricted access location
+const audit = new TealAudit({
+  outputs: [new FileOutput("/var/log/tealtiger/audit.log")]
+});
+```
+
+**File permissions** (Linux/macOS):
+```bash
+# Create log directory with restricted access
+sudo mkdir -p /var/log/tealtiger
+sudo chown app-user:app-group /var/log/tealtiger
+sudo chmod 750 /var/log/tealtiger
+
+# Audit log files should be read-only for others
+chmod 640 /var/log/tealtiger/audit.log
+```
+
+### Log Rotation
+
+Implement log rotation to prevent disk space issues:
+
+```bash
+# /etc/logrotate.d/tealtiger
+/var/log/tealtiger/*.log {
+    daily
+    rotate 90
+    compress
+    delaycompress
+    notifempty
+    create 640 app-user app-group
+    sharedscripts
+    postrotate
+        # Signal application to reopen log files
+        systemctl reload tealtiger
+    endscript
+}
+```
+
+### Centralized Logging
+
+Send audit logs to a centralized logging system:
+
+```typescript
+import { TealAudit, SyslogOutput, S3Output } from "tealtiger";
+
+const audit = new TealAudit({
+  outputs: [
+    new SyslogOutput({
+      host: "logs.example.com",
+      port: 514,
+      protocol: "tcp",
+      tls: true
+    }),
+    new S3Output({
+      bucket: "company-audit-logs",
+      prefix: "tealtiger/",
+      encryption: "AES256"
+    })
+  ]
+});
+```
+
+### Audit Log Retention
+
+Define retention policies based on compliance requirements:
+
+| Compliance | Minimum Retention | Recommended |
+|------------|-------------------|-------------|
+| GDPR | 30 days | 90 days |
+| HIPAA | 6 years | 7 years |
+| SOC 2 | 1 year | 2 years |
+| PCI DSS | 1 year | 3 years |
+
+## Policy Security
+
+### Principle of Least Privilege
+
+Start with deny-all and explicitly allow only what's needed:
+
+```typescript
+// ✅ Good: Deny by default
+const policies = {
+  tools: {
+    // Explicitly allow safe tools
+    read_customer_data: { allowed: true },
+    search_knowledge_base: { allowed: true },
+    
+    // Explicitly deny dangerous tools
+    delete_customer_data: { allowed: false },
+    execute_sql: { allowed: false },
+    
+    // Everything else is denied by default
+  }
+};
+```
+
+### Policy Validation
+
+Validate policies before deployment:
+
+```typescript
+import { PolicyValidator } from "tealtiger/testing";
+
+const validator = new PolicyValidator();
+const errors = validator.validate(policies);
+
+if (errors.length > 0) {
+  console.error("Policy validation failed:", errors);
+  process.exit(1);
+}
+```
+
+### Policy Testing
+
+Test policies with a comprehensive corpus:
+
+```typescript
+import { PolicyTester } from "tealtiger/testing";
+
+const tester = new PolicyTester({
+  engine,
+  corpusPath: "./test-corpus.json"
+});
+
+// Test corpus should include:
+// - Known safe requests (should ALLOW)
+// - Known dangerous requests (should DENY)
+// - Edge cases
+// - Boundary conditions
+
+const results = await tester.runTests();
+if (results.failures > 0) {
+  throw new Error("Policy tests failed");
+}
+```
+
+## Network Security
+
+### TLS/SSL for External Connections
+
+Always use TLS for external connections:
+
+```typescript
+// ✅ Good: TLS enabled
+const audit = new TealAudit({
+  outputs: [
+    new HttpOutput({
+      url: "https://logs.example.com/audit",  // HTTPS
+      tls: {
+        rejectUnauthorized: true,
+        ca: fs.readFileSync("/path/to/ca.pem")
+      }
+    })
+  ]
+});
+```
+
+### Firewall Rules
+
+Restrict network access to TealTiger components:
+
+```bash
+# Allow only necessary outbound connections
+# Example: Allow HTTPS to LLM providers
+iptables -A OUTPUT -p tcp --dport 443 -d api.openai.com -j ACCEPT
+iptables -A OUTPUT -p tcp --dport 443 -d api.anthropic.com -j ACCEPT
+
+# Block all other outbound connections
+iptables -A OUTPUT -j DROP
+```
+
+## Multi-Tenancy Security
+
+### Tenant Isolation
+
+Ensure proper tenant isolation:
+
+```typescript
+// Always include tenant_id in context
+const context = ContextManager.createContext({
+  tenant_id: request.tenantId,  // From authenticated request
+  user_id: request.userId,
+  app: "my-app"
+});
+
+// Validate tenant_id before processing
+if (!isValidTenant(context.tenant_id)) {
+  throw new Error("Invalid tenant");
+}
+
+const decision = engine.evaluate({ ...request, context });
+```
+
+### Tenant-Specific Policies
+
+Apply different policies per tenant:
+
+```typescript
+function getPoliciesForTenant(tenantId: string) {
+  // Load tenant-specific policies from secure storage
+  const policies = loadPoliciesFromDatabase(tenantId);
+  
+  return new TealEngine({
+    policies,
+    mode: {
+      defaultMode: PolicyMode.ENFORCE
+    }
+  });
+}
+
+const engine = getPoliciesForTenant(request.tenantId);
+```
+
+### Audit Log Segregation
+
+Segregate audit logs by tenant:
+
+```typescript
+const audit = new TealAudit({
+  outputs: [
+    new FileOutput({
+      path: `/var/log/tealtiger/${tenantId}/audit.log`,
+      permissions: 0o640
+    })
+  ]
+});
+```
+
+## Access Control
+
+### Role-Based Access Control (RBAC)
+
+Implement RBAC for policy management:
+
+```typescript
+interface PolicyAccess {
+  role: "admin" | "developer" | "viewer";
+  permissions: {
+    read: boolean;
+    write: boolean;
+    delete: boolean;
+  };
+}
+
+function checkPolicyAccess(user: User, action: string): boolean {
+  const access = getPolicyAccess(user.role);
+  
+  switch (action) {
+    case "read":
+      return access.permissions.read;
+    case "write":
+      return access.permissions.write;
+    case "delete":
+      return access.permissions.delete;
+    default:
+      return false;
+  }
+}
+```
+
+### Audit Access Logs
+
+Log all access to policies and audit logs:
+
+```typescript
+function auditAccess(user: User, resource: string, action: string) {
+  accessAudit.log({
+    timestamp: new Date().toISOString(),
+    user_id: user.id,
+    resource,
+    action,
+    ip_address: user.ipAddress,
+    user_agent: user.userAgent
+  });
+}
+
+// Log before accessing policies
+auditAccess(user, "policies", "read");
+const policies = loadPolicies();
+```
+
+## Incident Response
+
+### Monitoring and Alerting
+
+Set up monitoring for security events:
+
+```typescript
+import { TealMonitor } from "tealtiger/monitoring";
+
+const monitor = new TealMonitor({
+  alerts: [
+    {
+      name: "High Risk Decisions",
+      condition: (decision) => decision.risk_score > 90,
+      action: (decision) => {
+        sendAlert({
+          severity: "high",
+          message: `High risk decision: ${decision.correlation_id}`,
+          decision
+        });
+      }
+    },
+    {
+      name: "Policy Violations",
+      condition: (decision) => decision.action === DecisionAction.DENY,
+      action: (decision) => {
+        logSecurityEvent({
+          type: "policy_violation",
+          correlation_id: decision.correlation_id,
+          reason_codes: decision.reason_codes
+        });
+      }
+    }
+  ]
+});
+```
+
+### Incident Investigation
+
+Use correlation IDs to investigate incidents:
+
+```typescript
+// Find all events related to an incident
+async function investigateIncident(correlationId: string) {
+  const events = await queryAuditLogs({
+    correlation_id: correlationId
+  });
+  
+  return {
+    timeline: events.sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    ),
+    decisions: events.filter(e => e.event_type === "policy.evaluation"),
+    executions: events.filter(e => e.event_type === "tool.execution")
+  };
+}
+```
+
+### Breach Response
+
+In case of a security breach:
+
+1. **Immediate Actions**:
+   - Rotate all credentials
+   - Enable maximum redaction (`RedactionLevel.REMOVE`)
+   - Switch all policies to `PolicyMode.ENFORCE`
+   - Review audit logs for suspicious activity
+
+2. **Investigation**:
+   - Use correlation IDs to trace request flows
+   - Identify affected tenants/users
+   - Determine scope of breach
+
+3. **Remediation**:
+   - Patch vulnerabilities
+   - Update policies
+   - Notify affected parties
+   - Document lessons learned
+
+## Compliance Considerations
+
+### GDPR
+
+For GDPR compliance:
+- Enable PII detection and redaction
+- Implement data retention policies
+- Provide audit log export for data subject requests
+- Document data processing activities
+
+```typescript
+const audit = new TealAudit({
+  config: {
+    detect_pii: true,
+    input_redaction: RedactionLevel.REMOVE,  // Remove PII entirely
+    output_redaction: RedactionLevel.REMOVE,
+    retention_days: 90  // GDPR minimum
+  }
+});
+```
+
+### HIPAA
+
+For HIPAA compliance:
+- Encrypt audit logs at rest and in transit
+- Implement access controls and audit trails
+- Use strong redaction for PHI
+- Maintain audit logs for 6+ years
+
+```typescript
+const audit = new TealAudit({
+  outputs: [
+    new S3Output({
+      bucket: "hipaa-compliant-bucket",
+      encryption: "AES256",
+      kmsKeyId: "arn:aws:kms:...",
+      serverSideEncryption: true
+    })
+  ],
+  config: {
+    detect_pii: true,
+    input_redaction: RedactionLevel.REMOVE,
+    output_redaction: RedactionLevel.REMOVE
+  }
+});
+```
+
+### SOC 2
+
+For SOC 2 compliance:
+- Implement comprehensive audit logging
+- Enable correlation IDs for traceability
+- Document security controls
+- Regular security reviews
+
+## Security Checklist
+
+Before deploying to production:
+
+- [ ] Audit redaction configured (`HASH` or `REMOVE`)
+- [ ] PII detection enabled
+- [ ] Debug mode disabled
+- [ ] Credentials stored in environment variables
+- [ ] Audit logs stored securely with restricted access
+- [ ] Log rotation configured
+- [ ] Policies follow least privilege principle
+- [ ] Policy tests passing
+- [ ] TLS enabled for external connections
+- [ ] Tenant isolation implemented
+- [ ] Access controls configured
+- [ ] Monitoring and alerting set up
+- [ ] Incident response plan documented
+- [ ] Compliance requirements reviewed
+
+## Related Documentation
+
+- [Audit & Redaction](/concepts/audit-and-redaction)
+- [Audit Event Schema](/audit/audit-event-schema)
+- [Policy Modes](/concepts/policy-modes)
+- [Execution Context](/api-reference/typescript/execution-context)
+- [Troubleshooting](/guides/troubleshooting)

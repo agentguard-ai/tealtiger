@@ -1,0 +1,131 @@
+---
+title: TealTiger Runtime Governance Reference Architecture (v1.2.x)
+description: A single-page reference architecture showing where TealTiger enforces policy and how evidence is produced.
+---
+
+# TealTiger Runtime Governance Reference Architecture (v1.2.x)
+
+This page describes the **canonical runtime governance architecture** for TealTiger v1.2.x.
+
+It is intentionally **single-page and conceptual**, similar to a cloud security reference architecture: it shows **what exists**, **where enforcement happens**, and **how evidence is produced**.
+
+---
+
+## Architectural Goals
+
+TealTiger’s reference architecture is designed to:
+
+- Enforce policy **at execution boundaries**
+- Produce **deterministic governance decisions**
+- Emit **audit‑ready evidence by default**
+- Avoid centralized control planes or gateways
+- Preserve developer velocity
+
+---
+
+## High‑Level Components
+
+### 1) Policy Authoring & Compilation
+
+- Policies are authored in a **locked CEL subset**
+- CEL is **authoring‑only**
+- Policies compile to **canonical JSON rules**
+- A stable `policy_hash` is computed over canonical rules
+
+> Canonical rules, not source policy text, are evaluated at runtime.
+
+---
+
+### 2) Runtime Enforcement Points (PEP)
+
+TealTiger enforces policy at **runtime boundaries**:
+
+- Model invocation
+- Tool invocation
+- Output‑to‑action transitions
+
+These enforcement points act as **Policy Enforcement Points (PEPs)**.
+
+---
+
+### 3) Deterministic Decision Engine (PDP)
+
+At each enforcement point, TealTiger evaluates:
+
+- Canonical policy rules
+- Execution context
+- Classification signals
+- Cost metadata (when available)
+
+The result is a **deterministic decision**:
+
+- `ALLOW`
+- `DENY`
+- `REQUIRE_APPROVAL`
+- `REDACT`
+- `TRANSFORM`
+- `DEGRADE`
+
+Same inputs + same policy = same decision.
+
+---
+
+### 4) Audit Events (Internal)
+
+Each decision produces structured **AuditEvents** containing:
+
+- Decision outcome
+- Reason codes
+- Risk score
+- Execution identity
+- Policy hash
+
+AuditEvents are **redaction‑safe by default**.
+
+---
+
+### 5) Evidence Artifacts
+
+AuditEvents are deterministically aggregated into:
+
+#### EvidenceBundle
+- Run‑level governance summary
+- Decision counts
+- Top reason codes
+- Cost rollups
+
+#### LineageGraph
+- Execution provenance
+- Span relationships
+- Safe attributes only
+
+These artifacts are **machine‑readable and reproducible**.
+
+---
+
+### 6) TEEC Export Layer (Option A)
+
+TealTiger supports **TEEC v0.1** as an export contract:
+
+- Canonical reason‑code registry
+- Deterministic mapping from AuditEvents
+- Vendor‑neutral evidence semantics
+
+Runtime remains SDK‑local; TEEC is an interoperability layer.
+
+---
+
+## Key Invariants
+
+- No runtime CEL evaluation
+- No probabilistic enforcement
+- No control plane dependency
+- Evidence is produced, not reconstructed
+
+---
+
+## Summary
+
+This reference architecture defines **what must exist** for governance correctness in v1.2.x.
+
+Future versions may extend this architecture, but **v1.2.x is frozen against these invariants**.

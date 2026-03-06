@@ -1,0 +1,277 @@
+---
+title: Decision Contract (Python)
+description: Deterministic Decision object for reliable policy enforcement
+version: v1.1.x
+---
+
+# Decision Contract
+
+The `Decision` object is the stable, typed contract returned by all TealTiger components in v1.1.x.
+
+## Overview
+
+Every policy evaluation, guardrail check, and circuit breaker decision returns a `Decision` object with:
+
+- **Deterministic action** (ALLOW, DENY, REQUIRE_APPROVAL, etc.)
+- **Machine-readable reason codes**
+- **Risk score** (0-100)
+- **Correlation ID** for traceability
+- **Component versions** for audit defensibility
+
+## Class Definition
+
+```python
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+
+class Decision(BaseModel):
+    # Core decision
+    action: DecisionAction
+    reason_codes: List[ReasonCode]
+    risk_score: int  # 0-100
+    
+    # Policy context
+    mode: PolicyMode
+    policy_id: Optional[str] = None
+    policy_version: Optional[str] = None
+    
+    # Traceability
+    correlation_id: str
+    trace_id: Optional[str] = None
+    
+    # Metadata
+    provider: Optional[str] = None
+    reason: Optional[str] = None
+    component_versions: ComponentVersions
+    metadata: Optional[Dict[str, Any]] = None
+```
+
+## Decision Actions
+
+```python
+from enum import Enum
+
+class DecisionAction(str, Enum):
+    ALLOW = 'ALLOW'
+    DENY = 'DENY'
+    REQUIRE_APPROVAL = 'REQUIRE_APPROVAL'
+    REDACT = 'REDACT'
+    TRANSFORM = 'TRANSFORM'
+    DEGRADE = 'DEGRADE'
+```
+
+### Action Semantics
+
+| Action | Meaning | Use Case |
+|--------|---------|----------|
+| `ALLOW` | Request is compliant, proceed | Normal operation |
+| `DENY` | Request violates policy, block | Security violation, cost limit exceeded |
+| `REQUIRE_APPROVAL` | Request needs human review | High-risk operation, sensitive data access |
+| `REDACT` | Request contains PII, redact before proceeding | PII detection, data privacy |
+| `TRANSFORM` | Request needs modification | Content moderation, prompt injection mitigation |
+| `DEGRADE` | Use fallback/cheaper model | Cost optimization, rate limiting |
+
+## Reason Codes
+
+```python
+class ReasonCode(str, Enum):
+    # Security
+    PROMPT_INJECTION = 'PROMPT_INJECTION'
+    PII_DETECTED = 'PII_DETECTED'
+    UNSAFE_CONTENT = 'UNSAFE_CONTENT'
+    
+    # Cost
+    COST_LIMIT_EXCEEDED = 'COST_LIMIT_EXCEEDED'
+    TOKEN_LIMIT_EXCEEDED = 'TOKEN_LIMIT_EXCEEDED'
+    
+    # Reliability
+    CIRCUIT_OPEN = 'CIRCUIT_OPEN'
+    RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED'
+    
+    # Governance
+    POLICY_VIOLATION = 'POLICY_VIOLATION'
+    APPROVAL_REQUIRED = 'APPROVAL_REQUIRED'
+```
+
+## Risk Score
+
+The `risk_score` is a normalized value from 0-100:
+
+- **0-30**: Low risk (informational)
+- **31-60**: Medium risk (monitor)
+- **61-85**: High risk (review)
+- **86-100**: Critical risk (block)
+
+Risk scores are calculated based on:
+- Policy violation severity
+- Number of violations
+- Domain-specific risk factors (security, cost, reliability)
+
+## Component Versions
+
+```python
+class ComponentVersions(BaseModel):
+    sdk: str
+    engine: str
+    guard: Optional[str] = None
+    circuit: Optional[str] = None
+    monitor: Optional[str] = None
+```
+
+Component versions enable audit defensibility - you can reproduce decisions by knowing exactly which versions were used.
+
+## Usage Examples
+
+### Basic Decision Handling
+
+```python
+from tealtiger import TealEngine, DecisionAction
+
+engine = TealEngine(config)
+decision = await engine.evaluate(request, context)
+
+if decision.action == DecisionAction.ALLOW:
+    return await make_request(request)
+    
+elif decision.action == DecisionAction.DENY:
+    raise PolicyViolationError(
+        f"Request denied: {decision.reason}",
+        decision.reason_codes
+    )
+    
+elif decision.action == DecisionAction.REQUIRE_APPROVAL:
+    return await request_approval(request, decision)
+    
+elif decision.action == DecisionAction.REDACT:
+    redacted = await redact_pii(request)
+    return await make_request(redacted)
+    
+else:
+    raise ValueError(f"Unexpected action: {decision.action}")
+```
+
+### Risk-Based Routing
+
+```python
+decision = await engine.evaluate(request, context)
+
+if decision.risk_score >= 86:
+    # Critical risk - block and alert
+    await alert_security_team(decision)
+    raise SecurityViolationError(decision)
+    
+elif decision.risk_score >= 61:
+    # High risk - require approval
+    return await request_approval(request, decision)
+    
+elif decision.risk_score >= 31:
+    # Medium risk - log and proceed
+    await audit.log('medium_risk_request', decision)
+    return await make_request(request)
+    
+else:
+    # Low risk - proceed normally
+    return await make_request(request)
+```
+
+### Reason Code Handling
+
+```python
+decision = await engine.evaluate(request, context)
+
+if ReasonCode.PII_DETECTED in decision.reason_codes:
+    # Handle PII detection
+    redacted = await redact_pii(request)
+    return await make_request(redacted)
+
+if ReasonCode.COST_LIMIT_EXCEEDED in decision.reason_codes:
+    # Handle cost limit
+    degraded = await use_cheaper_model(request)
+    return await make_request(degraded)
+
+if ReasonCode.CIRCUIT_OPEN in decision.reason_codes:
+    # Handle circuit breaker
+    return await use_fallback(request)
+```
+
+## Mode-Specific Behavior
+
+The `Decision.mode` field indicates which policy mode was active:
+
+```python
+decision = await engine.evaluate(request, context)
+
+if decision.mode == PolicyMode.REPORT_ONLY:
+    # Decision is informational only, always proceed
+    await audit.log('report_only_decision', decision)
+    return await make_request(request)
+
+if decision.mode == PolicyMode.MONITOR:
+    # Decision is logged but not enforced
+    if decision.action == DecisionAction.DENY:
+        await audit.log('would_have_denied', decision)
+    return await make_request(request)
+
+if decision.mode == PolicyMode.ENFORCE:
+    # Decision is enforced
+    if decision.action == DecisionAction.DENY:
+        raise PolicyViolationError(decision)
+    return await make_request(request)
+```
+
+## Pattern Matching (Python 3.10+)
+
+```python
+match decision.action:
+    case DecisionAction.ALLOW:
+        return await make_request(request)
+    case DecisionAction.DENY:
+        raise PolicyViolationError(decision)
+    case DecisionAction.REQUIRE_APPROVAL:
+        return await request_approval(request, decision)
+    case DecisionAction.REDACT:
+        redacted = await redact_pii(request)
+        return await make_request(redacted)
+    case _:
+        raise ValueError(f"Unexpected action: {decision.action}")
+```
+
+## Backwards Compatibility
+
+The `Decision` class is backwards compatible with v1.0.x `PolicyEvaluationResult`:
+
+```python
+# v1.0.x code continues to work
+result = await engine.evaluate(request)
+if result.action == 'DENY':
+    raise Exception('Denied')
+
+# v1.1.x adds new fields but doesn't break existing code
+decision = await engine.evaluate(request, context)
+print(decision.correlation_id)  # New in v1.1.x
+print(decision.risk_score)  # New in v1.1.x
+```
+
+## Type Hints
+
+```python
+from tealtiger import Decision, DecisionAction, ReasonCode
+
+async def handle_decision(decision: Decision) -> bool:
+    """Handle a policy decision."""
+    if decision.action == DecisionAction.ALLOW:
+        return True
+    elif decision.action == DecisionAction.DENY:
+        return False
+    else:
+        # Handle other actions
+        return await handle_special_case(decision)
+```
+
+## Related Documentation
+
+- [Policy Modes](/concepts/policy-modes)
+- [Execution Context](/api-reference/python/execution-context)
+- [Reason Codes](/policy/reason-codes)
+- [Risk Scores](/policy/risk-scores)
+- [Audit Events](/audit/audit-event-schema)

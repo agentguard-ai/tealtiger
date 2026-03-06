@@ -1,0 +1,24 @@
+# Mintlify ignore file
+# Files listed here will be ignored by the Mintlify build/parser.
+# This prevents non-doc automation/spec files from breaking deployments.
+
+# Internal documentation and review files
+AGENTS.md
+.DOCUMENTATION-COMPLETION-SUMMARY.md
+.DOCUMENTATION-REVIEW-v1.1.0.md
+.CRITICAL-FIXES-NEEDED.md
+.DOCUMENTATION-UPDATE-SUMMARY.md
+CONTRIBUTING.md
+development.mdx
+README.md
+LICENSE
+
+# Recommended ignores (uncomment if these exist and are not docs pages)
+# .github/
+# node_modules/
+# dist/
+# build/
+# coverage/
+# *.log
+# *.tmp
+# *.bak
