@@ -147,6 +147,16 @@
         ]
       },
       {
+        "group": "Governance & Compliance (v1.1.0)",
+        "pages": [
+          "governance/reference-architecture",
+          "governance/eu-ai-act-compliance",
+          "governance/best-practices-checklist",
+          "governance/phased-adoption",
+          "governance/validation-and-verification"
+        ]
+      },
+      {
         "group": "Guides (v1.1.0)",
         "pages": [
           "guides/migration-v1.1.x",
@@ -160,6 +170,12 @@
         "group": "Versions",
         "pages": [
           "versions/v1.1.0"
+        ]
+      },
+      {
+        "group": "Roadmap",
+        "pages": [
+          "roadmap"
         ]
       }
     ]
