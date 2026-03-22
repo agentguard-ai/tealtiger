@@ -41,13 +41,49 @@ An OpenAPI 3.0.3 spec that defines TealTiger's governance capabilities as a stru
 3. In Agent Builder, add the TealTiger extension to your agent
 4. Gemini will automatically route queries through TealTiger before executing actions
 
-## Quick Test
+## Run Locally
 
 ```bash
-# Validate the spec
-npx @redocly/cli lint openapi.yaml
+cd packages/tealtiger-vertex-extension
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8080
+```
 
-# Preview the docs
+Then open http://localhost:8080/docs for the interactive Swagger UI.
+
+## Deploy to Cloud Run
+
+```bash
+cd packages/tealtiger-vertex-extension
+gcloud run deploy tealtiger-api --source . --region us-central1
+```
+
+## Test the API
+
+```bash
+# PII detection
+curl -X POST http://localhost:8080/v1/guardrails/pii \
+  -H "Content-Type: application/json" \
+  -d '{"text": "My email is user@example.com"}'
+
+# Cost estimate
+curl -X POST http://localhost:8080/v1/cost/estimate \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gemini-1.5-pro", "provider": "google", "input_tokens": 1000, "output_tokens": 500}'
+
+# Security preflight
+curl -X POST http://localhost:8080/v1/preflight \
+  -H "Content-Type: application/json" \
+  -d '{"text": "What is 2+2?", "model": "gemini-1.5-pro", "provider": "google", "input_tokens": 100, "output_tokens": 50}'
+
+# Health check
+curl http://localhost:8080/health
+```
+
+## Validate the OpenAPI Spec
+
+```bash
+npx @redocly/cli lint openapi.yaml
 npx @redocly/cli preview-docs openapi.yaml
 ```
 
