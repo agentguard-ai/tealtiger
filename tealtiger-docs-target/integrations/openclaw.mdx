@@ -1,0 +1,143 @@
+---
+title: TealTiger + OpenClaw
+description: Add deterministic governance (Decision, Reason Codes, Risk Scores, Audit Evidence) to OpenClaw actions without forking OpenClaw.
+version: v1.1.0
+status: stable
+doc_type: integration
+machine_readable: true
+stable_id: tealtiger.integration.openclaw.v1_1_0
+applies_to:
+  - policy-engine
+  - audit
+
+governance_domain:
+  - security
+  - cost
+  - reliability
+---
+
+import { Callout } from "mintlify/components";
+
+> **Version:** v1.1.0  
+> This page describes an **integration pattern**. It does **not** change TealTiger v1.1.0 contracts.
+
+# TealTiger + OpenClaw
+
+## Why this integration exists
+
+OpenClaw is a local-first autonomous agent that can interact with real systems (messages, email, files, tools). This creates powerful automation — and a large blast radius if actions are misconfigured or manipulated.
+
+TealTiger adds **runtime governance semantics** to OpenClaw actions:
+
+- **Deterministic Decisions** (what to do)
+- **Reason Codes** (why)
+- **Risk Scores** (how risky)
+- **Audit Evidence** (what happened)
+- **Enforcement Modes** (report/monitor/enforce)
+
+---
+
+## Important note: hardening vs governance
+
+Some OpenClaw tools focus on **security hardening** (auditing configs, tightening gateway exposure, credential hygiene, supply-chain checks). These reduce the chance of compromise.
+
+TealTiger focuses on **runtime governance**: whether a specific action should be allowed **right now**, with deterministic decisions and audit evidence.
+
+<Callout type="info">
+Use hardening tools to reduce attack surface, and use TealTiger to govern high-impact actions with policy and evidence.
+</Callout>
+
+See also: /concepts/security-vs-governance
+
+---
+
+## Integration goal (v1.1.0)
+
+Introduce a deterministic policy check before and/or after OpenClaw performs high-impact actions such as:
+
+- tool/skill invocation
+- filesystem access
+- shell/command execution
+- network calls
+- sending messages/emails
+
+---
+
+## Two supported integration models
+
+### Model A — OpenClaw Plugin Hook (in-process)
+
+A small plugin calls TealTiger before executing an action and returns a Decision.
+
+**Best for:**
+- lowest latency
+- simplest deployment
+
+**Tradeoffs:**
+- plugin boundary is privileged; treat plugin code as trusted.
+
+### Model B — Local Sidecar (out-of-process)
+
+OpenClaw (or a plugin) calls a local TealTiger evaluator over localhost.
+
+**Best for:**
+- stronger isolation
+- easier enterprise review
+
+**Tradeoffs:**
+- slightly more plumbing
+
+---
+
+## What TealTiger evaluates (RequestContext for OpenClaw)
+
+At minimum, the integration should supply:
+
+- identity (agent/user/channel)
+- environment (prod/dev)
+- action intent (read/write/exec/message/network)
+- tool metadata (name + normalized args)
+- correlation (trace_id/span_id/request_id)
+
+---
+
+## Decision mapping to OpenClaw behavior
+
+- **ALLOW** → execute
+- **DENY** → block
+- **REDACT** → redact then proceed
+- **TRANSFORM** → deterministic modifications
+- **DEGRADE** → reduced capability
+- **REQUIRE_APPROVAL** → defer
+
+---
+
+## Enforcement Modes
+
+- **REPORT_ONLY**: allow, record evidence
+- **MONITOR**: allow, record violations
+- **ENFORCE**: block or defer
+
+---
+
+## Audit Evidence
+
+TealTiger emits structured audit events capturing decision outcome, reason codes, optional risk scores, redaction status, and correlation identifiers.
+
+---
+
+## Next steps
+
+- Start with **REPORT_ONLY**.
+- Add minimal policies (deny obviously dangerous actions first).
+- Export audit events to your logging/SIEM pipeline.
+- Move to **MONITOR** then **ENFORCE**.
+
+## Related reading
+
+- /concepts/decision-model
+- /policy/reason-codes
+- /policy/risk-scores
+- /audit/audit-event-schema
+- /architecture/enforcement-flow
+- /concepts/security-vs-governance

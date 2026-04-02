@@ -1,0 +1,139 @@
+---
+title: Logging Behavior
+description: How TealTiger emits safe structured logs and how logs differ from audit events in v1.1.0.
+
+version: v1.1.0
+status: stable
+doc_type: audit
+machine_readable: true
+
+stable_id: tealtiger.logging_behavior.v1_1_0
+
+applies_to:
+  - audit
+  - policy-engine
+
+governance_domain:
+  - security
+  - cost
+  - reliability
+---
+
+import { Callout } from "mintlify/components";
+
+> **Version:** v1.1.0  
+> This page documents behavior guaranteed in TealTiger v1.1.0. API names may evolve, but **logging safety defaults** are stable.
+
+# Logging Behavior
+
+## Purpose
+
+TealTiger emits two different kinds of operational outputs:
+
+1) **Audit events** (evidence)
+2) **Logs/telemetry** (operations)
+
+Both are structured and redaction-safe by default, but they serve different audiences.
+
+---
+
+## Logs vs Audit Events
+
+### Audit events (evidence)
+
+Audit events are designed for:
+
+- compliance evidence
+- incident response
+- forensics
+
+Audit events capture:
+
+- Decision outcome
+- reason codes
+- correlation IDs
+- policy identifiers
+- redaction indicators
+
+### Logs (operations)
+
+Logs are designed for:
+
+- debugging integrations
+- monitoring runtime health
+- understanding throughput and failure modes
+
+Logs should be safe to ship to standard log pipelines.
+
+<Callout type="info">
+Do not treat logs as compliance evidence. Use AuditEvent for evidence.
+</Callout>
+
+---
+
+## Default logging posture (v1.1.0)
+
+In v1.1.0, TealTiger logging is:
+
+- **structured** (key/value)
+- **redaction-safe by default**
+- **prompt/response excluded by default**
+
+---
+
+## What logs may include
+
+- component name and version
+- correlation IDs (trace_id/span_id)
+- decision action
+- reason code families
+- timing/latency
+- error categories (not raw payloads)
+
+---
+
+## What logs must NOT include by default
+
+- raw prompts
+- raw model outputs
+- secrets (API keys/tokens)
+- sensitive tool payload values
+
+<Callout type="warning">
+If you choose to log additional fields, apply your redaction policy first and keep them out of default production logging.
+</Callout>
+
+---
+
+## Severity guidance
+
+- **INFO:** normal decisions and lifecycle events
+- **WARN:** policy violations in MONITOR/REPORT_ONLY, suspicious activity
+- **ERROR:** evaluation failures, schema validation failures, sink write failures
+
+---
+
+## Sinks and export
+
+Logs may be routed to:
+
+- console/stdout
+- file
+- custom logger
+- external telemetry systems
+
+Audit events may be routed to:
+
+- file
+- database
+- SIEM
+- custom sink
+
+---
+
+## Related reading
+
+- /audit/audit-event-schema
+- /concepts/audit-and-redaction
+- /concepts/decision-model
+- /policy/reason-codes

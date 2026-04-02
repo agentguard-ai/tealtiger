@@ -1,0 +1,446 @@
+---
+title: v1.1.0 Scope
+description: What's included in TealTiger v1.1.0 and what's coming in future versions.
+---
+
+> **Version:** v1.1.0  
+> This page documents the scope and capabilities of TealTiger v1.1.0.
+
+# v1.1.0 Scope
+
+TealTiger v1.1.0 is a foundational release focused on giving you control, visibility, and safety for your AI agents. This page explains what's included, what's intentionally excluded, and what's coming next.
+
+---
+
+## What is v1.1.0?
+
+v1.1.0 is the first production-ready release of TealTiger. It provides:
+
+- **Policy-based control** - Define rules for what your agents can and cannot do
+- **Cost tracking** - Monitor and limit spending across all LLM calls
+- **Security guardrails** - Detect PII, prompt injection, and other threats
+- **Audit logging** - Complete visibility into every decision
+- **Multi-provider support** - Works with OpenAI, Anthropic, and more
+
+Think of v1.1.0 as your **safety net and control panel** for AI agents.
+
+---
+
+## Design Philosophy
+
+v1.1.0 is designed around three principles:
+
+1. **Trust** - Every decision is deterministic, auditable, and explainable
+2. **Clarity** - Simple policies, clear reason codes, structured audit events
+3. **Stability** - Guaranteed behavior within v1.1.x versions
+
+We intentionally kept v1.1.0 focused on **governance and control**, not complex orchestration or autonomous agent management.
+
+---
+
+## What's Included in v1.1.0
+
+### Policy Evaluation
+
+Define rules that control your agent's behavior:
+
+```typescript
+const engine = new TealEngine({
+  policies: {
+    tools: {
+      file_delete: { allowed: false },
+      web_search: { allowed: true }
+    },
+    cost: {
+      budget_limit: {
+        perUser: { daily: 10.00 }
+      }
+    }
+  }
+});
+```
+
+**Capabilities:**
+- Deterministic policy evaluation (same input = same output)
+- Conditional logic (AND, OR, NOT)
+- Three policy modes: REPORT_ONLY, MONITOR, ENFORCE
+- Policy-specific mode overrides
+
+---
+
+### Decision Types
+
+Six decision types for different scenarios:
+
+| Decision | When to use | Example |
+|----------|-------------|---------|
+| `allow` | Request is safe | Normal tool execution |
+| `deny` | Request violates policy | Blocked file deletion |
+| `redact` | Remove sensitive data | Strip PII from prompts |
+| `transform` | Modify request | Clamp token limits |
+| `require_approval` | Human review needed | High-risk operations |
+| `defer` | External decision | Custom approval workflow |
+
+Every decision includes:
+- Action type
+- Reason code (explains why)
+- Risk score (0-100)
+- Policy ID (which policy decided)
+- Metadata (evaluation time, etc.)
+
+---
+
+### Risk Scoring
+
+Normalized risk scores help you understand threat levels:
+
+```typescript
+{
+  "risk": {
+    "score": 75,           // Overall risk (0-100)
+    "level": "HIGH",       // LOW, MEDIUM, HIGH, CRITICAL
+    "domain_scores": {
+      "security": 85,      // PII detected
+      "cost": 60,          // Near budget limit
+      "reliability": 20    // Rate limit OK
+    }
+  }
+}
+```
+
+**Risk domains:**
+- **Security** - PII, prompt injection, malicious content
+- **Cost** - Budget proximity, spending velocity
+- **Reliability** - Rate limits, circuit breaker state
+- **Governance** - Policy compliance, approval requirements
+
+---
+
+### Reason Codes
+
+Machine-readable codes explain every decision:
+
+```typescript
+{
+  "action": "deny",
+  "reason_code": "COST.BUDGET.EXCEEDED",
+  "metadata": {
+    "budget_limit": 10.00,
+    "current_spend": 12.50
+  }
+}
+```
+
+**Reason code families:**
+- `SECURITY.*` - Security violations (PII, injection, etc.)
+- `COST.*` - Budget and spending issues
+- `POLICY.*` - Policy enforcement (tool not allowed, etc.)
+- `RISK.*` - Risk threshold violations
+- `RELIABILITY.*` - Rate limits, circuit breakers
+
+See the [Reason Codes reference](/policy/reason-codes) for the complete catalog.
+
+---
+
+### Cost Tracking
+
+Track spending across all LLM calls:
+
+```typescript
+{
+  "cost": {
+    "estimated_cost": 0.0023,
+    "tokens": {
+      "input": 150,
+      "output": 50,
+      "total": 200
+    },
+    "model": "gpt-4",
+    "provider": "openai"
+  }
+}
+```
+
+**Cost features:**
+- Per-request cost estimation
+- Token usage tracking (input/output/total)
+- Budget enforcement (per-user, per-day, per-month)
+- Cost aggregation by user, model, or time period
+- Spending velocity monitoring
+
+---
+
+### Audit Events
+
+Every decision generates a structured audit event:
+
+```json
+{
+  "schema": {
+    "name": "tealtiger.audit_event",
+    "version": "1.1.0"
+  },
+  "event": {
+    "id": "evt_abc123",
+    "type": "policy.decision",
+    "timestamp": "2026-03-06T10:30:00Z"
+  },
+  "decision": {
+    "action": "allow",
+    "reason_code": "POLICY.TOOL.ALLOWED"
+  },
+  "actor": {
+    "id": "user-123"
+  },
+  "correlation": {
+    "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736"
+  }
+}
+```
+
+**Audit features:**
+- Versioned schema (stable across v1.1.x)
+- Correlation IDs for distributed tracing
+- Redaction strategies (metadata-only, hash-only, partial)
+- Multiple output destinations (file, console, database, custom)
+- Security-by-default (sensitive data redacted)
+
+---
+
+### Guardrails
+
+Built-in security checks:
+
+```typescript
+const engine = new TealEngine({
+  policies: {
+    security: {
+      pii_detection: {
+        enabled: true,
+        block_on_pii: true
+      },
+      prompt_injection: {
+        enabled: true,
+        block_on_injection: true
+      }
+    }
+  }
+});
+```
+
+**Guardrail types:**
+- **PII detection** - Email, phone, SSN, credit card
+- **Prompt injection** - Jailbreak attempts, instruction override
+- **Content moderation** - Toxic, harmful, or inappropriate content
+- **Input validation** - Size limits, format checks
+
+---
+
+### Multi-Provider Support
+
+Works with major LLM providers:
+
+**TypeScript SDK (v1.1.0) - 7 Providers ✅:**
+- ✅ OpenAI (GPT-3.5, GPT-4, GPT-4 Turbo)
+- ✅ Anthropic (Claude 3 Opus, Sonnet, Haiku)
+- ✅ Google Gemini (Gemini Pro, Gemini 1.5)
+- ✅ AWS Bedrock (Claude, Titan, Cohere, Llama)
+- ✅ Azure OpenAI (GPT-3.5, GPT-4)
+- ✅ Cohere (Command, Command Light)
+- ✅ Mistral AI (Mistral Large, Medium, Small, Mixtral)
+
+**Python SDK (v1.1.0) - 7 Providers ✅:**
+- ✅ OpenAI (GPT-3.5, GPT-4, GPT-4 Turbo)
+- ✅ Anthropic (Claude 3 Opus, Sonnet, Haiku)
+- ✅ Azure OpenAI (GPT-3.5, GPT-4)
+- ✅ Google Gemini (Gemini Pro, Gemini 1.5, multimodal)
+- ✅ AWS Bedrock (Claude, Titan, Jurassic, Command, Llama)
+- ✅ Cohere (Command, RAG, embeddings)
+- ✅ Mistral AI (Mistral Large, Medium, Small, Mixtral)
+
+**Status:** Python SDK achieved full parity with TypeScript SDK (March 6, 2026)
+
+All providers get the same governance, cost tracking, and audit capabilities.
+
+## What's NOT Included in v1.1.0
+
+To keep v1.1.0 focused and stable, we intentionally excluded:
+
+### Agent Orchestration
+
+v1.1.0 does NOT include:
+- Multi-agent coordination
+- Agent-to-agent communication
+- Workflow orchestration
+- Task scheduling
+
+**Why:** These features require complex runtime state management. v1.1.0 focuses on **governance**, not **orchestration**.
+
+**Coming in:** v1.2.x (planned)
+
+---
+
+### Advanced Autonomy
+
+v1.1.0 does NOT include:
+- Self-healing agents
+- Autonomous policy adjustment
+- Learning from decisions
+- Adaptive risk scoring
+
+**Why:** Autonomous behavior requires extensive testing and validation. v1.1.0 provides **deterministic control** first.
+
+**Coming in:** v1.3.x (planned)
+
+---
+
+### SaaS Platform
+
+v1.1.0 does NOT include:
+- Hosted policy management UI
+- Centralized audit dashboard
+- Team collaboration features
+- SSO/SAML integration
+
+**Why:** v1.1.0 is **SDK-first**. The SDKs will always remain open source. A commercial SaaS platform is planned for future releases.
+
+**Coming in:** v1.4.x (planned)
+
+---
+
+### Advanced Integrations
+
+v1.1.0 does NOT include:
+- Native LangChain/CrewAI plugins (you can wrap them yourself)
+- Built-in SIEM connectors
+- Pre-built Grafana dashboards
+- Slack/PagerDuty alerting
+
+**Why:** We provide the primitives (audit events, correlation IDs, custom handlers). You build the integrations that fit your stack.
+
+**Coming in:** Community contributions welcome!
+
+---
+
+## Stability Guarantees
+
+Within v1.1.x versions, we guarantee:
+
+✅ **Deterministic decisions** - Same input + same policy = same output  
+✅ **Stable audit schema** - tealtiger.audit_event@1.1.0 won't change  
+✅ **Immutable IDs** - stable_id values never change meaning  
+✅ **Backward compatibility** - v1.1.1 works with v1.1.0 policies  
+✅ **Additive changes only** - New features, no breaking changes  
+
+See [Stability Guarantees](/versioning/stability-guarantees) for details.
+
+---
+
+## What's Coming Next
+
+### v1.1.1 (Patch - Q2 2026)
+
+- Bug fixes
+- Performance improvements
+- Additional reason codes
+- More guardrail patterns
+
+### v1.2.0 (Minor - Q3 2026)
+
+**Theme:** Advanced Governance & Evidence
+
+Draft features under consideration:
+
+- Hybrid signal evaluation with certificate-gated escalation
+- Enhanced evidence artifacts (EvidenceBundle, LineageGraph extensions)
+- Advanced secret detection pack (500+ credential types)
+- Canonical policy representation with locked CEL subset
+- Risk-limiting governance rounds for high-risk operations
+
+Note: v1.2.0 features are in draft and subject to change.
+
+### v1.3.0 (Minor - Q4 2026)
+
+**Theme:** Enterprise Safety & Compliance
+
+Draft features under consideration:
+
+- High-impact safety rails (PLAN_ONLY and FREEZE modes)
+- Non-human identity (NHI) governance and inventory
+- AI code agent governance (secure change and patch controls)
+- SOC/IR evidence pipeline and response hooks
+- Standards-aligned policy packs (OWASP Agentic Top 10)
+- Autonomous governance modes with automation levels
+
+Note: v1.3.0 features are in draft and subject to change.
+
+### v2.0.0 (Major - 2027)
+
+- SaaS platform (optional)
+- Hosted policy management
+- Team collaboration
+- Enterprise features
+### v1.4.0 (Minor - Q1 2027)
+**Theme**: Ecosystem - MCP Security & Integration
+
+- **MCP Security** (First-to-Market) - MCP server validation, tool policy enforcement, resource access control
+- **Framework Integrations** - LangChain, LlamaIndex, CrewAI, AutoGPT security layers
+- **IDE Extensions** - VS Code, JetBrains, Cursor integrations
+- **CI/CD Integration** - GitHub Actions, GitLab CI, Jenkins plugins
+
+**Note**: Planned features. Subject to change.
+
+### v1.5.0 (Minor - Q2 2027)
+**Theme**: Intelligence - Real-Time Threat Detection
+
+- **Threat Intelligence Feed** - Real-time prompt injection patterns, malicious tool usage detection
+- **Adaptive Learning** - ML-based anomaly detection, behavioral baseline learning
+- **Threat Hunting** - Historical attack analysis, incident response tools
+- **Community Threat Sharing** - Anonymous threat submission, collaborative defense
+
+**Note**: Planned features. Subject to change.
+
+### v1
+
+---
+
+## Migration Path
+
+When new versions are released:
+
+**Patch versions (v1.1.x):**
+- Drop-in replacement
+- No code changes needed
+- Policies work as-is
+
+**Minor versions (v1.x.0):**
+- Opt-in new features
+- Existing code works unchanged
+- New capabilities available
+
+**Major versions (v2.0.0):**
+- Migration guide provided
+- Breaking changes documented
+- Upgrade path supported
+
+---
+
+## Related Reading
+
+<CardGroup cols={2}>
+  <Card title="Stability Guarantees" icon="shield-check" href="/versioning/stability-guarantees">
+    What's guaranteed stable
+  </Card>
+  
+  <Card title="Migration Guide" icon="arrow-right-arrow-left" href="/guides/migration-v1.1.x">
+    Upgrade from earlier versions
+  </Card>
+  
+  <Card title="Roadmap" icon="map" href="https://github.com/agentguard-ai/tealtiger/blob/main/ROADMAP.md">
+    Future plans and timeline
+  </Card>
+  
+  <Card title="Changelog" icon="list" href="https://github.com/agentguard-ai/tealtiger/blob/main/CHANGELOG.md">
+    Version history
+  </Card>
+</CardGroup>

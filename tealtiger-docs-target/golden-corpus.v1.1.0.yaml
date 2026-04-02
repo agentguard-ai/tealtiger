@@ -1,0 +1,95 @@
+version: v1.1.0
+kind: tealtiger.golden_corpus
+id: tealtiger.golden_corpus.v1_1_0
+source_doc: /policy/golden-corpus
+format: v1
+contract:
+  decision_enum: [allow, deny, modify, redact]
+  category_enum: [cost, security, reliability]
+  required_fields:
+    - test_case_id
+    - description
+    - policy_version
+    - category
+    - input_context
+    - expected.decision
+    - expected.reason_codes
+  optional_fields:
+    - expected.effective_values
+    - expected.audit_attributes
+  rules:
+    - id: deterministic_outcome
+      description: Same inputs and policy version must yield the same decision.
+    - id: reason_codes_required
+      description: deny/modify/redact must emit at least one reason code.
+cases:
+  - test_case_id: TC-ALLOW-BASELINE
+    description: Trusted identity performing an allowed action in production.
+    policy_version: v1.1.0
+    category: security
+    input_context:
+      env: prod
+      identity.role: trusted_service
+      request.intent: inference
+      tool_access: false
+    expected:
+      decision: allow
+      reason_codes: [SEC_ALLOW_TRUSTED_BASELINE]
+  - test_case_id: TC-DENY-UNTRUSTED-TOOL-PROD
+    description: Untrusted identity attempting tool access in production.
+    policy_version: v1.1.0
+    category: security
+    input_context:
+      env: prod
+      identity.role: untrusted
+      request.intent: tool_use
+      tool_access: true
+    expected:
+      decision: deny
+      reason_codes: [SEC_TOOL_ACCESS_UNTRUSTED_PROD]
+  - test_case_id: TC-MODIFY-TOKEN-CLAMP-FREE
+    description: Free-tier request exceeding token limit.
+    policy_version: v1.1.0
+    category: cost
+    input_context:
+      env: prod
+      budget_class: free
+      requested_max_tokens: 8192
+    expected:
+      decision: modify
+      reason_codes: [COST_TOKEN_CLAMP_FREE_TIER]
+      effective_values:
+        max_tokens: 2048
+  - test_case_id: TC-REDACT-PII
+    description: Request flagged as containing PII.
+    policy_version: v1.1.0
+    category: security
+    input_context:
+      env: prod
+      request.contains_pii: true
+    expected:
+      decision: redact
+      reason_codes: [SEC_REDACT_PII_FIELDS]
+  - test_case_id: TC-MISSING-INPUT-IDENTITY
+    description: Required identity field is missing.
+    policy_version: v1.1.0
+    category: security
+    input_context:
+      env: prod
+      identity: missing
+    expected:
+      decision: deny
+      reason_codes: [INPUT_MISSING_IDENTITY]
+  - test_case_id: TC-BOUNDARY-TOKEN-LIMIT
+    description: Requested tokens exactly at the allowed threshold.
+    policy_version: v1.1.0
+    category: cost
+    input_context:
+      env: prod
+      budget_class: standard
+      requested_max_tokens: 4096
+    expected:
+      decision: allow
+      reason_codes: [COST_TOKEN_ALLOW_AT_LIMIT]
+      effective_values:
+        max_tokens: 4096

@@ -1,0 +1,547 @@
+---
+title: CrewAI Integration
+description: Add governance to multi-agent CrewAI workflows with security, cost control, and audit logging.
+---
+
+# CrewAI Integration
+
+Integrate TealTiger with CrewAI to add policy enforcement and governance to your multi-agent systems.
+
+## Why integrate TealTiger with CrewAI?
+
+CrewAI enables powerful multi-agent collaboration, but lacks built-in governance. TealTiger adds:
+
+- **Agent-level policies** - Control what each agent can do
+- **Cross-agent coordination** - Track decisions across the crew
+- **Cost attribution** - Know which agent spent what
+- **Audit trails** - Complete visibility into multi-agent workflows
+
+## Quick start
+
+Install both packages:
+
+```bash
+pip install tealtiger crewai
+```
+
+Wrap your CrewAI agents with TealTiger:
+
+```python
+from tealtiger import TealTiger, PolicyMode
+from crewai import Agent, Task, Crew
+
+# Initialize TealTiger
+teal = TealTiger({
+    "policies": {
+        "tools": {
+            "web_search": {"allowed": True},
+            "file_write": {"allowed": False}
+        },
+        "budget": {
+            "maxCostPerAgent": 10.00,
+            "maxCostPerCrew": 50.00
+        }
+    }
+})
+
+# Create agents with governance
+researcher = teal.wrap_agent(Agent(
+    role='Researcher',
+    goal='Research AI trends',
+    tools=[web_search_tool]
+))
+
+writer = teal.wrap_agent(Agent(
+    role='Writer',
+    goal='Write blog posts',
+    tools=[write_tool]
+))
+
+# Create crew
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, writing_task]
+)
+
+# Run with governance
+result = crew.kickoff()
+```
+
+## Integration patterns
+
+### Pattern 1: Agent wrapping (recommended)
+
+Wrap each agent to add governance:
+
+```python
+from tealtiger import TealTiger
+from crewai import Agent
+
+teal = TealTiger({
+    "policies": {
+        "tools": {
+            "researcher_tools": {"allowed": True},
+            "writer_tools": {"allowed": True},
+            "admin_tools": {"allowed": False}
+        }
+    }
+})
+
+# Wrap agents individually
+researcher = teal.wrap_agent(Agent(
+    role='Researcher',
+    goal='Research topics',
+    tools=[search_tool, scrape_tool]
+))
+
+writer = teal.wrap_agent(Agent(
+    role='Writer',
+    goal='Write content',
+    tools=[write_tool, edit_tool]
+))
+```
+
+**Pros:**
+- Per-agent policies
+- Clear cost attribution
+- Independent governance
+
+**Cons:**
+- Need to wrap each agent
+
+### Pattern 2: Crew-level governance
+
+Apply policies at the crew level:
+
+```python
+# Wrap the entire crew
+crew = teal.wrap_crew(Crew(
+    agents=[researcher, writer],
+    tasks=[task1, task2]
+))
+
+# All agents inherit crew policies
+result = crew.kickoff()
+```
+
+**Pros:**
+- Single integration point
+- Consistent policies across agents
+
+**Cons:**
+- Less granular control
+
+### Pattern 3: Tool-level interception
+
+Govern specific tools used by agents:
+
+```python
+from crewai_tools import BaseTool
+
+class GovernedTool(BaseTool):
+    def __init__(self, teal: TealTiger, base_tool: BaseTool):
+        self.teal = teal
+        self.base_tool = base_tool
+    
+    def _run(self, *args, **kwargs):
+        # Check policy
+        decision = self.teal.evaluate({
+            "action": "tool.execute",
+            "tool": self.base_tool.name,
+            "arguments": kwargs
+        })
+        
+        if decision["action"] == "DENY":
+            raise Exception(f"Tool blocked: {decision['reason_codes']}")
+        
+        # Execute tool
+        return self.base_tool._run(*args, **kwargs)
+```
+
+**Pros:**
+- Fine-grained control
+- Can govern third-party tools
+
+**Cons:**
+- More code to write
+
+## Complete example: Multi-agent research crew
+
+Here's a complete example of a CrewAI research crew with TealTiger governance:
+
+```python
+from tealtiger import TealTiger, PolicyMode
+from crewai import Agent, Task, Crew, Process
+from crewai_tools import SerperDevTool, FileWriterTool
+
+# 1. Initialize TealTiger with agent-specific policies
+teal = TealTiger({
+    "policies": {
+        # Agent-specific tool access
+        "agents": {
+            "researcher": {
+                "tools": {
+                    "web_search": {"allowed": True},
+                    "file_read": {"allowed": True},
+                    "file_write": {"allowed": False}
+                },
+                "budget": {
+                    "maxCostPerTask": 5.00
+                }
+            },
+            "writer": {
+                "tools": {
+                    "file_write": {"allowed": True},
+                    "file_read": {"allowed": True},
+                    "web_search": {"allowed": False}
+                },
+                "budget": {
+                    "maxCostPerTask": 3.00
+                }
+            },
+            "editor": {
+                "tools": {
+                    "file_write": {"allowed": True},
+                    "file_read": {"allowed": True}
+                },
+                "budget": {
+                    "maxCostPerTask": 2.00
+                }
+            }
+        },
+        
+        # Crew-level policies
+        "crew": {
+            "maxCostPerRun": 50.00,
+            "maxDuration": 300,  # 5 minutes
+            "requireApprovalFor": ["file_delete", "api_call"]
+        },
+        
+        # Security policies
+        "security": {
+            "detectPII": True,
+            "redactPII": True,
+            "blockPromptInjection": True
+        }
+    },
+    
+    # Audit configuration
+    "audit": {
+        "enabled": True,
+        "outputs": ["console", "file"],
+        "trackAgentActions": True,
+        "correlateCrewRuns": True
+    },
+    
+    # Start in MONITOR mode
+    "mode": {
+        "defaultMode": PolicyMode.MONITOR
+    }
+})
+
+# 2. Create tools
+search_tool = SerperDevTool()
+file_tool = FileWriterTool()
+
+# 3. Create agents with governance
+researcher = teal.wrap_agent(Agent(
+    role='Senior Research Analyst',
+    goal='Research and analyze AI trends',
+    backstory='Expert at finding and analyzing information',
+    tools=[search_tool],
+    verbose=True
+), agent_id='researcher')
+
+writer = teal.wrap_agent(Agent(
+    role='Content Writer',
+    goal='Write engaging blog posts',
+    backstory='Skilled writer with SEO expertise',
+    tools=[file_tool],
+    verbose=True
+), agent_id='writer')
+
+editor = teal.wrap_agent(Agent(
+    role='Editor',
+    goal='Review and improve content',
+    backstory='Detail-oriented editor',
+    tools=[file_tool],
+    verbose=True
+), agent_id='editor')
+
+# 4. Create tasks
+research_task = Task(
+    description='Research the latest AI trends in 2026',
+    agent=researcher,
+    expected_output='Detailed research report'
+)
+
+writing_task = Task(
+    description='Write a blog post based on the research',
+    agent=writer,
+    expected_output='Blog post draft'
+)
+
+editing_task = Task(
+    description='Edit and finalize the blog post',
+    agent=editor,
+    expected_output='Final blog post'
+)
+
+# 5. Create crew with governance
+crew = teal.wrap_crew(Crew(
+    agents=[researcher, writer, editor],
+    tasks=[research_task, writing_task, editing_task],
+    process=Process.sequential,
+    verbose=True
+))
+
+# 6. Run the crew
+try:
+    result = crew.kickoff()
+    print("Crew completed successfully!")
+    print(result)
+    
+    # Get cost metrics per agent
+    metrics = teal.get_crew_metrics()
+    print(f"\nCost breakdown:")
+    print(f"  Researcher: ${metrics['agents']['researcher']['cost']:.2f}")
+    print(f"  Writer: ${metrics['agents']['writer']['cost']:.2f}")
+    print(f"  Editor: ${metrics['agents']['editor']['cost']:.2f}")
+    print(f"  Total: ${metrics['total_cost']:.2f}")
+    
+except Exception as error:
+    print(f"Crew failed: {str(error)}")
+```
+
+## What gets governed?
+
+TealTiger governs these CrewAI components:
+
+### Agent actions
+
+Every agent action is evaluated:
+
+- Tool usage
+- LLM calls
+- Inter-agent communication
+- Task execution
+
+### Crew coordination
+
+Crew-level governance:
+
+- Total crew cost
+- Execution duration
+- Agent collaboration patterns
+- Resource allocation
+
+### Tool executions
+
+Every tool call is checked:
+
+- Tool allowlists per agent
+- Approval requirements
+- Cost attribution
+- Audit logging
+
+## Policy examples for CrewAI
+
+### Example 1: Role-based access
+
+Different policies for different agent roles:
+
+```python
+policies: {
+    "agents": {
+        "researcher": {
+            "tools": {
+                "web_search": {"allowed": True},
+                "database_read": {"allowed": True},
+                "database_write": {"allowed": False}
+            }
+        },
+        "writer": {
+            "tools": {
+                "file_write": {"allowed": True},
+                "web_search": {"allowed": False},
+                "database_read": {"allowed": False}
+            }
+        },
+        "admin": {
+            "tools": {
+                "database_write": {"allowed": True},
+                "file_delete": {
+                    "allowed": True,
+                    "requireApproval": True
+                }
+            }
+        }
+    }
+}
+```
+
+### Example 2: Cost control per agent
+
+Limit spending for each agent:
+
+```python
+policies: {
+    "agents": {
+        "researcher": {
+            "budget": {
+                "maxCostPerTask": 5.00,
+                "maxTokens": 4000
+            }
+        },
+        "writer": {
+            "budget": {
+                "maxCostPerTask": 3.00,
+                "maxTokens": 2000
+            }
+        }
+    },
+    "crew": {
+        "maxCostPerRun": 50.00,
+        "maxDuration": 600  # 10 minutes
+    }
+}
+```
+
+### Example 3: Approval workflows
+
+Require approval for sensitive operations:
+
+```python
+policies: {
+    "crew": {
+        "requireApprovalFor": [
+            "database_write",
+            "file_delete",
+            "api_call_external",
+            "email_send"
+        ],
+        "approvers": ["admin", "supervisor"]
+    }
+}
+```
+
+## Monitoring multi-agent workflows
+
+### View crew metrics
+
+```python
+metrics = teal.get_crew_metrics()
+
+print({
+    "total_cost": metrics["total_cost"],
+    "total_duration": metrics["duration"],
+    "agents": {
+        "researcher": {
+            "cost": metrics["agents"]["researcher"]["cost"],
+            "tasks_completed": metrics["agents"]["researcher"]["tasks"]
+        },
+        "writer": {
+            "cost": metrics["agents"]["writer"]["cost"],
+            "tasks_completed": metrics["agents"]["writer"]["tasks"]
+        }
+    }
+})
+```
+
+### View agent audit logs
+
+```python
+logs = teal.get_agent_logs(agent_id="researcher")
+
+for log in logs:
+    print(f"{log['timestamp']}: {log['action']} - {log['decision']}")
+```
+
+### Track crew execution
+
+```python
+# Get crew execution trace
+trace = teal.get_crew_trace(crew_id="crew-123")
+
+print(f"Crew: {trace['crew_id']}")
+print(f"Duration: {trace['duration']}s")
+print(f"Total cost: ${trace['total_cost']:.2f}")
+print(f"\nAgent timeline:")
+for event in trace['timeline']:
+    print(f"  {event['timestamp']}: {event['agent']} - {event['action']}")
+```
+
+## Best practices
+
+1. **Wrap agents individually** - Better cost attribution and control
+2. **Set per-agent budgets** - Prevent any single agent from overspending
+3. **Use crew-level limits** - Cap total crew cost and duration
+4. **Enable audit logging** - Track multi-agent interactions
+5. **Test in MONITOR mode** - Validate policies before enforcing
+6. **Use correlation IDs** - Link related agent actions
+
+## Common issues
+
+### Issue 1: Agents bypassing policies
+
+**Problem**: Some agent actions aren't being governed
+
+**Solution**: Ensure all agents are wrapped:
+
+```python
+# ❌ Bad: Only some agents wrapped
+researcher = teal.wrap_agent(Agent(...))
+writer = Agent(...)  # Not wrapped!
+
+# ✅ Good: All agents wrapped
+researcher = teal.wrap_agent(Agent(...))
+writer = teal.wrap_agent(Agent(...))
+```
+
+### Issue 2: Cost attribution unclear
+
+**Problem**: Can't tell which agent spent what
+
+**Solution**: Use agent IDs:
+
+```python
+researcher = teal.wrap_agent(
+    Agent(...),
+    agent_id='researcher'  # Explicit ID
+)
+```
+
+### Issue 3: Crew exceeds budget
+
+**Problem**: Total crew cost exceeds limits
+
+**Solution**: Set crew-level budget:
+
+```python
+policies: {
+    "crew": {
+        "maxCostPerRun": 50.00,
+        "stopOnBudgetExceeded": True
+    }
+}
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Policy overview" icon="shield-check" href="/policy/overview">
+    Learn how to write policies
+  </Card>
+  
+  <Card title="Cookbook examples" icon="book" href="/cookbook/index">
+    See real-world examples
+  </Card>
+  
+  <Card title="API reference" icon="code" href="/api-reference/python/index">
+    Explore the Python API
+  </Card>
+  
+  <Card title="Other integrations" icon="plug" href="/integrations/index">
+    View all integrations
+  </Card>
+</CardGroup>

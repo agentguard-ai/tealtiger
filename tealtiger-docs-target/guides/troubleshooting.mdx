@@ -1,0 +1,356 @@
+---
+title: Troubleshooting Guide
+description: Common issues and solutions for TealTiger v1.1.0
+---
+
+# Troubleshooting Guide
+
+This guide covers common issues you might encounter when using TealTiger v1.1.0 and how to resolve them.
+
+## Policy Evaluation Issues
+
+### Policies Not Being Enforced
+
+**Symptom**: All requests are allowed even though you have deny policies configured.
+
+**Common Causes**:
+1. **Wrong policy mode**: Check if the policy is in MONITOR or REPORT_ONLY mode instead of ENFORCE
+2. **Policy path mismatch**: Verify the policy path matches your request structure
+3. **Default mode override**: Check if `defaultMode` is set to a permissive mode
+
+**Solution**:
+```typescript
+// Verify your mode configuration
+const engine = new TealEngine({
+  policies: yourPolicies,
+  mode: {
+    defaultMode: PolicyMode.ENFORCE, // Check this
+    policyModes: {
+      "tools.dangerous_tool": PolicyMode.ENFORCE // And this
+    }
+  }
+});
+
+// Log the decision to debug
+const decision = engine.evaluate(request);
+console.log("Decision mode:", decision.mode);
+console.log("Decision action:", decision.action);
+```
+
+### Unexpected DENY Decisions
+
+**Symptom**: Requests are being denied when you expect them to be allowed.
+
+**Common Causes**:
+1. **Policy misconfiguration**: The policy rule is too restrictive
+2. **Missing context**: Required context fields are not provided
+3. **Risk score threshold**: Risk score exceeds the allowed threshold
+
+**Solution**:
+```typescript
+// Check the decision reason codes
+const decision = engine.evaluate(request);
+console.log("Reason codes:", decision.reason_codes);
+console.log("Risk score:", decision.risk_score);
+
+// Review your policy configuration
+console.log("Policy evaluated:", decision.policy_id);
+```
+
+## Correlation ID Issues
+
+### Correlation IDs Not Propagating
+
+**Symptom**: Different correlation IDs appear across related operations.
+
+**Common Causes**:
+1. **Not using ExecutionContext**: Creating new contexts for each operation
+2. **Context not passed**: Forgetting to pass context to evaluate()
+3. **Async context loss**: Context lost in async operations
+
+**Solution**:
+```typescript
+// Create context once per request
+const context = ContextManager.createContext({
+  tenant_id: "acme",
+  app: "my-app"
+});
+
+// Pass the same context to all operations
+const decision1 = engine.evaluate({ ...request1, context });
+const decision2 = engine.evaluate({ ...request2, context });
+
+// Both will have the same correlation_id
+console.log(decision1.correlation_id === decision2.correlation_id); // true
+```
+
+**Python async context propagation**:
+```python
+import asyncio
+from tealtiger import ContextManager
+
+async def process_request():
+    # Create context at the start
+    context = ContextManager.createContext({
+        "tenant_id": "acme",
+        "app": "my-app"
+    })
+    
+    # Pass to all async operations
+    decision1 = await engine.evaluate_async({**request1, "context": context})
+    decision2 = await engine.evaluate_async({**request2, "context": context})
+    
+    # Same correlation_id
+    assert decision1["correlation_id"] == decision2["correlation_id"]
+```
+
+### Missing Trace IDs
+
+**Symptom**: `trace_id` is null in decisions and audit events.
+
+**Solution**: Trace IDs are optional and must be explicitly provided:
+```typescript
+const context = ContextManager.createContext({
+  tenant_id: "acme",
+  trace_id: "your-otel-trace-id" // Add this
+});
+```
+
+## Audit Logging Issues
+
+### Sensitive Data in Logs
+
+**Symptom**: Raw prompts, responses, or PII appearing in audit logs.
+
+**Common Causes**:
+1. **Debug mode enabled**: `debug_mode: true` disables redaction
+2. **Weak redaction level**: Using `RedactionLevel.NONE` or `PARTIAL`
+3. **PII detection disabled**: `detect_pii: false`
+
+**Solution**:
+```typescript
+const audit = new TealAudit({
+  outputs: [new FileOutput("./audit.log")],
+  config: {
+    input_redaction: RedactionLevel.HASH,    // Strong redaction
+    output_redaction: RedactionLevel.HASH,   // Strong redaction
+    detect_pii: true,                        // Enable PII detection
+    debug_mode: false                        // Disable debug mode
+  }
+});
+```
+
+### Audit Events Not Being Written
+
+**Symptom**: No audit events appear in your output destination.
+
+**Common Causes**:
+1. **Output not configured**: No outputs specified in TealAudit config
+2. **File permissions**: Cannot write to the specified file path
+3. **Async flush pending**: Events buffered but not flushed yet
+
+**Solution**:
+```typescript
+// Verify output configuration
+const audit = new TealAudit({
+  outputs: [
+    new FileOutput("./audit.log"),
+    new ConsoleOutput() // Add console for debugging
+  ]
+});
+
+// Manually flush if needed
+await audit.flush();
+```
+
+## Policy Testing Issues
+
+### Tests Failing in CI/CD
+
+**Symptom**: Policy tests pass locally but fail in CI/CD pipeline.
+
+**Common Causes**:
+1. **Environment differences**: Different Node.js/Python versions
+2. **Missing dependencies**: Test dependencies not installed
+3. **File path issues**: Relative paths don't work in CI
+4. **Timeout issues**: Tests timing out in slower CI environment
+
+**Solution**:
+```yaml
+# GitHub Actions example
+- name: Run policy tests
+  run: |
+    npm install --include=dev
+    npm run test:policy -- --timeout=10000
+  env:
+    NODE_ENV: test
+```
+
+```python
+# pytest.ini configuration
+[pytest]
+timeout = 10
+asyncio_mode = auto
+```
+
+### Test Corpus Not Found
+
+**Symptom**: `Error: Test corpus file not found`
+
+**Solution**:
+```typescript
+// Use absolute paths or resolve relative to project root
+import path from "path";
+
+const tester = new PolicyTester({
+  engine,
+  corpusPath: path.resolve(__dirname, "../test-corpus.json")
+});
+```
+
+## Performance Issues
+
+### Slow Policy Evaluation
+
+**Symptom**: Policy evaluation takes longer than expected (>10ms).
+
+**Common Causes**:
+1. **Complex policies**: Too many nested conditions
+2. **Large context**: Passing unnecessary data in context
+3. **Synchronous I/O**: Blocking operations in policy evaluation
+4. **No caching**: Evaluating the same policy repeatedly
+
+**Solution**:
+```typescript
+// Simplify policies
+const policies = {
+  tools: {
+    // Direct lookup instead of complex conditions
+    dangerous_tool: { allowed: false }
+  }
+};
+
+// Minimize context size
+const context = ContextManager.createContext({
+  tenant_id: "acme",
+  // Only include necessary fields
+});
+
+// Use async evaluation for I/O-bound operations
+const decision = await engine.evaluateAsync(request);
+```
+
+### High Memory Usage
+
+**Symptom**: Memory usage grows over time.
+
+**Common Causes**:
+1. **Audit buffer not flushing**: Events accumulating in memory
+2. **Context leaks**: Not releasing ExecutionContext objects
+3. **Large policy objects**: Policies contain unnecessary data
+
+**Solution**:
+```typescript
+// Configure audit buffer limits
+const audit = new TealAudit({
+  outputs: [new FileOutput("./audit.log")],
+  config: {
+    buffer_size: 100,        // Flush after 100 events
+    flush_interval_ms: 5000  // Or every 5 seconds
+  }
+});
+
+// Manually flush periodically
+setInterval(() => audit.flush(), 10000);
+```
+
+## Integration Issues
+
+### OpenTelemetry Integration
+
+**Symptom**: Trace IDs not appearing in TealTiger decisions.
+
+**Solution**:
+```typescript
+import { trace } from "@opentelemetry/api";
+
+// Extract trace ID from current span
+const span = trace.getActiveSpan();
+const traceId = span?.spanContext().traceId;
+
+const context = ContextManager.createContext({
+  tenant_id: "acme",
+  trace_id: traceId // Pass to TealTiger
+});
+```
+
+### LangChain Integration
+
+**Symptom**: TealTiger not intercepting LangChain tool calls.
+
+**Solution**:
+```typescript
+import { TealTigerToolWrapper } from "tealtiger/integrations/langchain";
+
+// Wrap your tools
+const wrappedTool = new TealTigerToolWrapper({
+  tool: myLangChainTool,
+  engine,
+  audit
+});
+
+// Use wrapped tool in chain
+const chain = new AgentExecutor({
+  tools: [wrappedTool]
+});
+```
+
+## Error Messages
+
+### Common Error Codes
+
+| Error Code | Meaning | Solution |
+|------------|---------|----------|
+| `POLICY_NOT_FOUND` | Policy path doesn't exist | Check policy configuration |
+| `INVALID_CONTEXT` | ExecutionContext missing required fields | Add required context fields |
+| `EVALUATION_FAILED` | Policy evaluation threw an error | Check policy logic |
+| `AUDIT_WRITE_FAILED` | Cannot write audit event | Check output configuration |
+| `REDACTION_FAILED` | PII detection/redaction error | Check redaction configuration |
+
+### Debug Mode
+
+Enable debug mode for detailed logging (development only):
+```typescript
+const engine = new TealEngine({
+  policies,
+  debug: true // Adds verbose logging
+});
+
+const audit = new TealAudit({
+  outputs: [new ConsoleOutput()],
+  config: {
+    debug_mode: true // Disables redaction for debugging
+  }
+});
+```
+
+**⚠️ Warning**: Never enable debug mode in production - it disables security features.
+
+## Getting Help
+
+If you're still experiencing issues:
+
+1. **Check the logs**: Enable debug mode and review detailed logs
+2. **Review examples**: See [Examples](/examples) for working code
+3. **Try the playground**: Test your policies at [playground.tealtiger.ai](https://playground.tealtiger.ai)
+4. **Search issues**: Check [GitHub Issues](https://github.com/agentguard-ai/tealtiger/issues)
+5. **Read the blog**: Check [blogs.tealtiger.ai](https://blogs.tealtiger.ai) for tutorials and guides
+6. **Contact support**: Email reachout@tealtiger.ai for enterprise support
+
+## Related Documentation
+
+- [Policy Modes](/concepts/policy-modes)
+- [Execution Context](/api-reference/typescript/execution-context)
+- [Audit & Redaction](/concepts/audit-and-redaction)
+- [Performance Tuning](/guides/performance-tuning)
+- [Security Best Practices](/guides/security-best-practices)

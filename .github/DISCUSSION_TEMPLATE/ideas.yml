@@ -1,0 +1,57 @@
+title: "[Idea]: "
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 💡 Share Your Ideas
+        Have an idea for TealTiger? We'd love to hear it! This is a place for brainstorming and discussion.
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your Idea
+      description: Describe your idea
+      placeholder: "What if TealTiger could..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - New Feature
+        - Improvement
+        - Integration
+        - Documentation
+        - Community
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What pain point or use case does this address?
+      placeholder: "This would help developers..."
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential Impact
+      description: Who would benefit from this idea?
+      placeholder: "This would be useful for..."
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Thoughts
+      description: Any thoughts on how this could be implemented?
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples or References
+      description: Are there similar implementations elsewhere? Share links or examples.

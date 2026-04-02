@@ -1,0 +1,585 @@
+---
+title: Performance Tuning Guide
+description: Optimization strategies for TealTiger v1.1.0
+---
+
+# Performance Tuning Guide
+
+This guide covers performance optimization strategies for TealTiger v1.1.0 to ensure minimal latency and efficient resource usage.
+
+## Performance Targets
+
+TealTiger is designed to add minimal overhead to your AI workflows:
+
+| Metric | Target | Typical |
+|--------|--------|---------|
+| Policy evaluation | under 10ms (p95) | 2-5ms |
+| Audit event write | under 5ms (p95) | 1-3ms |
+| Memory overhead | under 50MB | 20-30MB |
+| Cold start | under 50ms | 20-30ms |
+
+## Policy Evaluation Optimization
+
+### Simplify Policy Structure
+
+Complex nested policies increase evaluation time. Keep policies flat and simple:
+
+**❌ Slow**:
+```typescript
+const policies = {
+  tools: {
+    customer_data: {
+      operations: {
+        read: {
+          conditions: {
+            time: { between: ["09:00", "17:00"] },
+            user: { role: { in: ["admin", "support"] } },
+            tenant: { plan: { equals: "enterprise" } }
+          },
+          allowed: true
+        }
+      }
+    }
+  }
+};
+```
+
+**✅ Fast**:
+```typescript
+const policies = {
+  tools: {
+    customer_data_read: { allowed: true },
+    customer_data_write: { allowed: false },
+    customer_data_delete: { allowed: false }
+  }
+};
+
+// Handle complex logic in application code
+function canAccessCustomerData(context: ExecutionContext): boolean {
+  const hour = new Date().getHours();
+  return hour >= 9 && hour <= 17 
+    && ["admin", "support"].includes(context.user_role)
+    && context.tenant_plan === "enterprise";
+}
+```
+
+### Use Direct Lookups
+
+Direct property lookups are faster than pattern matching:
+
+**❌ Slow**:
+```typescript
+const policies = {
+  tools: {
+    "*_delete": { allowed: false },  // Pattern matching
+    "*_read": { allowed: true }
+  }
+};
+```
+
+**✅ Fast**:
+```typescript
+const policies = {
+  tools: {
+    file_delete: { allowed: false },
+    user_delete: { allowed: false },
+    data_read: { allowed: true },
+    file_read: { allowed: true }
+  }
+};
+```
+
+### Minimize Context Size
+
+Only include necessary fields in ExecutionContext:
+
+**❌ Slow**:
+```typescript
+const context = ContextManager.createContext({
+  tenant_id: "acme",
+  user_id: "user-123",
+  user_email: "user@example.com",
+  user_name: "John Doe",
+  user_role: "admin",
+  user_department: "Engineering",
+  user_location: "US-West",
+  user_timezone: "America/Los_Angeles",
+  // ... 20 more fields
+});
+```
+
+**✅ Fast**:
+```typescript
+const context = ContextManager.createContext({
+  tenant_id: "acme",
+  user_id: "user-123",
+  user_role: "admin"
+  // Only include fields used in policies
+});
+```
+
+### Cache Policy Engines
+
+Reuse TealEngine instances instead of creating new ones:
+
+**❌ Slow**:
+```typescript
+app.post("/api/action", async (req, res) => {
+  // Creates new engine on every request
+  const engine = new TealEngine({ policies });
+  const decision = engine.evaluate(req.body);
+});
+```
+
+**✅ Fast**:
+```typescript
+// Create once at startup
+const engine = new TealEngine({ policies });
+
+app.post("/api/action", async (req, res) => {
+  // Reuse existing engine
+  const decision = engine.evaluate(req.body);
+});
+```
+
+## Audit Logging Optimization
+
+### Configure Buffer Size
+
+Batch audit events to reduce I/O operations:
+
+```typescript
+const audit = new TealAudit({
+  outputs: [new FileOutput("./audit.log")],
+  config: {
+    buffer_size: 100,        // Flush after 100 events
+    flush_interval_ms: 5000  // Or every 5 seconds
+  }
+});
+```
+
+**Tuning guidelines**:
+- **High throughput**: Increase buffer_size (500-1000)
+- **Low latency**: Decrease buffer_size (10-50)
+- **Balanced**: 100-200 events
+
+### Use Async Writes
+
+Enable async writes to avoid blocking the main thread:
+
+```typescript
+const audit = new TealAudit({
+  outputs: [
+    new FileOutput({
+      path: "./audit.log",
+      async: true,           // Non-blocking writes
+      writeBuffer: 1024 * 64 // 64KB write buffer
+    })
+  ]
+});
+```
+
+### Optimize Output Destinations
+
+Choose appropriate output destinations based on performance requirements:
+
+| Output | Latency | Throughput | Use Case |
+|--------|---------|------------|----------|
+| Memory | under 1ms | Very High | Testing, temporary storage |
+| File | 1-3ms | High | Local development, single server |
+| Syslog | 5-10ms | Medium | Centralized logging |
+| HTTP | 10-50ms | Medium | Cloud logging services |
+| S3 | 50-200ms | Low | Long-term archival |
+
+**Example - High performance setup**:
+```typescript
+const audit = new TealAudit({
+  outputs: [
+    new MemoryOutput({ maxSize: 10000 }),  // Fast in-memory buffer
+    new FileOutput({                        // Async file backup
+      path: "./audit.log",
+      async: true
+    })
+  ]
+});
+
+// Periodically flush memory to S3
+setInterval(async () => {
+  const events = memoryOutput.getEvents();
+  await uploadToS3(events);
+  memoryOutput.clear();
+}, 60000); // Every minute
+```
+
+### Reduce Redaction Overhead
+
+Redaction adds processing time. Choose appropriate levels:
+
+| Redaction Level | Overhead | Security |
+|----------------|----------|----------|
+| NONE | 0ms | ❌ Low |
+| PARTIAL | 1-2ms | ⚠️ Medium |
+| HASH | 2-3ms | ✅ High |
+| REMOVE | under 1ms | ✅ Maximum |
+
+**Recommendation**: Use `REMOVE` for maximum performance and security:
+
+```typescript
+const audit = new TealAudit({
+  config: {
+    input_redaction: RedactionLevel.REMOVE,  // Fastest + most secure
+    output_redaction: RedactionLevel.REMOVE,
+    detect_pii: false  // Disable if not needed (saves 1-2ms)
+  }
+});
+```
+
+## Memory Optimization
+
+### Limit Audit Buffer Size
+
+Prevent memory growth by limiting buffer size:
+
+```typescript
+const audit = new TealAudit({
+  config: {
+    buffer_size: 100,
+    max_buffer_size: 1000,  // Hard limit
+    drop_on_overflow: true  // Drop oldest events if full
+  }
+});
+```
+
+### Release Context Objects
+
+Release ExecutionContext objects when done:
+
+```typescript
+async function handleRequest(req: Request) {
+  const context = ContextManager.createContext({
+    tenant_id: req.tenantId
+  });
+  
+  try {
+    const decision = engine.evaluate({ ...req.body, context });
+    return decision;
+  } finally {
+    // Release context (optional, helps GC)
+    ContextManager.releaseContext(context);
+  }
+}
+```
+
+### Monitor Memory Usage
+
+Track memory usage in production:
+
+```typescript
+import { TealMonitor } from "tealtiger/monitoring";
+
+const monitor = new TealMonitor({
+  metrics: {
+    memory: {
+      interval_ms: 10000,  // Check every 10 seconds
+      threshold_mb: 100,   // Alert if >100MB
+      action: (usage) => {
+        if (usage.heapUsed > 100 * 1024 * 1024) {
+          console.warn("High memory usage:", usage);
+          audit.flush();  // Force flush to free memory
+        }
+      }
+    }
+  }
+});
+```
+
+## Async Patterns
+
+### Use Async Evaluation
+
+For I/O-bound operations, use async evaluation:
+
+```typescript
+// Sync evaluation (blocks thread)
+const decision = engine.evaluate(request);
+
+// Async evaluation (non-blocking)
+const decision = await engine.evaluateAsync(request);
+```
+
+### Batch Evaluations
+
+Evaluate multiple requests in parallel:
+
+```typescript
+// ❌ Slow: Sequential evaluation
+for (const request of requests) {
+  const decision = engine.evaluate(request);
+  await processDecision(decision);
+}
+
+// ✅ Fast: Parallel evaluation
+const decisions = await Promise.all(
+  requests.map(request => engine.evaluateAsync(request))
+);
+
+await Promise.all(
+  decisions.map(decision => processDecision(decision))
+);
+```
+
+### Stream Processing
+
+For high-throughput scenarios, use streaming:
+
+```typescript
+import { Transform } from "stream";
+
+const policyStream = new Transform({
+  objectMode: true,
+  async transform(request, encoding, callback) {
+    try {
+      const decision = await engine.evaluateAsync(request);
+      callback(null, decision);
+    } catch (error) {
+      callback(error);
+    }
+  }
+});
+
+// Process requests as a stream
+requestStream
+  .pipe(policyStream)
+  .pipe(decisionStream);
+```
+
+## Caching Strategies
+
+### Cache Policy Decisions
+
+Cache decisions for identical requests:
+
+```typescript
+import { LRUCache } from "lru-cache";
+
+const decisionCache = new LRUCache<string, Decision>({
+  max: 1000,
+  ttl: 60000  // 1 minute TTL
+});
+
+function evaluateWithCache(request: Request): Decision {
+  const cacheKey = JSON.stringify(request);
+  
+  let decision = decisionCache.get(cacheKey);
+  if (!decision) {
+    decision = engine.evaluate(request);
+    decisionCache.set(cacheKey, decision);
+  }
+  
+  return decision;
+}
+```
+
+**⚠️ Warning**: Only cache decisions for deterministic policies. Don't cache if policies depend on time, random values, or external state.
+
+### Cache Policy Engines
+
+For multi-tenant scenarios, cache engines per tenant:
+
+```typescript
+const engineCache = new LRUCache<string, TealEngine>({
+  max: 100,  // Cache up to 100 tenant engines
+  dispose: (engine) => engine.dispose()
+});
+
+function getEngineForTenant(tenantId: string): TealEngine {
+  let engine = engineCache.get(tenantId);
+  
+  if (!engine) {
+    const policies = loadPoliciesForTenant(tenantId);
+    engine = new TealEngine({ policies });
+    engineCache.set(tenantId, engine);
+  }
+  
+  return engine;
+}
+```
+
+## Serverless Optimization
+
+### Minimize Cold Start Time
+
+Optimize for serverless cold starts:
+
+```typescript
+// ✅ Good: Lazy initialization
+let engine: TealEngine | null = null;
+let audit: TealAudit | null = null;
+
+export async function handler(event: any) {
+  // Initialize on first request only
+  if (!engine) {
+    engine = new TealEngine({ policies });
+    audit = new TealAudit({ outputs: [new S3Output()] });
+  }
+  
+  const decision = engine.evaluate(event);
+  audit.log(createAuditEvent(decision));
+  
+  return decision;
+}
+```
+
+### Use Provisioned Concurrency
+
+For AWS Lambda, use provisioned concurrency to keep instances warm:
+
+```yaml
+# serverless.yml
+functions:
+  policyEvaluator:
+    handler: handler.evaluate
+    provisionedConcurrency: 5  # Keep 5 instances warm
+```
+
+### Optimize Bundle Size
+
+Reduce bundle size to improve cold start:
+
+```typescript
+// ❌ Bad: Import entire library
+import * as TealTiger from "tealtiger";
+
+// ✅ Good: Import only what you need
+import { TealEngine, PolicyMode } from "tealtiger/core";
+import { FileOutput } from "tealtiger/outputs";
+```
+
+## Monitoring and Profiling
+
+### Enable Performance Metrics
+
+Track performance metrics in production:
+
+```typescript
+import { TealMonitor } from "tealtiger/monitoring";
+
+const monitor = new TealMonitor({
+  metrics: {
+    evaluation: {
+      enabled: true,
+      percentiles: [50, 95, 99],
+      action: (stats) => {
+        console.log("Evaluation latency:", {
+          p50: stats.p50,
+          p95: stats.p95,
+          p99: stats.p99
+        });
+      }
+    },
+    audit: {
+      enabled: true,
+      action: (stats) => {
+        console.log("Audit throughput:", {
+          events_per_second: stats.throughput,
+          buffer_size: stats.bufferSize
+        });
+      }
+    }
+  }
+});
+```
+
+### Profile in Development
+
+Use Node.js profiler to identify bottlenecks:
+
+```bash
+# Generate CPU profile
+node --prof app.js
+
+# Analyze profile
+node --prof-process isolate-*.log > profile.txt
+```
+
+### Benchmark Changes
+
+Benchmark before and after optimization:
+
+```typescript
+import { performance } from "perf_hooks";
+
+function benchmark(fn: () => void, iterations: number = 1000) {
+  const start = performance.now();
+  
+  for (let i = 0; i < iterations; i++) {
+    fn();
+  }
+  
+  const end = performance.now();
+  const avg = (end - start) / iterations;
+  
+  console.log(`Average: ${avg.toFixed(3)}ms`);
+}
+
+// Benchmark policy evaluation
+benchmark(() => {
+  engine.evaluate(testRequest);
+}, 10000);
+```
+
+## Production Checklist
+
+Before deploying to production:
+
+- [ ] Policy structure simplified (flat, direct lookups)
+- [ ] Context size minimized (only necessary fields)
+- [ ] TealEngine instances cached and reused
+- [ ] Audit buffer size configured appropriately
+- [ ] Async writes enabled for audit outputs
+- [ ] Redaction level optimized (REMOVE for best performance)
+- [ ] Memory limits configured
+- [ ] Async evaluation used for I/O-bound operations
+- [ ] Caching strategy implemented (if applicable)
+- [ ] Performance metrics enabled
+- [ ] Benchmarks run and targets met
+
+## Performance Troubleshooting
+
+### High Latency
+
+If policy evaluation is slow (>10ms):
+
+1. **Profile the code**: Identify bottlenecks
+2. **Simplify policies**: Remove complex nested conditions
+3. **Reduce context size**: Only include necessary fields
+4. **Check for blocking I/O**: Use async evaluation
+5. **Enable caching**: Cache decisions for identical requests
+
+### High Memory Usage
+
+If memory usage is high (>100MB):
+
+1. **Reduce buffer size**: Lower audit buffer limits
+2. **Flush more frequently**: Decrease flush interval
+3. **Release contexts**: Explicitly release ExecutionContext objects
+4. **Check for leaks**: Use heap profiler to find leaks
+5. **Limit cache size**: Set max size for LRU caches
+
+### Low Throughput
+
+If throughput is low (under 1000 req/s):
+
+1. **Use async evaluation**: Enable non-blocking operations
+2. **Batch operations**: Process multiple requests in parallel
+3. **Optimize audit writes**: Use async writes and larger buffers
+4. **Scale horizontally**: Add more instances
+5. **Use streaming**: Process requests as streams
+
+## Related Documentation
+
+- [Troubleshooting Guide](/guides/troubleshooting)
+- [Security Best Practices](/guides/security-best-practices)
+- [Architecture - Evaluation Flow](/architecture/evaluation-flow)
+- [TealEngine API](/api-reference/typescript/teal-engine)
+- [TealAudit API](/api-reference/typescript/teal-audit)

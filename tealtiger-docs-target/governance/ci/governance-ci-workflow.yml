@@ -1,0 +1,40 @@
+# governance-check.yml
+# Minimal CI guardrails for TealTiger governance (v1.1.x)
+# Purpose: Enforce stable IDs, machine index consistency, audit schema compatibility,
+#          and golden corpus integrity.
+
+name: Governance Checks
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Validate stable_id immutability
+        run: |
+          echo "Check that stable_id values have not changed in v1.1.x"
+          # Pseudo-logic:
+          # 1. Diff MDX front-matter vs main
+          # 2. If stable_id changed without version bump -> fail
+          echo "(implement script here)"
+
+      - name: Validate machine index
+        run: |
+          echo "Ensure all machine-readable docs are present in _machine-index.v1.1.0.yaml"
+          echo "(implement script here)"
+
+      - name: Validate audit schema compatibility
+        run: |
+          echo "Ensure audit-event.schema.v1.1.0.json required fields unchanged"
+          echo "(implement script here)"
+
+      - name: Validate golden corpus
+        run: |
+          echo "Ensure golden corpus test case IDs are unique and immutable"
+          echo "(implement script here)"

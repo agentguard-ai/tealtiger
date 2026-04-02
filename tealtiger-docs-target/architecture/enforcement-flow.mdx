@@ -1,0 +1,52 @@
+---
+title: Enforcement Flow
+description: How ENFORCE/MONITOR/REPORT_ONLY influence runtime behavior.
+
+version: v1.1.0
+status: stable
+doc_type: architecture
+machine_readable: true
+
+stable_id: tealtiger.enforcement_flow.v1_1_0
+
+applies_to:
+  - policy-engine
+  - audit
+
+governance_domain:
+  - cost
+  - security
+  - reliability
+---
+
+import { Callout } from "mintlify/components";
+
+> **Version:** v1.1.0  
+> This page documents behavior guaranteed in TealTiger v1.1.0.
+
+# Enforcement Flow
+
+<Callout type="note">
+Mermaid diagrams require literal syntax (for example, use <code>--></code> inside the diagram source). If you see a render error, ensure the diagram block is not HTML-encoded.
+</Callout>
+
+```mermaid
+flowchart TD
+  A["Evaluate policy"] --> B{"Mode"}
+  B -->|REPORT_ONLY| C["ALLOW + log"]
+  B -->|MONITOR| D["ALLOW + log violations"]
+  B -->|ENFORCE| E{"Violation?"}
+  E -->|Yes| F["DENY or REQUIRE_APPROVAL"]
+  F --> H["Raise PolicyViolationError (app-specific)"]
+  E -->|No| G["ALLOW"]
+```
+
+## Notes
+
+- **REPORT_ONLY:** Always allows execution but records decision evidence.
+- **MONITOR:** Allows execution and records violations for tuning policies.
+- **ENFORCE:** Blocks (or defers) when violations occur.
+
+<Callout type="info">
+Error handling is application-specific. Some integrations may throw exceptions; others may return structured errors. The stable contract is the emitted <b>Decision</b> and its <b>action</b>.
+</Callout>

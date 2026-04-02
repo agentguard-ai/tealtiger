@@ -1,0 +1,64 @@
+---
+title: Stop Budget Runaway (Recipe)
+description: Clamp tokens, downgrade models, and deny runaway loops deterministically using cost governance.
+version: v1.1.0
+status: stable
+doc_type: cookbook
+machine_readable: true
+stable_id: tealtiger.cookbook.budgetrunaway.v1_1_0
+applies_to:
+  - policy-engine
+  - audit
+governance_domain:
+  - cost
+  - reliability
+---
+
+import { Callout } from "mintlify/components";
+
+# Recipe: Stop Budget Runaway
+
+## Goal
+
+Prevent an agent from entering a recursive loop that burns tokens and budget.
+
+## Threats / failures this prevents
+
+- Token runaway (infinite planning / tool loops)
+- Unexpected budget spikes
+- Reliability collapse due to long-running sessions
+
+## Policy intent (high level)
+
+- If budget class is `free` and requested tokens exceed limit → **TRANSFORM** (clamp)
+- If estimated spend exceeds remaining budget → **DENY**
+- If required cost signals are missing → **DEGRADE** to conservative defaults
+
+## Recommended Decisions
+
+- `TRANSFORM` for token clamps
+- `DEGRADE` for conservative defaults
+- `DENY` when spend would exceed hard limits
+
+## Recommended reason codes (examples)
+
+- `COST_TOKEN_CLAMP_FREE_TIER`
+- `COST_BUDGET_EXCEEDED`
+- `REL_SAFE_DEFAULTS_APPLIED`
+
+## Audit evidence to capture
+
+- original vs effective values (clamped tokens)
+- decision + reason codes
+- correlation identifiers
+- cost metadata (estimated_usd, tokens)
+
+<Callout type="note">
+Golden corpus cases should include boundary values (exactly at limit) and missing-input cases.
+</Callout>
+
+## Related reading
+
+- /policy/golden-corpus
+- /policy/risk-scores
+- /audit/cost-metadata

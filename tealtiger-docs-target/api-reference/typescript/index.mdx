@@ -1,0 +1,74 @@
+---
+title: TypeScript SDK API Reference
+description: Complete API reference for TealTiger TypeScript SDK v1.1.x
+version: v1.1.x
+---
+
+# TypeScript SDK API Reference
+
+Complete API documentation for TealTiger TypeScript SDK v1.1.x with Enterprise Adoption Features.
+
+## Installation
+
+```bash
+npm install @tealtiger/sdk
+```
+
+## Quick Start
+
+```typescript
+import { TealEngine, PolicyMode, ExecutionContext } from '@tealtiger/sdk';
+
+// Create engine with policy mode configuration
+const engine = new TealEngine({
+  mode: {
+    default: PolicyMode.ENFORCE,
+    overrides: {
+      'cost-limit': PolicyMode.MONITOR
+    }
+  }
+});
+
+// Create execution context for traceability
+const context = ExecutionContext.create({
+  actor: { id: 'user-123', type: 'user' }
+});
+
+// Evaluate with context
+const decision = await engine.evaluate(request, context);
+```
+
+## Enterprise Features (v1.1.x)
+
+<CardGroup cols={2}>
+  <Card title="Decision Contract" icon="scale-balanced" href="/api-reference/typescript/decision">
+    Deterministic Decision object with risk scores and reason codes
+  </Card>
+  <Card title="Execution Context" icon="diagram-project" href="/api-reference/typescript/execution-context">
+    Correlation IDs and distributed tracing
+  </Card>
+  <Card title="Policy Testing" icon="vial" href="/api-reference/typescript/policy-testing">
+    Test harness for CI/CD integration
+  </Card>
+</CardGroup>
+
+## Core Modules
+
+<CardGroup cols={2}>
+  <Card title="TealEngine" icon="engine" href="/api-reference/typescript/teal-engine">
+    Policy evaluation engine with mode-based enforcement
+  </Card>
+  <Card title="TealGuard" icon="shield" href="/api-reference/typescript/teal-guard">
+    Guardrail checks for content safety
+  </Card>
+  <Card title="TealCircuit" icon="circle-nodes" href="/api-reference/typescript/teal-circuit">
+    Circuit breaker for reliability
+  </Card>
+  <Card title="TealAudit" icon="file-lines" href="/api-reference/typescript/teal-audit">
+    Audit logging with security-by-default redaction
+  </Card>
+</CardGroup>
+
+## Migration Guide
+
+- [Migrating to v1.1.x](/guides/migration-v1.1.x) - Complete migration guide with step-by-step instructions

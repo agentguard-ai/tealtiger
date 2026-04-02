@@ -1,0 +1,209 @@
+---
+title: Tool Protocol Integrations
+description: Integration guide (stub) — how to apply TealTiger governance to Tool Protocol Integrations.
+version: v1.1.0
+status: draft
+doc_type: integration
+machine_readable: true
+stable_id: tealtiger.integration.tool-protocols.v1_1_0
+applies_to:
+  - policy-engine
+  - audit
+governance_domain:
+  - security
+  - cost
+  - reliability
+---
+
+import { Callout } from "mintlify/components";
+
+> **Version:** v1.1.0  
+> **Status:** Stub (documentation-first). This page defines the integration shape. Implementation may be added later without changing v1.1.0 contracts.
+
+# Tool Protocol Integrations
+
+## Purpose
+
+This page describes how to integrate TealTiger with **Tool Protocol Integrations** using a contract-first approach.
+
+TealTiger provides deterministic governance outcomes:
+- Decisions
+- Reason codes
+- Risk scores
+- Audit evidence
+- Modes (report-only / monitor / enforce)
+
+---
+
+## Recommended integration model
+
+**Primary model:** Generic tool boundary wrapper (HTTP/DB/FS/exec)
+
+TealTiger provides a flexible integration pattern for governing tool protocol interactions. The integration wraps tool calls at the boundary, evaluating each action against your policies before execution.
+
+---
+
+## What TealTiger evaluates (context mapping)
+
+At minimum, provide:
+- **identity** - Which agent/user is making the request
+- **environment** - Production, staging, or development
+- **action intent** - What the tool is trying to do (read/write/exec/network)
+- **tool/model metadata** - Tool name, version, and normalized arguments
+- **correlation identifiers** - Trace IDs for linking related actions
+
+---
+
+## Decision mapping
+
+TealTiger returns deterministic decisions that map to tool behavior:
+
+- **ALLOW** → proceed with the tool call
+- **DENY** → block the tool call entirely
+- **REDACT** → remove sensitive data, then proceed
+- **TRANSFORM** → apply deterministic modifications to inputs/outputs
+- **DEGRADE** → reduce capability (e.g., read-only mode)
+- **REQUIRE_APPROVAL** → defer to human approval workflow
+
+---
+
+## Integration example
+
+<CodeGroup>
+```typescript TypeScript
+import { TealEngine, PolicyMode } from 'tealtiger';
+
+const engine = new TealEngine({
+  policies: {
+    tools: {
+      http_request: {
+        allowed: true,
+        maxCostPerRequest: 0.10
+      },
+      database_write: {
+        allowed: false  // Block all DB writes
+      },
+      file_read: {
+        allowed: true,
+        requireApproval: true  // Require approval for file reads
+      }
+    }
+  },
+  mode: PolicyMode.ENFORCE
+});
+
+// Before executing a tool
+async function executeToolWithGovernance(toolName: string, args: any) {
+  const decision = engine.evaluate({
+    action: 'tool.execute',
+    tool_name: toolName,
+    tool_args: args,
+    context: {
+      user_id: 'user-123',
+      environment: 'production'
+    }
+  });
+
+  if (decision.action === 'deny') {
+    throw new Error(`Tool blocked: ${decision.reason_code}`);
+  }
+
+  if (decision.action === 'require_approval') {
+    await requestApproval(toolName, args);
+  }
+
+  // Execute the tool
+  return await executeTool(toolName, args);
+}
+```
+
+```python Python
+from tealtiger import TealEngine, PolicyMode
+
+engine = TealEngine({
+    "policies": {
+        "tools": {
+            "http_request": {
+                "allowed": True,
+                "maxCostPerRequest": 0.10
+            },
+            "database_write": {
+                "allowed": False  # Block all DB writes
+            },
+            "file_read": {
+                "allowed": True,
+                "requireApproval": True  # Require approval
+            }
+        }
+    },
+    "mode": PolicyMode.ENFORCE
+})
+
+# Before executing a tool
+async def execute_tool_with_governance(tool_name: str, args: dict):
+    decision = engine.evaluate({
+        "action": "tool.execute",
+        "tool_name": tool_name,
+        "tool_args": args,
+        "context": {
+            "user_id": "user-123",
+            "environment": "production"
+        }
+    })
+
+    if decision.action == "deny":
+        raise Exception(f"Tool blocked: {decision.reason_code}")
+
+    if decision.action == "require_approval":
+        await request_approval(tool_name, args)
+
+    # Execute the tool
+    return await execute_tool(tool_name, args)
+```
+</CodeGroup>
+
+---
+
+## Common tool protocol patterns
+
+### HTTP/REST tools
+
+Govern outbound HTTP requests:
+- Block requests to sensitive domains
+- Enforce rate limits
+- Redact sensitive headers
+- Track costs per endpoint
+
+### Database tools
+
+Govern database operations:
+- Block writes in production
+- Require approval for schema changes
+- Redact PII in query results
+- Track query costs
+
+### Filesystem tools
+
+Govern file operations:
+- Block access to sensitive directories
+- Require approval for deletions
+- Redact file contents
+- Track storage costs
+
+### Shell/exec tools
+
+Govern command execution:
+- Block dangerous commands (rm -rf, etc.)
+- Require approval for all exec
+- Redact command outputs
+- Track execution costs
+
+---
+
+## Related reading
+
+- /concepts/decision-model
+- /policy/reason-codes
+- /policy/risk-scores
+- /audit/audit-event-schema
+- /architecture/enforcement-flow

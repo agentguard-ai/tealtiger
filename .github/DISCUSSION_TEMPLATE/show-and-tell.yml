@@ -1,0 +1,74 @@
+title: "[Show & Tell]: "
+labels: ["show-and-tell"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎉 Show & Tell
+        Share what you've built with TealTiger! We'd love to see your projects.
+
+  - type: input
+    id: project-name
+    attributes:
+      label: Project Name
+      description: What's your project called?
+      placeholder: "My Awesome AI App"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Project Description
+      description: Tell us about your project
+      placeholder: "I built an AI chatbot that..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sdk
+    attributes:
+      label: Which SDK did you use?
+      options:
+        - TypeScript/JavaScript
+        - Python
+        - Both
+    validations:
+      required: true
+
+  - type: textarea
+    id: features
+    attributes:
+      label: TealTiger Features Used
+      description: Which TealTiger features are you using?
+      placeholder: |
+        - PII Detection
+        - Cost Tracking
+        - Prompt Injection Prevention
+    validations:
+      required: true
+
+  - type: input
+    id: link
+    attributes:
+      label: Project Link
+      description: Link to your project (GitHub, website, demo, etc.)
+      placeholder: "https://github.com/username/project"
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots/Demo
+      description: Share screenshots or demo videos (drag and drop images here)
+
+  - type: textarea
+    id: learnings
+    attributes:
+      label: Key Learnings
+      description: What did you learn while building this?
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Feedback for TealTiger
+      description: Any feedback or suggestions based on your experience?

@@ -1,0 +1,183 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "TealTiger Docs",
+  "logo": {
+    "light": "/assets/tealtiger-logo-light.png",
+    "dark": "/assets/tealtiger-logo-dark.png",
+    "href": "https://tealtiger.ai"
+  },
+  "favicon": "/assets/tealtiger-logo-64.png",
+  "colors": {
+    "primary": "#14b8a6"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started (v1.1.0)",
+        "pages": [
+          "index",
+          "quickstart",
+          "getting-started/first-policy"
+        ]
+      },
+      {
+        "group": "Why TealTiger (v1.1.0)",
+        "pages": [
+          "why-tealtiger",
+          "why-tealtiger/tealtiger-vs-guardrails-vs-protect-ai"
+        ]
+      },
+      {
+        "group": "Cookbook (v1.1.0)",
+        "pages": [
+          "cookbook/index",
+          "cookbook/hipaa-medical-bot",
+          "cookbook/prevent-hallucinated-refunds",
+          "cookbook/stop-budget-runaway",
+          "cookbook/microservices-agent-example"
+          
+        ]
+      },
+      {
+        "group": "Core Concepts (v1.1.0)",
+        "pages": [
+          "concepts/decision-lifecycle",
+          "concepts/decision-model",
+          "concepts/promptware-blast-radius-executive",
+          "concepts/policy-modes",
+          "concepts/execution-identity",
+          "concepts/audit-and-redaction",
+          "concepts/visual-decision-mapping",
+          "concepts/security-vs-governance",
+          "concepts/zero-trust-for-agentic-ai",
+          "concepts/agentic-patterns"
+        ]
+      },
+      {
+        "group": "Policy Design (v1.1.0)",
+        "pages": [
+          "policy/overview",
+          "policy/policy-authoring-guide",
+          "policy/conditions-and-actions",
+          "policy/reason-codes",
+          "policy/risk-scores",
+          "policy/golden-corpus"
+        ]
+      },
+      {
+        "group": "Integrations (v1.1.0)",
+        "pages": [
+          "integrations/index",
+          "integrations/openclaw",
+          "integrations/openclaw-hardening-vs-governance",
+          "integrations/langchain",
+          "integrations/crewai",
+          "integrations/mcp",
+          "integrations/tool-protocols",
+          "integrations/opentelemetry",
+          "integrations/langfuse",
+          "integrations/langsmith",
+          "integrations/helicone"
+        ]
+      },
+      {
+        "group": "Audit & Telemetry (v1.1.0)",
+        "pages": [
+          "audit/audit-event-schema",
+          "audit/logging-behavior",
+          "audit/cost-metadata"
+        ]
+      },
+      {
+        "group": "Reference (v1.1.0)",
+        "pages": [
+          "reference/configuration"
+        ]
+      },
+      {
+        "group": "Architecture (v1.1.0)",
+        "pages": [
+          "architecture/evaluation-flow",
+          "architecture/enforcement-flow",
+          "architecture/logging-flow"
+        ]
+      },
+      {
+        "group": "Versioning (v1.1.0)",
+        "pages": [
+          "versioning/v1.1.0-scope",
+          "versioning/stability-guarantees"
+        ]
+      },
+      {
+        "group": "About (v1.1.0)",
+        "pages": [
+          "about/goals",
+          "about/non-goals",
+          "about/anti-patterns",
+          "about/best-practices",
+          "about/decision-philosophy"
+        ]
+      },
+      {
+        "group": "API Reference - TypeScript",
+        "pages": [
+          "api-reference/typescript/index",
+          "api-reference/typescript/decision",
+          "api-reference/typescript/execution-context",
+          "api-reference/typescript/policy-testing",
+          "api-reference/typescript/teal-engine",
+          "api-reference/typescript/teal-guard",
+          "api-reference/typescript/teal-circuit",
+          "api-reference/typescript/teal-audit"
+        ]
+      },
+      {
+        "group": "API Reference - Python",
+        "pages": [
+          "api-reference/python/index",
+          "api-reference/python/decision",
+          "api-reference/python/execution-context",
+          "api-reference/python/policy-testing",
+          "api-reference/python/teal-engine",
+          "api-reference/python/teal-guard",
+          "api-reference/python/teal-circuit",
+          "api-reference/python/teal-audit"
+        ]
+      },
+      {
+        "group": "Governance & Compliance (v1.1.0)",
+        "pages": [
+          "governance/reference-architecture",
+          "governance/eu-ai-act-compliance",
+          "governance/best-practices-checklist",
+          "governance/phased-adoption",
+          "governance/validation-and-verification"
+        ]
+      },
+      {
+        "group": "Guides (v1.1.0)",
+        "pages": [
+          "guides/migration-v1.1.x",
+          "guides/troubleshooting",
+          "guides/faq",
+          "guides/security-best-practices",
+          "guides/performance-tuning"
+        ]
+      },
+      {
+        "group": "Versions",
+        "pages": [
+          "versions/v1.1.0"
+        ]
+      },
+      {
+        "group": "Roadmap",
+        "pages": [
+          "roadmap"
+        ]
+      }
+    ]
+  }
+}

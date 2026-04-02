@@ -1,0 +1,38 @@
+---
+title: Cost Metadata
+description: Standardized cost keys in AuditEvent.metadata.cost.
+---
+
+> **Version:** v1.1.0  
+> This page documents behavior guaranteed in TealTiger v1.1.0.
+
+
+# Cost Metadata
+
+## Standard keys
+
+`AuditEvent.metadata.cost` SHOULD include:
+- `estimated`
+- `actual`
+- `currency`
+- `budget_scope`
+- `budget_window`
+- `budget_limit`
+- `budget_remaining`
+- `risk_score`
+- `model`, `model_tier`
+
+## Example
+
+```json
+{
+  "metadata": {
+    "cost": {
+      "estimated": 1.2,
+      "actual": 1.0,
+      "currency": "USD",
+      "budget_scope": "request"
+    }
+  }
+}
+```

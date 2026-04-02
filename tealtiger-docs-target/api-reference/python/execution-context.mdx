@@ -1,0 +1,387 @@
+---
+title: Execution Context
+description: Correlation IDs and traceability for distributed systems
+version: v1.1.x
+---
+
+# Execution Context
+
+`ExecutionContext` provides correlation IDs and traceability metadata for all TealTiger operations.
+
+## Overview
+
+Every request should have an `ExecutionContext` that flows through:
+- TealEngine → TealGuard → TealCircuit → TealAudit
+
+This enables:
+- **Distributed tracing** across services
+- **Audit log correlation** for investigations
+- **Request attribution** for cost and security analysis
+
+## Classes
+
+```python
+from tealtiger import ExecutionContext, ExecutionContextOptions
+
+class ExecutionContext(BaseModel):
+    """Execution context for request tracking and traceability."""
+    
+    correlation_id: str
+    trace_id: Optional[str] = None
+    workflow_id: Optional[str] = None
+    run_id: Optional[str] = None
+    span_id: Optional[str] = None
+    parent_span_id: Optional[str] = None
+    tenant_id: Optional[str] = None
+    application: Optional[str] = None
+    environment: Optional[str] = None
+    agent_purpose: Optional[str] = None
+    session_id: Optional[str] = None
+    user_id: Optional[str] = None
+    created_at: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+```
+
+## Creating Contexts
+
+### Auto-generate correlation ID
+
+```python
+from tealtiger import ExecutionContext
+from tealtiger.core.context import create_execution_context
+
+# Auto-generate correlation ID (UUID v4)
+context = create_execution_context(
+    user_id='user-123',
+    environment='production'
+)
+
+print(context.correlation_id)  # Auto-generated UUID v4
+```
+
+### Provide existing correlation ID
+
+```python
+context = create_execution_context(
+    correlation_id='existing-correlation-id',
+    user_id='service-456',
+    application='payment-service'
+)
+```
+
+### From HTTP headers
+
+```python
+from tealtiger.core.context import ContextManager
+
+# Extract from incoming request (FastAPI example)
+@app.post("/api/evaluate")
+async def evaluate(request: Request):
+    context = ContextManager.from_headers(request.headers)
+    
+    # Context includes:
+    # - x-correlation-id (or generates new)
+    # - traceparent (OpenTelemetry compatible)
+    # - x-span-id
+    
+    decision = await engine.evaluate(data, context)
+    return decision
+```
+
+### To HTTP headers
+
+```python
+import httpx
+from tealtiger.core.context import ContextManager
+
+# Propagate to downstream services
+headers = ContextManager.to_headers(context)
+
+async with httpx.AsyncClient() as client:
+    response = await client.post(
+        'https://api.example.com',
+        headers={
+            **headers,
+            'Authorization': f'Bearer {token}'
+        }
+    )
+```
+
+## Context Propagation
+
+### Through TealEngine
+
+```python
+from tealtiger import TealEngine
+from tealtiger.core.context import create_execution_context
+
+engine = TealEngine(config)
+context = create_execution_context(user_id='user-123')
+
+# Context flows through evaluation
+decision = await engine.evaluate(request, context)
+
+# Decision includes correlation_id
+assert decision.correlation_id == context.correlation_id
+```
+
+### Through TealGuard
+
+```python
+from tealtiger import TealGuard
+from tealtiger.core.context import create_execution_context
+
+guard = TealGuard(config)
+context = create_execution_context(user_id='user-123')
+
+# Context flows through guardrail checks
+decision = await guard.check(content, context)
+
+print(decision.correlation_id)  # Same as context
+```
+
+### Through TealAudit
+
+```python
+from tealtiger import TealAudit
+from tealtiger.core.context import create_execution_context
+
+audit = TealAudit(config)
+context = create_execution_context(user_id='user-123')
+
+# Context included in audit events
+await audit.log('policy_evaluation', {
+    'decision': decision,
+    'context': context
+})
+
+# Query by correlation_id
+events = await audit.query(
+    correlation_id=context.correlation_id
+)
+```
+
+## Distributed Tracing
+
+### OpenTelemetry Integration
+
+```python
+from opentelemetry import trace
+from tealtiger import TealEngine
+from tealtiger.core.context import create_execution_context
+
+tracer = trace.get_tracer(__name__)
+
+with tracer.start_as_current_span("evaluate_policy") as span:
+    span_context = span.get_span_context()
+    
+    context = create_execution_context(
+        trace_id=format(span_context.trace_id, '032x'),
+        span_id=format(span_context.span_id, '016x'),
+        user_id='user-123'
+    )
+    
+    # TealTiger decisions are now part of your trace
+    decision = await engine.evaluate(request, context)
+```
+
+### Multi-Service Correlation
+
+```python
+import httpx
+from tealtiger.core.context import create_execution_context, ContextManager
+
+# Service A: Create context
+context_a = create_execution_context(
+    application='service-a',
+    user_id='service-a'
+)
+
+decision_a = await engine_a.evaluate(request_a, context_a)
+
+# Service A → Service B: Propagate context
+headers = ContextManager.to_headers(context_a)
+async with httpx.AsyncClient() as client:
+    await client.post('https://service-b/api', headers=headers)
+
+# Service B: Extract context
+@app.post("/api")
+async def handle(request: Request):
+    context_b = ContextManager.from_headers(request.headers)
+    decision_b = await engine_b.evaluate(request_b, context_b)
+    
+    # Both decisions share correlation_id
+    assert decision_a.correlation_id == decision_b.correlation_id
+```
+
+## Audit Log Correlation
+
+### Query by correlation ID
+
+```python
+from tealtiger.core.context import create_execution_context
+
+context = create_execution_context(user_id='user-123')
+
+# Make multiple requests with same context
+await engine.evaluate(request1, context)
+await guard.check(content, context)
+await circuit.execute(operation, context)
+
+# Query all events for this request
+events = await audit.query(
+    correlation_id=context.correlation_id
+)
+
+# Events include:
+# - policy_evaluation
+# - guardrail_check
+# - circuit_execution
+```
+
+### Investigation Workflow
+
+```python
+# User reports issue with request
+correlation_id = 'user-reported-correlation-id'
+
+# Retrieve all events for investigation
+events = await audit.query(correlation_id=correlation_id)
+
+for event in events:
+    print(f"{event.timestamp}: {event.event_type}")
+    print(f"  Decision: {event.decision.action}")
+    print(f"  Reason: {event.decision.reason}")
+```
+
+## Context Managers
+
+### Async Context Manager
+
+```python
+from tealtiger.core.context import ContextManager
+
+async with ContextManager.create_context(user_id='user-123') as context:
+    # Context automatically propagated
+    decision = await engine.evaluate(request, context)
+    
+    # Context cleaned up on exit
+```
+
+### Thread-Local Context
+
+```python
+from tealtiger.core.context import ContextManager
+
+# Set context for current thread
+context = create_execution_context(user_id='user-123')
+ContextManager.set_current(context)
+
+# Get context from anywhere in the call stack
+current_context = ContextManager.get_current()
+
+# Clear context
+ContextManager.clear_current()
+```
+
+## Environment Context
+
+```python
+from tealtiger import TealEngine, PolicyMode
+from tealtiger.core.context import create_execution_context
+
+context = create_execution_context(
+    user_id='user-123',
+    environment='production',
+    metadata={
+        'region': 'us-east-1',
+        'deployment': 'blue',
+        'version': 'v2.3.1'
+    }
+)
+
+# Environment-specific policy modes
+engine = TealEngine({
+    'mode': {
+        'default': PolicyMode.ENFORCE,
+        'environment_overrides': {
+            'development': PolicyMode.REPORT_ONLY,
+            'staging': PolicyMode.MONITOR,
+            'production': PolicyMode.ENFORCE
+        }
+    }
+})
+```
+
+## Best Practices
+
+### Always Create Context
+
+```python
+# ❌ Bad: No context
+decision = await engine.evaluate(request)
+
+# ✅ Good: Always provide context
+context = create_execution_context(user_id='user-123')
+decision = await engine.evaluate(request, context)
+```
+
+### Propagate Context
+
+```python
+# ❌ Bad: Create new context for each operation
+context1 = create_execution_context(user_id='user-123')
+await engine.evaluate(request, context1)
+
+context2 = create_execution_context(user_id='user-123')  # Different correlation_id!
+await guard.check(content, context2)
+
+# ✅ Good: Reuse same context
+context = create_execution_context(user_id='user-123')
+await engine.evaluate(request, context)
+await guard.check(content, context)
+```
+
+### Extract from Headers
+
+```python
+# ❌ Bad: Ignore incoming correlation ID
+context = create_execution_context(user_id='user-123')
+
+# ✅ Good: Preserve correlation ID from upstream
+context = ContextManager.from_headers(request.headers)
+if not context.user_id:
+    context.user_id = extract_user_from_auth(request)
+```
+
+## Type Hints
+
+```python
+from typing import Optional
+from tealtiger import ExecutionContext, Decision
+
+async def evaluate_with_context(
+    request: dict,
+    context: Optional[ExecutionContext] = None
+) -> Decision:
+    """Evaluate request with optional context."""
+    if context is None:
+        context = create_execution_context()
+    
+    return await engine.evaluate(request, context)
+```
+
+## Performance
+
+Context operations are designed to be fast:
+
+- **Context creation**: < 0.1ms (UUID generation)
+- **Context propagation**: < 0.5ms (object passing)
+- **Header conversion**: < 0.2ms (string serialization)
+
+## Related Documentation
+
+- [Decision Contract](/api-reference/python/decision)
+- [Audit Events](/audit/audit-event-schema)
+- [OpenTelemetry Integration](/integrations/opentelemetry)
+- [Best Practices](/guides/best-practices)
