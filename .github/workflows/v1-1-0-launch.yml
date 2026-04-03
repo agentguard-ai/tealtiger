@@ -92,39 +92,18 @@ jobs:
             --skip azure_pipelines,lambda_layers,lambda_registry_website,helm
 
   # ── Stage 1: Package Managers (npm, PyPI) ──────────────────────────
+  # ── Stage 1: Package Managers — SKIPPED (v1.1.1 already published to npm + PyPI) ──
   stage-1-packages:
-    name: "Stage 1 - Publish to ${{ matrix.package }}"
+    name: "Stage 1 - Packages (already published)"
     needs: pre-flight
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        package: [npm, pypi]
-      fail-fast: true
+    timeout-minutes: 1
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-
-      - name: Install dependencies
-        run: npm install
-
-      - uses: actions/setup-python@v5
-        if: matrix.package == 'pypi'
-        with:
-          python-version: '3.12'
-
-      - name: Publish to ${{ matrix.package }}
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      - name: Skip - already published
         run: |
-          npx ts-node src/launch/scripts/publish-package.ts \
-            --target "${{ matrix.package }}" \
-            --version "${{ github.event.inputs.version }}"
+          echo "✅ npm tealtiger@${{ github.event.inputs.version }} — already published"
+          echo "✅ PyPI tealtiger==${{ github.event.inputs.version }} — already published"
+          echo "⏭️ Skipping Stage 1 (packages already live on npm and PyPI)"
 
   # ── Stage 2: Container Registries (GHCR, Docker Hub) ───────────────
   stage-2-containers:
