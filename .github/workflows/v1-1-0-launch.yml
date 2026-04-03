@@ -89,7 +89,7 @@ jobs:
         run: |
           npx ts-node src/launch/scripts/verify-accounts.ts \
             --version "${{ github.event.inputs.version }}" \
-            --skip azure_pipelines,lambda
+            --skip azure_pipelines,lambda_layers,lambda_registry_website,helm
 
   # ── Stage 1: Package Managers (npm, PyPI) ──────────────────────────
   stage-1-packages:
@@ -343,7 +343,7 @@ jobs:
           npx ts-node src/launch/scripts/rollback.ts \
             --version "${{ github.event.inputs.version }}" \
             --reason "Automated rollback due to stage failure" \
-            --skip azure_pipelines,lambda
+            --skip azure_pipelines,lambda_layers,lambda_registry_website,helm
 
       - name: Generate rollback report
         env:
