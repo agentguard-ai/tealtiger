@@ -118,7 +118,7 @@ jobs:
     strategy:
       matrix:
         registry: [ghcr, dockerhub]
-      fail-fast: true
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
 
@@ -167,7 +167,7 @@ jobs:
     strategy:
       matrix:
         platform: [terraform, pulumi, helm, ansible]
-      fail-fast: true
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
 
@@ -199,7 +199,7 @@ jobs:
     strategy:
       matrix:
         marketplace: [github_marketplace, gitlab, circleci]
-      fail-fast: true
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
 
