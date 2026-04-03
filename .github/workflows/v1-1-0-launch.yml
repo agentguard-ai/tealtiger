@@ -53,8 +53,6 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          HELM_REPO_USERNAME: ${{ secrets.HELM_REPO_USERNAME }}
-          HELM_REPO_PASSWORD: ${{ secrets.HELM_REPO_PASSWORD }}
           ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
@@ -66,8 +64,6 @@ jobs:
           [ -z "$DOCKERHUB_TOKEN" ] && MISSING="$MISSING\n  - DOCKERHUB_TOKEN"
           [ -z "$TERRAFORM_CLOUD_TOKEN" ] && MISSING="$MISSING\n  - TERRAFORM_CLOUD_TOKEN"
           [ -z "$PULUMI_ACCESS_TOKEN" ] && MISSING="$MISSING\n  - PULUMI_ACCESS_TOKEN"
-          [ -z "$HELM_REPO_USERNAME" ] && MISSING="$MISSING\n  - HELM_REPO_USERNAME"
-          [ -z "$HELM_REPO_PASSWORD" ] && MISSING="$MISSING\n  - HELM_REPO_PASSWORD"
           [ -z "$ANSIBLE_GALAXY_TOKEN" ] && MISSING="$MISSING\n  - ANSIBLE_GALAXY_TOKEN"
           [ -z "$GITLAB_TOKEN" ] && MISSING="$MISSING\n  - GITLAB_TOKEN"
           [ -z "$CIRCLECI_TOKEN" ] && MISSING="$MISSING\n  - CIRCLECI_TOKEN"
@@ -86,11 +82,10 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          HELM_REPO_USERNAME: ${{ secrets.HELM_REPO_USERNAME }}
-          HELM_REPO_PASSWORD: ${{ secrets.HELM_REPO_PASSWORD }}
           ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npx ts-node src/launch/scripts/verify-accounts.ts \
             --version "${{ github.event.inputs.version }}" \
@@ -204,8 +199,7 @@ jobs:
         env:
           TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          HELM_REPO_USERNAME: ${{ secrets.HELM_REPO_USERNAME }}
-          HELM_REPO_PASSWORD: ${{ secrets.HELM_REPO_PASSWORD }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
         run: |
           npx ts-node src/launch/scripts/publish-iac.ts \
@@ -341,11 +335,10 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          HELM_REPO_USERNAME: ${{ secrets.HELM_REPO_USERNAME }}
-          HELM_REPO_PASSWORD: ${{ secrets.HELM_REPO_PASSWORD }}
           ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
           CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npx ts-node src/launch/scripts/rollback.ts \
             --version "${{ github.event.inputs.version }}" \
