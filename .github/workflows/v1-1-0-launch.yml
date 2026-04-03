@@ -19,6 +19,10 @@ concurrency:
   group: tealtiger-launch-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   # ── Pre-Flight Checks ─────────────────────────────────────────────
   pre-flight:
