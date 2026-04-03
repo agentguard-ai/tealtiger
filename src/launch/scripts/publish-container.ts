@@ -27,7 +27,7 @@ async function main() {
   }
 
   const image = IMAGES[target];
-  const platforms = 'linux/amd64,linux/arm64';
+  const platforms = 'linux/amd64';
   const tag = `${image}:${version}`;
   const latestTag = `${image}:latest`;
 
