@@ -17,7 +17,7 @@ const version = versionIdx !== -1 ? args[versionIdx + 1] : '1.1.0';
 
 const IMAGES: Record<string, string> = {
   ghcr: 'ghcr.io/agentguard-ai/tealtiger',
-  dockerhub: 'tealtiger/tealtiger',
+  dockerhub: 'tealtigeradmin/tealtiger-docker',
 };
 
 async function main() {
