@@ -1,0 +1,20 @@
+# TealTiger TypeScript SDK — Development Image
+FROM node:20
+
+LABEL maintainer="TealTiger Team <reachout@tealtiger.ai>"
+LABEL org.opencontainers.image.title="TealTiger TypeScript SDK (Dev)"
+LABEL org.opencontainers.image.description="TealTiger TypeScript SDK with development tools"
+LABEL org.opencontainers.image.version="1.1.1"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+WORKDIR /app
+
+RUN npm install tealtiger@latest \
+    typescript ts-node jest @types/jest \
+    eslint prettier fast-check && \
+    npm cache clean --force
+
+RUN chown -R node:node /app
+USER node
+
+CMD ["node"]

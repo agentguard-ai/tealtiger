@@ -1,0 +1,21 @@
+# TealTiger Python SDK — Alpine (Minimal) Image
+FROM python:3.12-alpine
+
+LABEL maintainer="TealTiger Team <reachout@tealtiger.ai>"
+LABEL org.opencontainers.image.title="TealTiger Python SDK (Alpine)"
+LABEL org.opencontainers.image.description="Minimal TealTiger Python SDK for production"
+LABEL org.opencontainers.image.version="1.1.1"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+WORKDIR /app
+
+RUN apk add --no-cache gcc musl-dev && \
+    pip install --no-cache-dir tealtiger && \
+    apk del gcc musl-dev && \
+    pip cache purge
+
+RUN adduser -D tealtiger && chown -R tealtiger:tealtiger /app
+USER tealtiger
+
+ENV PYTHONUNBUFFERED=1
+CMD ["python"]

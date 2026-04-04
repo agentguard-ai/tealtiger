@@ -1,0 +1,22 @@
+# TealTiger Python SDK — Jupyter Notebook Image
+FROM python:3.12
+
+LABEL maintainer="TealTiger Team <reachout@tealtiger.ai>"
+LABEL org.opencontainers.image.title="TealTiger Python SDK (Jupyter)"
+LABEL org.opencontainers.image.description="TealTiger Python SDK with Jupyter for interactive experimentation"
+LABEL org.opencontainers.image.version="1.1.1"
+LABEL org.opencontainers.image.licenses="Apache-2.0"
+
+WORKDIR /notebooks
+
+RUN pip install --no-cache-dir \
+    tealtiger \
+    jupyter jupyterlab \
+    ipywidgets pandas matplotlib
+
+EXPOSE 8888
+
+RUN useradd -m tealtiger && chown -R tealtiger:tealtiger /notebooks
+USER tealtiger
+
+CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--NotebookApp.token=''"]
