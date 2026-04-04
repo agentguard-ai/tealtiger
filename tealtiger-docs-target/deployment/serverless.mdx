@@ -1,0 +1,172 @@
+---
+title: Serverless Deployment
+description: Deploy TealTiger SDKs on AWS Lambda, Google Cloud Run, Azure Functions, and other serverless platforms.
+---
+
+# Serverless Deployment
+
+Deploy TealTiger SDKs on serverless platforms for cost-effective, auto-scaling AI agent deployments.
+
+## Supported Platforms
+
+- **AWS Lambda** - Container image support + Lambda layers via Terraform
+- **Google Cloud Run** - Fully managed containers
+- **Azure Functions** - Custom container support
+- **Vercel** - Edge functions
+- **Cloudflare Workers** - Edge compute
+
+---
+
+## AWS Lambda
+
+### Container Image Deployment
+
+```dockerfile
+FROM tealtigeradmin/tealtiger-python:alpine
+
+COPY app.py ${LAMBDA_TASK_ROOT}
+
+CMD ["app.handler"]
+```
+
+```bash
+# Build and push to ECR
+docker build -t tealtiger-lambda .
+aws ecr get-login-password | docker login --username AWS --password-stdin <account>.dkr.ecr.<region>.amazonaws.com
+docker tag tealtiger-lambda:latest <account>.dkr.ecr.<region>.amazonaws.com/tealtiger-lambda:latest
+docker push <account>.dkr.ecr.<region>.amazonaws.com/tealtiger-lambda:latest
+```
+
+### Lambda Layer via Terraform
+
+Use the official Terraform module to deploy TealTiger as a Lambda layer:
+
+```hcl
+module "tealtiger" {
+  source  = "agentguard-ai/tealtiger/aws"
+  version = "1.1.1"
+}
+
+# Or use the lambda-layer submodule directly
+module "tealtiger_lambda" {
+  source = "agentguard-ai/tealtiger/aws//modules/lambda-layer"
+
+  tealtiger_version = "1.1.1"
+  runtime           = "nodejs20.x"
+
+  tags = {
+    Environment = "production"
+  }
+}
+```
+
+The Terraform module also provides submodules for:
+- **lambda-layer** — Deploy TealTiger as an AWS Lambda layer
+- **ecs-service** — Deploy as an ECS Fargate service
+- **container-deployment** — Generic container deployment
+
+### ECS Service via Terraform
+
+```hcl
+module "tealtiger_ecs" {
+  source = "agentguard-ai/tealtiger/aws//modules/ecs-service"
+
+  tealtiger_version  = "1.1.1"
+  guardrails         = ["pii", "prompt-injection", "content-moderation"]
+  subnet_ids         = ["subnet-abc123", "subnet-def456"]
+  execution_role_arn = "arn:aws:iam::123456789012:role/ecsTaskExecutionRole"
+
+  tags = {
+    Environment = "production"
+  }
+}
+```
+
+---
+
+## Google Cloud Run
+
+```bash
+gcloud run deploy tealtiger-app \
+  --image tealtigeradmin/tealtiger-python:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+
+Or with the TypeScript SDK:
+
+```bash
+gcloud run deploy tealtiger-app \
+  --image tealtigeradmin/tealtiger-typescript:latest \
+  --platform managed \
+  --region us-central1 \
+  --allow-unauthenticated
+```
+
+---
+
+## Azure Functions
+
+```dockerfile
+FROM tealtigeradmin/tealtiger-python:latest
+
+COPY . /home/site/wwwroot
+
+CMD ["python", "-m", "azure.functions"]
+```
+
+---
+
+## Cold Start Optimization
+
+- Use the **Alpine** variant (`tealtigeradmin/tealtiger-python:alpine`) for smaller image size and faster cold starts
+- Enable provisioned concurrency on AWS Lambda
+- Use minimum instances on Google Cloud Run
+- Pre-warm functions with scheduled pings
+
+---
+
+## Environment Variable Management
+
+All serverless platforms support environment variables for API keys:
+
+```bash
+# AWS Lambda
+aws lambda update-function-configuration \
+  --function-name tealtiger-app \
+  --environment "Variables={OPENAI_API_KEY=sk-xxx}"
+
+# Google Cloud Run
+gcloud run services update tealtiger-app \
+  --set-env-vars OPENAI_API_KEY=sk-xxx
+
+# Azure Functions
+az functionapp config appsettings set \
+  --name tealtiger-app \
+  --settings OPENAI_API_KEY=sk-xxx
+```
+
+For production, use secret managers (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault) instead of plain environment variables.
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Docker Guide" icon="docker" href="/deployment/docker">
+    Learn about TealTiger Docker images
+  </Card>
+  
+  <Card title="Kubernetes" icon="dharmachakra" href="/deployment/kubernetes">
+    Deploy on Kubernetes with Helm
+  </Card>
+  
+  <Card title="CI/CD" icon="code-branch" href="/deployment/cicd">
+    Integrate into your CI/CD pipeline
+  </Card>
+  
+  <Card title="Terraform" icon="code" href="/deployment/terraform">
+    Deploy with Infrastructure as Code
+  </Card>
+</CardGroup>

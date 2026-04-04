@@ -1,0 +1,179 @@
+---
+title: Serverless Deployment
+description: Deploy TealTiger SDKs on AWS Lambda, Google Cloud Run, Azure Functions, and other serverless platforms with comprehensive guides and best practices.
+---
+
+# Serverless Deployment
+
+Deploy TealTiger SDKs on serverless platforms for cost-effective, auto-scaling AI agent deployments. This guide covers all major serverless platforms with production-ready configurations.
+
+---
+
+## Why Serverless?
+
+**Benefits:**
+- ✅ **Zero infrastructure management** - No servers to patch or maintain
+- ✅ **Auto-scaling** - Scales from zero to thousands of requests
+- ✅ **Pay-per-use** - Only pay for actual execution time
+- ✅ **Fast deployment** - Deploy in minutes, not hours
+- ✅ **High availability** - Built-in redundancy and failover
+
+**Use Cases:**
+- API endpoints and webhooks
+- Chatbot backends
+- Event processing
+- Scheduled jobs
+- Data transformation pipelines
+
+---
+
+## AWS Lambda
+
+Deploy TealTiger on AWS Lambda using container images or Lambda layers.
+
+### Option 1: Container Images (Recommended)
+
+Use official TealTiger Docker images for full control and flexibility.
+
+#### Python SDK
+
+```dockerfile
+# Dockerfile
+FROM ghcr.io/tealtiger/python-sdk:latest
+
+# Copy your application code
+COPY app.py ${LAMBDA_TASK_ROOT}/
+
+# Set the CMD to your handler
+CMD ["app.handler"]
+```
+
+```python
+# app.py
+from tealtiger import TealOpenAI, PolicyMode
+
+def handler(event, context):
+    client = TealOpenAI(
+        api_key=os.environ['OPENAI_API_KEY'],
+        mode=PolicyMode.ENFORCE
+    )
+    
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": event['prompt']}]
+    )
+    
+    return {
+        'statusCode': 200,
+        'body': response.choices[0].message.content
+    }
+```
+
+#### Deploy with AWS CLI
+
+```bash
+# Build and push image
+docker build -t tealtiger-lambda .
+docker tag tealtiger-lambda:latest 123456789012.dkr.ecr.us-east-1.amazonaws.com/tealtiger-lambda:latest
+docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/tealtiger-lambda:latest
+
+# Create Lambda function
+aws lambda create-function \
+  --function-name tealtiger-app \
+  --package-type Image \
+  --code ImageUri=123456789012.dkr.ecr.us-east-1.amazonaws.com/tealtiger-lambda:latest \
+  --role arn:aws:iam::123456789012:role/lambda-execution-role \
+  --timeout 60 \
+  --memory-size 512 \
+  --environment Variables={OPENAI_API_KEY=sk-xxx}
+```
+
+### Option 2: Lambda Layers
+
+Use pre-built Lambda layers for zero-dependency deployments.
+
+#### Get Layer ARN
+
+Visit **[layers.tealtiger.ai](https://layers.tealtiger.ai)** or use the API:
+
+```bash
+# Get layer ARN for Python 3.11 in us-east-1
+curl https://layers.tealtiger.ai/api/layers/python3.11/us-east-1
+
+# Response:
+{
+  "runtime": "python3.11",
+  "region": "us-east-1",
+  "version": "1.1.0",
+  "arn": "arn:aws:lambda:us-east-1:123456789012:layer:tealtiger-python311:1"
+}
+```
+
+#### Deploy with Layer
+
+```python
+# app.py (no dependencies needed!)
+from tealtiger import TealOpenAI
+
+def handler(event, context):
+    client = TealOpenAI(api_key=os.environ['OPENAI_API_KEY'])
+    # Your code here
+```
+
+```bash
+# Create deployment package (just your code)
+zip function.zip app.py
+
+# Create function with layer
+aws lambda create-function \
+  --function-name tealtiger-app \
+  --runtime python3.11 \
+  --handler app.handler \
+  --zip-file fileb://function.zip \
+  --role arn:aws:iam::123456789012:role/lambda-execution-role \
+  --layers arn:aws:lambda:us-east-1:123456789012:layer:tealtiger-python311:1 \
+  --environment Variables={OPENAI_API_KEY=sk-xxx}
+```
+
+### Terraform Configuration
+
+```hcl
+# main.tf
+resource "aws_lambda_function" "tealtiger_app" {
+  function_name = "tealtiger-app"
+  role          = aws_iam_role.lambda_role.arn
+  
+  # Option 1: Container image
+  package_type = "Image"
+  image_uri    = "123456789012.dkr.ecr.us-east-1.amazonaws.com/tealtiger-lambda:latest"
+  
+  # Option 2: Lambda layer
+  # filename      = "function.zip"
+  # runtime       = "python3.11"
+  # handler       = "app.handler"
+  # layers        = [data.aws_lambda_layer_version.tealtiger.arn]
+  
+  timeout     = 60
+  memory_size = 512
+  
+  environment {
+    variables = {
+      OPENAI_API_KEY = var.openai_api_key
+    }
+  }
+}
+
+# Get TealTiger layer ARN
+data "aws_lambda_layer_version" "tealtiger" {
+  layer_name = "tealtiger-python311"
+}
+```
+
+---
+
+## Support
+
+- **Lambda Layers**: [layers.tealtiger.ai](https://layers.tealtiger.ai)
+- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
+- **GitHub Issues**: [Report issues](https://github.com/agentguard-ai/tealtiger/issues)
+- **Email**: [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)

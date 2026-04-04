@@ -1,0 +1,586 @@
+---
+title: Kubernetes Deployment
+description: Deploy TealTiger SDKs on Kubernetes clusters (EKS, GKE, AKS) with Helm charts, manifests, and production-ready configurations.
+---
+
+# Kubernetes Deployment
+
+Deploy TealTiger on Kubernetes for enterprise-scale, high-availability AI agent deployments. This guide covers Helm charts, Kubernetes manifests, auto-scaling, service mesh integration, and multi-cloud Kubernetes platforms.
+
+---
+
+## Why Kubernetes?
+
+**Benefits:**
+- ✅ **Enterprise scale** - Handle thousands of concurrent requests
+- ✅ **High availability** - Multi-zone deployments with automatic failover
+- ✅ **Auto-scaling** - HPA and VPA for dynamic resource allocation
+- ✅ **Service mesh** - Advanced traffic management with Istio/Linkerd
+- ✅ **Multi-cloud** - Deploy on EKS, GKE, AKS, or self-hosted
+
+**Use Cases:**
+- High-traffic production applications
+- Multi-region deployments
+- Microservices architectures
+- Enterprise compliance requirements
+- Complex networking scenarios
+
+---
+
+## Quick Start with Helm
+
+### Install TealTiger Helm Chart
+
+```bash
+# Add TealTiger Helm repository
+helm repo add tealtiger https://agentguard-ai.github.io/helm-charts
+helm repo update
+
+# Install with default values
+helm install tealtiger tealtiger/tealtiger
+
+# Install with custom values file
+helm install tealtiger tealtiger/tealtiger -f values.yaml
+```
+
+### Custom Values File
+
+```yaml
+# values.yaml
+replicaCount: 3
+
+image:
+  repository: tealtigeradmin/tealtiger-docker
+  tag: "1.1.1"
+  pullPolicy: IfNotPresent
+
+# TealTiger configuration
+tealtiger:
+  provider: openai
+  mode: ENFORCE
+  guardrails:
+    - pii_detection
+    - prompt_injection
+    - content_moderation
+  budgetLimit: 1000
+
+# Secrets (use external secrets in production)
+secrets:
+  openaiApiKey: "sk-xxx"
+  # Or reference existing secret
+  existingSecret: "tealtiger-secrets"
+
+# Resources
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Auto-scaling
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Service
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8080
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: tealtiger.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: tealtiger-tls
+      hosts:
+        - tealtiger.example.com
+
+# Health checks
+healthChecks:
+  liveness:
+    enabled: true
+    path: /health/live
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readiness:
+    enabled: true
+    path: /health/ready
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  startup:
+    enabled: true
+    path: /health/startup
+    failureThreshold: 30
+
+# Service mesh (Istio)
+serviceMesh:
+  enabled: true
+  type: istio
+  mtls: true
+```
+
+---
+
+## Kubernetes Manifests
+
+### Complete Deployment Example
+
+```yaml
+# deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tealtiger-app
+  namespace: production
+  labels:
+    app: tealtiger
+    version: v1.1.1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tealtiger
+  template:
+    metadata:
+      labels:
+        app: tealtiger
+        version: v1.1.1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: tealtiger-sa
+      containers:
+      - name: tealtiger
+        image: tealtigeradmin/tealtiger-docker:1.1.1
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        env:
+        - name: TEALTIGER_PROVIDER
+          value: "openai"
+        - name: TEALTIGER_MODE
+          value: "ENFORCE"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tealtiger-secrets
+              key: openai-api-key
+        - name: TEALTIGER_BUDGET_LIMIT
+          valueFrom:
+            configMapKeyRef:
+              name: tealtiger-config
+              key: budget-limit
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /health/startup
+            port: 8080
+          initialDelaySeconds: 0
+          periodSeconds: 10
+          timeoutSeconds: 1
+          failureThreshold: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+```
+
+### Service Configuration
+
+```yaml
+# service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: tealtiger-service
+  namespace: production
+  labels:
+    app: tealtiger
+spec:
+  type: ClusterIP
+  selector:
+    app: tealtiger
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 8080
+  sessionAffinity: ClientIP
+```
+
+### ConfigMap for Policies
+
+```yaml
+# configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tealtiger-config
+  namespace: production
+data:
+  budget-limit: "1000"
+  policy.yaml: |
+    version: "1.0"
+    guardrails:
+      - type: pii_detection
+        enabled: true
+        action: BLOCK
+      - type: prompt_injection
+        enabled: true
+        action: BLOCK
+      - type: content_moderation
+        enabled: true
+        action: WARN
+    cost_control:
+      budget_limit: 1000
+      budget_window: daily
+```
+
+### Secret Management
+
+```yaml
+# secret.yaml (for development only - use external secrets in production)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tealtiger-secrets
+  namespace: production
+type: Opaque
+stringData:
+  openai-api-key: "sk-xxx"
+  anthropic-api-key: "sk-ant-xxx"
+```
+
+---
+
+## Auto-Scaling
+
+### Horizontal Pod Autoscaler (HPA)
+
+```yaml
+# hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tealtiger-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tealtiger-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+      selectPolicy: Max
+```
+
+### Vertical Pod Autoscaler (VPA)
+
+```yaml
+# vpa.yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: tealtiger-vpa
+  namespace: production
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tealtiger-app
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: tealtiger
+      minAllowed:
+        cpu: 100m
+        memory: 128Mi
+      maxAllowed:
+        cpu: 1000m
+        memory: 1Gi
+```
+
+---
+
+## Service Mesh Integration
+
+### Istio Configuration
+
+```yaml
+# istio-virtualservice.yaml
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: tealtiger-vs
+  namespace: production
+spec:
+  hosts:
+  - tealtiger.example.com
+  gateways:
+  - tealtiger-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /api
+    route:
+    - destination:
+        host: tealtiger-service
+        port:
+          number: 80
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+    timeout: 10s
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: tealtiger-dr
+  namespace: production
+spec:
+  host: tealtiger-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+    loadBalancer:
+      simple: LEAST_REQUEST
+    outlierDetection:
+      consecutiveErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+```
+
+---
+
+## Multi-Cloud Kubernetes
+
+### Amazon EKS
+
+```bash
+# Create EKS cluster with eksctl
+eksctl create cluster \
+  --name tealtiger-cluster \
+  --region us-east-1 \
+  --nodegroup-name standard-workers \
+  --node-type t3.medium \
+  --nodes 3 \
+  --nodes-min 2 \
+  --nodes-max 10 \
+  --managed
+
+# Deploy TealTiger
+kubectl apply -f k8s/
+helm install tealtiger tealtiger/tealtiger -f values-eks.yaml
+```
+
+### Google GKE
+
+```bash
+# Create GKE cluster
+gcloud container clusters create tealtiger-cluster \
+  --region us-central1 \
+  --num-nodes 3 \
+  --machine-type n1-standard-2 \
+  --enable-autoscaling \
+  --min-nodes 2 \
+  --max-nodes 10
+
+# Deploy TealTiger
+kubectl apply -f k8s/
+helm install tealtiger tealtiger/tealtiger -f values-gke.yaml
+```
+
+### Azure AKS
+
+```bash
+# Create AKS cluster
+az aks create \
+  --resource-group tealtiger-rg \
+  --name tealtiger-cluster \
+  --node-count 3 \
+  --node-vm-size Standard_D2s_v3 \
+  --enable-cluster-autoscaler \
+  --min-count 2 \
+  --max-count 10
+
+# Deploy TealTiger
+kubectl apply -f k8s/
+helm install tealtiger tealtiger/tealtiger -f values-aks.yaml
+```
+
+---
+
+## Terraform Deployment
+
+```hcl
+# main.tf
+module "tealtiger_k8s" {
+  source = "agentguard-ai/tealtiger/aws"
+  version = "1.1.1"
+  
+  namespace = "production"
+  replicas = 3
+  
+  image = {
+    repository = "tealtigeradmin/tealtiger-docker"
+    tag = "1.1.1"
+  }
+  
+  tealtiger_config = {
+    provider = "openai"
+    mode = "ENFORCE"
+    guardrails = ["pii_detection", "prompt_injection"]
+    budget_limit = 1000
+  }
+  
+  secrets = {
+    openai_api_key = var.openai_api_key
+  }
+  
+  resources = {
+    requests = {
+      cpu = "100m"
+      memory = "256Mi"
+    }
+    limits = {
+      cpu = "500m"
+      memory = "512Mi"
+    }
+  }
+  
+  autoscaling = {
+    enabled = true
+    min_replicas = 2
+    max_replicas = 10
+    target_cpu = 70
+  }
+  
+  ingress = {
+    enabled = true
+    host = "tealtiger.example.com"
+    tls_enabled = true
+  }
+}
+```
+
+---
+
+## Monitoring & Observability
+
+### Prometheus ServiceMonitor
+
+```yaml
+# servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tealtiger-metrics
+  namespace: production
+spec:
+  selector:
+    matchLabels:
+      app: tealtiger
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+```
+
+### Grafana Dashboard
+
+Pre-built Grafana dashboards available at [docs.tealtiger.ai/deployment/monitoring](https://docs.tealtiger.ai/deployment/monitoring)
+
+---
+
+## Security Best Practices
+
+1. **Use External Secrets Operator** for secret management
+2. **Enable Pod Security Policies** or Pod Security Standards
+3. **Configure Network Policies** for traffic isolation
+4. **Use Service Accounts** with RBAC
+5. **Enable mTLS** with service mesh
+6. **Scan images** for vulnerabilities
+7. **Use private registries** for production
+
+---
+
+## Support
+
+- **Helm Charts**: [agentguard-ai.github.io/helm-charts](https://agentguard-ai.github.io/helm-charts)
+- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
+- **GitHub Issues**: [Report issues](https://github.com/agentguard-ai/tealtiger/issues)
+- **Email**: [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)

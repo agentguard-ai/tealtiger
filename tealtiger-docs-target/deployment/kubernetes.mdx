@@ -1,0 +1,208 @@
+---
+title: Kubernetes Deployment
+description: Deploy TealTiger SDKs on Kubernetes with Helm charts, manifests, and best practices.
+---
+
+# Kubernetes Deployment
+
+Deploy TealTiger SDKs on Kubernetes for scalable, production-ready AI agent deployments.
+
+---
+
+## Quick Start with Helm
+
+The fastest way to deploy TealTiger on Kubernetes is with the official Helm chart.
+
+### Add the Helm Repository
+
+```bash
+helm repo add tealtiger https://agentguard-ai.github.io/helm-charts
+helm repo update
+```
+
+### Install TealTiger
+
+```bash
+# Install with default values (standalone mode)
+helm install tealtiger tealtiger/tealtiger
+
+# Install with custom values
+helm install tealtiger tealtiger/tealtiger -f values.yaml
+```
+
+### Default values.yaml
+
+```yaml
+mode: standalone  # standalone or sidecar
+
+image:
+  repository: tealtigeradmin/tealtiger-docker
+  tag: "1.1.1"
+  pullPolicy: IfNotPresent
+
+guardrails:
+  pii: true
+  promptInjection: true
+  contentModeration: true
+
+sensitivity: medium
+
+policyConfig: {}
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi
+    cpu: 500m
+
+probes:
+  liveness:
+    path: /healthz
+    port: 8080
+    initialDelaySeconds: 10
+  readiness:
+    path: /readyz
+    port: 8080
+    initialDelaySeconds: 5
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+replicaCount: 1
+nodeSelector: {}
+tolerations: []
+affinity: {}
+```
+
+### Deployment Modes
+
+The Helm chart supports two modes:
+
+- **standalone** — Deploys TealTiger as an independent service that your application calls over HTTP
+- **sidecar** — Deploys TealTiger as a sidecar container alongside your application pod
+
+```bash
+# Standalone mode (default)
+helm install tealtiger tealtiger/tealtiger --set mode=standalone
+
+# Sidecar mode
+helm install tealtiger tealtiger/tealtiger --set mode=sidecar
+```
+
+---
+
+## Kubernetes Manifests
+
+If you prefer raw manifests over Helm:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tealtiger-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tealtiger
+  template:
+    metadata:
+      labels:
+        app: tealtiger
+    spec:
+      containers:
+      - name: app
+        image: tealtigeradmin/tealtiger-docker:1.1.1
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tealtiger-secrets
+              key: openai-api-key
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+          initialDelaySeconds: 5
+```
+
+---
+
+## Horizontal Pod Autoscaling (HPA)
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tealtiger-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tealtiger-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+```
+
+---
+
+## Multi-Cloud Kubernetes
+
+### Amazon EKS
+
+```bash
+eksctl create cluster --name tealtiger-cluster --region us-east-1 --nodes 3
+helm install tealtiger tealtiger/tealtiger -f values-eks.yaml
+```
+
+### Google GKE
+
+```bash
+gcloud container clusters create tealtiger-cluster --region us-central1 --num-nodes 3
+helm install tealtiger tealtiger/tealtiger -f values-gke.yaml
+```
+
+### Azure AKS
+
+```bash
+az aks create --resource-group tealtiger-rg --name tealtiger-cluster --node-count 3
+helm install tealtiger tealtiger/tealtiger -f values-aks.yaml
+```
+
+---
+
+## Next Steps
+
+For a comprehensive Kubernetes guide including service mesh integration, Terraform deployment, monitoring, and security best practices, see the [Kubernetes Comprehensive Guide](/deployment/kubernetes-comprehensive).
+
+For container basics, see the [Docker guide](/deployment/docker).

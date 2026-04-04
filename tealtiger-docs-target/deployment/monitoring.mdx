@@ -1,0 +1,616 @@
+---
+title: Monitoring & Observability
+description: Monitor TealTiger deployments with comprehensive metrics, logs, traces, and dashboards across all major observability platforms.
+---
+
+# Monitoring & Observability
+
+Monitor TealTiger deployments with built-in observability tools. This guide covers metrics collection, logging, distributed tracing, and dashboard creation across all major platforms.
+
+---
+
+## Why Monitoring Matters
+
+**Benefits:**
+- ✅ **Real-time visibility** - Track AI security decisions in real-time
+- ✅ **Performance insights** - Monitor latency, throughput, and errors
+- ✅ **Cost tracking** - Track LLM API costs per request
+- ✅ **Security alerts** - Get notified of guardrail violations
+- ✅ **Compliance** - Audit trails for regulatory requirements
+
+**Key Metrics:**
+- Request rate and throughput
+- Response latency (P50, P95, P99)
+- Error rate and types
+- Guardrail violations
+- Policy decisions
+- LLM API costs
+- Token usage
+
+---
+
+## Quick Start
+
+### Enable Monitoring
+
+```typescript
+import { TealOpenAI, TealMonitor } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  monitoring: {
+    enabled: true,
+    provider: 'prometheus', // or 'cloudwatch', 'datadog', etc.
+    namespace: 'tealtiger',
+    dimensions: {
+      environment: 'production',
+      service: 'chatbot'
+    }
+  }
+});
+
+// Access monitoring instance
+const monitor = client.getMonitor();
+
+// Emit custom metrics
+monitor.recordMetric('custom_metric', 42, {
+  unit: 'Count',
+  dimensions: { feature: 'chat' }
+});
+```
+
+---
+
+## Prometheus Integration
+
+### Enable Prometheus Metrics
+
+```typescript
+import { TealOpenAI, PrometheusExporter } from 'tealtiger';
+import express from 'express';
+
+const app = express();
+
+// Initialize TealTiger with Prometheus
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  monitoring: {
+    enabled: true,
+    provider: 'prometheus',
+    port: 9090
+  }
+});
+
+// Expose metrics endpoint
+app.get('/metrics', async (req, res) => {
+  const exporter = new PrometheusExporter(client);
+  res.set('Content-Type', exporter.contentType);
+  res.send(await exporter.metrics());
+});
+
+app.listen(8080);
+```
+
+### Prometheus Configuration
+
+```yaml
+# prometheus.yml
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'tealtiger'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: '/metrics'
+```
+
+### Available Metrics
+
+```
+# Request metrics
+tealtiger_requests_total{provider="openai",model="gpt-4",status="success"}
+tealtiger_request_duration_seconds{provider="openai",model="gpt-4",quantile="0.95"}
+tealtiger_request_errors_total{provider="openai",error_type="rate_limit"}
+
+# Guardrail metrics
+tealtiger_guardrail_violations_total{guardrail="pii_detection",severity="high"}
+tealtiger_guardrail_checks_total{guardrail="prompt_injection",result="pass"}
+
+# Policy metrics
+tealtiger_policy_decisions_total{decision="allow",mode="enforce"}
+tealtiger_policy_evaluation_duration_seconds{policy="default"}
+
+# Cost metrics
+tealtiger_cost_total_usd{provider="openai",model="gpt-4"}
+tealtiger_tokens_total{provider="openai",model="gpt-4",type="prompt"}
+
+# Circuit breaker metrics
+tealtiger_circuit_breaker_state{provider="openai",state="open"}
+tealtiger_circuit_breaker_failures_total{provider="openai"}
+```
+
+---
+
+## Grafana Dashboards
+
+### Pre-Built Dashboards
+
+TealTiger provides pre-built Grafana dashboards:
+
+```bash
+# Download dashboard JSON
+curl -O https://docs.tealtiger.ai/dashboards/tealtiger-overview.json
+
+# Import to Grafana
+# 1. Go to Grafana UI
+# 2. Click "+" → "Import"
+# 3. Upload tealtiger-overview.json
+```
+
+### Dashboard Panels
+
+**Overview Dashboard:**
+- Request rate (requests/sec)
+- Error rate (%)
+- P95 latency (ms)
+- Cost per hour ($)
+- Guardrail violations
+- Policy decisions
+
+**Security Dashboard:**
+- PII detection events
+- Prompt injection attempts
+- Content moderation flags
+- Risk score distribution
+- Top violating users
+
+**Cost Dashboard:**
+- Cost by provider
+- Cost by model
+- Cost by environment
+- Token usage trends
+- Budget utilization
+
+### Custom Dashboard Example
+
+```json
+{
+  "dashboard": {
+    "title": "TealTiger Monitoring",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "targets": [
+          {
+            "expr": "rate(tealtiger_requests_total[5m])",
+            "legendFormat": "{{provider}} - {{model}}"
+          }
+        ]
+      },
+      {
+        "title": "P95 Latency",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(tealtiger_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "{{provider}}"
+          }
+        ]
+      },
+      {
+        "title": "Guardrail Violations",
+        "targets": [
+          {
+            "expr": "increase(tealtiger_guardrail_violations_total[1h])",
+            "legendFormat": "{{guardrail}}"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+---
+
+## AWS CloudWatch
+
+### Enable CloudWatch Monitoring
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  monitoring: {
+    enabled: true,
+    provider: 'cloudwatch',
+    namespace: 'TealTiger',
+    region: 'us-east-1'
+  }
+});
+```
+
+### CloudWatch Metrics
+
+```bash
+# View metrics
+aws cloudwatch get-metric-statistics \
+  --namespace TealTiger \
+  --metric-name RequestCount \
+  --dimensions Name=Provider,Value=openai \
+  --start-time 2024-01-01T00:00:00Z \
+  --end-time 2024-01-01T23:59:59Z \
+  --period 3600 \
+  --statistics Sum
+```
+
+### CloudWatch Alarms
+
+```yaml
+# cloudwatch-alarms.yaml
+Resources:
+  HighErrorRateAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: TealTiger-HighErrorRate
+      AlarmDescription: Alert when error rate exceeds 5%
+      MetricName: ErrorRate
+      Namespace: TealTiger
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SNSTopic
+
+  HighCostAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: TealTiger-HighCost
+      AlarmDescription: Alert when hourly cost exceeds $10
+      MetricName: CostPerHour
+      Namespace: TealTiger
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref SNSTopic
+```
+
+---
+
+## Azure Application Insights
+
+### Enable Application Insights
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  monitoring: {
+    enabled: true,
+    provider: 'app-insights',
+    connectionString: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING
+  }
+});
+```
+
+### Custom Events
+
+```typescript
+import { TealMonitor } from 'tealtiger';
+
+const monitor = new TealMonitor({
+  provider: 'app-insights',
+  connectionString: process.env.APPLICATIONINSIGHTS_CONNECTION_STRING
+});
+
+// Track custom event
+monitor.trackEvent('GuardrailViolation', {
+  guardrail: 'pii_detection',
+  severity: 'high',
+  user: 'user123'
+});
+
+// Track metric
+monitor.trackMetric('TokenUsage', 1500, {
+  provider: 'openai',
+  model: 'gpt-4'
+});
+```
+
+---
+
+## Google Cloud Monitoring
+
+### Enable Cloud Monitoring
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  monitoring: {
+    enabled: true,
+    provider: 'cloud-monitoring',
+    projectId: process.env.GCP_PROJECT_ID
+  }
+});
+```
+
+### Custom Metrics
+
+```typescript
+import { Monitoring } from '@google-cloud/monitoring';
+
+const monitoring = new Monitoring.MetricServiceClient();
+
+// Write custom metric
+await monitoring.createTimeSeries({
+  name: monitoring.projectPath(projectId),
+  timeSeries: [{
+    metric: {
+      type: 'custom.googleapis.com/tealtiger/requests',
+      labels: {
+        provider: 'openai',
+        model: 'gpt-4'
+      }
+    },
+    points: [{
+      interval: {
+        endTime: { seconds: Date.now() / 1000 }
+      },
+      value: { int64Value: 1 }
+    }]
+  }]
+});
+```
+
+---
+
+## Distributed Tracing
+
+### OpenTelemetry Integration
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
+
+// Initialize OpenTelemetry
+const provider = new NodeTracerProvider();
+provider.register();
+
+registerInstrumentations({
+  instrumentations: [
+    // TealTiger auto-instrumentation
+  ],
+});
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  tracing: {
+    enabled: true,
+    provider: 'opentelemetry',
+    serviceName: 'tealtiger-app'
+  }
+});
+```
+
+### AWS X-Ray
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+import AWSXRay from 'aws-xray-sdk-core';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  tracing: {
+    enabled: true,
+    provider: 'xray'
+  }
+});
+
+// Traces will automatically include:
+// - Policy evaluation spans
+// - Guardrail check spans
+// - Provider API call spans
+// - Correlation IDs
+```
+
+### Jaeger
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  tracing: {
+    enabled: true,
+    provider: 'jaeger',
+    endpoint: 'http://localhost:14268/api/traces'
+  }
+});
+```
+
+---
+
+## Logging
+
+### Structured Logging
+
+```typescript
+import { TealOpenAI, Logger } from 'tealtiger';
+
+const logger = new Logger({
+  level: 'info',
+  format: 'json',
+  destination: 'stdout'
+});
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  logging: {
+    enabled: true,
+    logger: logger,
+    includeRequestBody: false, // Security: don't log sensitive data
+    includeResponseBody: false
+  }
+});
+```
+
+### Log Levels
+
+```typescript
+// Configure log levels
+logger.setLevel('debug'); // debug, info, warn, error
+
+// Log examples
+logger.debug('Policy evaluation started', { policyId: 'default' });
+logger.info('Request processed', { duration: 123, cost: 0.002 });
+logger.warn('Guardrail violation', { guardrail: 'pii_detection' });
+logger.error('Provider API error', { error: 'rate_limit' });
+```
+
+---
+
+## Datadog Integration
+
+### Enable Datadog
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  monitoring: {
+    enabled: true,
+    provider: 'datadog',
+    apiKey: process.env.DATADOG_API_KEY,
+    site: 'datadoghq.com'
+  }
+});
+```
+
+### Custom Metrics
+
+```typescript
+import { StatsD } from 'hot-shots';
+
+const dogstatsd = new StatsD({
+  host: 'localhost',
+  port: 8125,
+  prefix: 'tealtiger.'
+});
+
+// Increment counter
+dogstatsd.increment('requests', 1, ['provider:openai', 'model:gpt-4']);
+
+// Record timing
+dogstatsd.timing('request.duration', 123, ['provider:openai']);
+
+// Record gauge
+dogstatsd.gauge('cost.hourly', 5.42, ['environment:production']);
+```
+
+---
+
+## Alerting
+
+### Alert Rules
+
+```yaml
+# alert-rules.yaml
+groups:
+  - name: tealtiger_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: rate(tealtiger_request_errors_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}%"
+
+      - alert: GuardrailViolationSpike
+        expr: increase(tealtiger_guardrail_violations_total[1h]) > 100
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Spike in guardrail violations"
+          description: "{{ $value }} violations in the last hour"
+
+      - alert: HighCost
+        expr: increase(tealtiger_cost_total_usd[1h]) > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High LLM API cost"
+          description: "Cost is ${{ $value }} in the last hour"
+```
+
+### Notification Channels
+
+```typescript
+import { TealMonitor, AlertManager } from 'tealtiger';
+
+const alertManager = new AlertManager({
+  channels: [
+    {
+      type: 'email',
+      recipients: ['team@example.com']
+    },
+    {
+      type: 'slack',
+      webhookUrl: process.env.SLACK_WEBHOOK_URL
+    },
+    {
+      type: 'pagerduty',
+      integrationKey: process.env.PAGERDUTY_KEY
+    }
+  ]
+});
+
+// Send alert
+alertManager.sendAlert({
+  severity: 'critical',
+  title: 'High Error Rate',
+  message: 'Error rate exceeded 5% threshold',
+  metadata: {
+    errorRate: 0.08,
+    provider: 'openai'
+  }
+});
+```
+
+---
+
+## Best Practices
+
+1. **Use structured logging** for better searchability
+2. **Set up alerts** for critical metrics
+3. **Monitor costs** to avoid budget overruns
+4. **Track guardrail violations** for security insights
+5. **Use distributed tracing** for debugging
+6. **Create dashboards** for different audiences
+7. **Retain logs** for compliance requirements
+8. **Redact sensitive data** from logs
+
+---
+
+## Support
+
+- **Dashboards**: [docs.tealtiger.ai/dashboards](https://docs.tealtiger.ai/dashboards)
+- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
+- **GitHub Issues**: [Report issues](https://github.com/agentguard-ai/tealtiger/issues)
+- **Email**: [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)

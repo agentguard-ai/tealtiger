@@ -1,0 +1,514 @@
+---
+title: Deployment Overview
+description: Comprehensive guide to deploying TealTiger SDKs across all major cloud platforms and deployment patterns.
+---
+
+# Deployment Overview
+
+TealTiger provides flexible deployment options for every use case, from serverless functions to enterprise Kubernetes clusters. Choose the deployment pattern that fits your architecture.
+
+## Deployment Philosophy
+
+TealTiger follows a **zero-infrastructure** philosophy:
+- ✅ No servers to manage
+- ✅ No databases to maintain
+- ✅ No complex setup required
+- ✅ Drop-in SDK integration
+
+However, we provide comprehensive deployment tooling for teams that need:
+- Container orchestration
+- Multi-region deployments
+- Enterprise-grade monitoring
+- Cost optimization
+- Compliance and audit trails
+
+---
+
+## Quick Decision Guide
+
+<CardGroup cols={2}>
+  <Card title="Serverless" icon="bolt" href="/deployment/serverless">
+    **Best for**: Event-driven workloads, variable traffic, cost optimization
+    
+    **Platforms**: AWS Lambda, Google Cloud Run, Azure Functions
+    
+    **Effort**: ⭐ Low (minutes)
+  </Card>
+  
+  <Card title="Containers" icon="docker" href="/deployment/docker">
+    **Best for**: Consistent environments, CI/CD, local development
+    
+    **Platforms**: Docker, Podman, any container runtime
+    
+    **Effort**: ⭐ Low (minutes)
+  </Card>
+  
+  <Card title="Kubernetes" icon="dharmachakra" href="/deployment/kubernetes">
+    **Best for**: Enterprise scale, multi-region, high availability
+    
+    **Platforms**: EKS, GKE, AKS, self-hosted
+    
+    **Effort**: ⭐⭐ Medium (hours)
+  </Card>
+  
+  <Card title="Platform-as-a-Service" icon="cloud" href="/deployment/paas">
+    **Best for**: Rapid deployment, managed infrastructure
+    
+    **Platforms**: Heroku, Render, Railway, Fly.io
+    
+    **Effort**: ⭐ Low (minutes)
+  </Card>
+</CardGroup>
+
+---
+
+## Deployment Patterns
+
+### 1. Serverless Functions
+
+Deploy TealTiger as serverless functions for event-driven architectures.
+
+**Supported Platforms:**
+- AWS Lambda (Container images + Lambda layers)
+- Google Cloud Run (Fully managed containers)
+- Azure Functions (Custom containers)
+- Vercel Edge Functions
+- Cloudflare Workers
+
+**Use Cases:**
+- API endpoints
+- Webhook handlers
+- Scheduled jobs
+- Event processing
+- Chatbot backends
+
+**Pros:**
+- Zero infrastructure management
+- Auto-scaling
+- Pay-per-use pricing
+- Fast cold starts (<2s)
+
+**Cons:**
+- Execution time limits
+- Memory constraints
+- Cold start latency
+
+[Learn more →](/deployment/serverless)
+
+---
+
+### 2. Container Orchestration
+
+Deploy TealTiger on Kubernetes for enterprise-grade deployments.
+
+**Supported Platforms:**
+- Amazon EKS
+- Google GKE
+- Azure AKS
+- Self-hosted Kubernetes
+- OpenShift
+
+**Use Cases:**
+- High-traffic applications
+- Multi-region deployments
+- Microservices architectures
+- Enterprise compliance
+
+**Pros:**
+- Full control
+- High availability
+- Advanced networking
+- Resource optimization
+
+**Cons:**
+- Complex setup
+- Operational overhead
+- Higher costs
+
+[Learn more →](/deployment/kubernetes)
+
+---
+
+### 3. Platform-as-a-Service
+
+Deploy TealTiger on managed PaaS platforms for rapid deployment.
+
+**Supported Platforms:**
+- Heroku
+- Render
+- Railway
+- Fly.io
+- Google App Engine
+- Azure App Service
+
+**Use Cases:**
+- Rapid prototyping
+- Startups
+- Small teams
+- MVP development
+
+**Pros:**
+- Simple deployment
+- Managed infrastructure
+- Built-in CI/CD
+- Quick scaling
+
+**Cons:**
+- Less control
+- Vendor lock-in
+- Higher per-unit costs
+
+[Learn more →](/deployment/paas)
+
+---
+
+### 4. Edge Computing
+
+Deploy TealTiger at the edge for low-latency global deployments.
+
+**Supported Platforms:**
+- Cloudflare Workers
+- Vercel Edge Functions
+- AWS Lambda@Edge
+- Fastly Compute@Edge
+
+**Use Cases:**
+- Global APIs
+- Content personalization
+- A/B testing
+- Bot detection
+
+**Pros:**
+- Ultra-low latency
+- Global distribution
+- DDoS protection
+- Cost-effective
+
+**Cons:**
+- Limited runtime
+- Restricted APIs
+- Smaller memory limits
+
+[Learn more →](/deployment/edge)
+
+---
+
+## Deployment Tools
+
+### Infrastructure as Code
+
+TealTiger provides official IaC modules for all major platforms:
+
+<CardGroup cols={3}>
+  <Card title="Terraform" icon="terraform" href="/deployment/terraform">
+    Official Terraform modules for AWS, GCP, Azure
+  </Card>
+  
+  <Card title="Pulumi" icon="code" href="/deployment/pulumi">
+    TypeScript, Python, Go SDKs for infrastructure
+  </Card>
+  
+  <Card title="Helm Charts" icon="dharmachakra" href="/deployment/helm">
+    Kubernetes deployment via Helm
+  </Card>
+</CardGroup>
+
+### CI/CD Integration
+
+Integrate TealTiger into your deployment pipeline:
+
+<CardGroup cols={3}>
+  <Card title="GitHub Actions" icon="github" href="/deployment/github-actions">
+    Official GitHub Actions for testing and deployment
+  </Card>
+  
+  <Card title="GitLab CI" icon="gitlab" href="/deployment/gitlab-ci">
+    GitLab CI/CD templates and examples
+  </Card>
+  
+  <Card title="CircleCI" icon="circle" href="/deployment/circleci">
+    CircleCI orbs for TealTiger
+  </Card>
+</CardGroup>
+
+---
+
+## Multi-Cloud Strategy
+
+Deploy TealTiger across multiple cloud providers for redundancy and cost optimization.
+
+### Supported Cloud Providers
+
+| Provider | Serverless | Containers | Kubernetes | PaaS |
+|----------|-----------|-----------|-----------|------|
+| **AWS** | Lambda | ECS/Fargate | EKS | Elastic Beanstalk |
+| **Google Cloud** | Cloud Run | Cloud Run | GKE | App Engine |
+| **Azure** | Functions | Container Instances | AKS | App Service |
+| **Cloudflare** | Workers | - | - | Pages |
+| **Vercel** | Edge Functions | - | - | - |
+
+### Multi-Region Deployment
+
+Deploy TealTiger to multiple regions for:
+- **Low latency**: Serve users from nearby regions
+- **High availability**: Failover between regions
+- **Compliance**: Data residency requirements
+- **Cost optimization**: Use cheaper regions
+
+[Learn more →](/deployment/multi-region)
+
+---
+
+## Lambda Layers
+
+Pre-built Lambda layers for zero-dependency deployments.
+
+### Available Layers
+
+TealTiger provides Lambda layers for all AWS regions:
+
+**Python Runtimes:**
+- Python 3.9, 3.10, 3.11, 3.12, 3.13
+
+**Node.js Runtimes:**
+- Node.js 18.x, 20.x, 22.x
+
+**Regions:**
+- All 33 AWS commercial regions
+- GovCloud regions (coming soon)
+
+### Layer Registry
+
+Browse and download layers at: **[layers.tealtiger.ai](https://layers.tealtiger.ai)**
+
+```bash
+# Get layer ARN for Python 3.11 in us-east-1
+curl https://layers.tealtiger.ai/api/layers/python3.11/us-east-1
+
+# Response:
+{
+  "runtime": "python3.11",
+  "region": "us-east-1",
+  "version": "1.1.1",
+  "arn": "arn:aws:lambda:us-east-1:123456789012:layer:tealtiger-python311:1"
+}
+```
+
+[Learn more →](/deployment/lambda-layers)
+
+---
+
+## Monitoring & Observability
+
+Monitor TealTiger deployments with built-in observability tools.
+
+### Supported Platforms
+
+<CardGroup cols={2}>
+  <Card title="Prometheus" icon="chart-line">
+    Metrics collection and alerting
+  </Card>
+  
+  <Card title="Grafana" icon="chart-bar">
+    Pre-built dashboards for visualization
+  </Card>
+  
+  <Card title="OpenTelemetry" icon="radar">
+    Distributed tracing and spans
+  </Card>
+  
+  <Card title="CloudWatch" icon="aws">
+    AWS native monitoring
+  </Card>
+</CardGroup>
+
+### Key Metrics
+
+- **Request rate**: Requests per second
+- **Latency**: P50, P95, P99 response times
+- **Error rate**: Failed requests percentage
+- **Cost**: Per-request cost tracking
+- **Token usage**: LLM token consumption
+
+[Learn more →](/deployment/monitoring)
+
+---
+
+## Cost Optimization
+
+Optimize TealTiger deployment costs across all platforms.
+
+### Cost Tracking
+
+TealTiger provides built-in cost tracking:
+
+```typescript
+import { TealMonitor } from 'tealtiger';
+
+const monitor = new TealMonitor({
+  costTracking: {
+    enabled: true,
+    budget: {
+      monthly: 1000, // $1000/month
+      alerts: ['email@example.com']
+    }
+  }
+});
+
+// Track costs per request
+const cost = await monitor.getCost({
+  provider: 'openai',
+  model: 'gpt-4',
+  tokens: 1500
+});
+
+console.log(`Request cost: $${cost.toFixed(4)}`);
+```
+
+### Cost Optimization Strategies
+
+1. **Provider Selection**: Route to cheapest provider
+2. **Model Selection**: Use smaller models when possible
+3. **Caching**: Cache responses to reduce API calls
+4. **Batching**: Batch requests for better pricing
+5. **Region Selection**: Use cheaper regions
+
+[Learn more →](/deployment/cost-optimization)
+
+---
+
+## Security & Compliance
+
+Deploy TealTiger with enterprise-grade security.
+
+### Security Features
+
+- **Secrets Management**: AWS Secrets Manager, Azure Key Vault, GCP Secret Manager
+- **Network Isolation**: VPC, private subnets, security groups
+- **Encryption**: At-rest and in-transit encryption
+- **Audit Logging**: Comprehensive audit trails
+- **Access Control**: IAM roles and policies
+
+### Compliance
+
+TealTiger supports compliance requirements:
+
+- **SOC 2**: Audit logging and access controls
+- **HIPAA**: PHI redaction and encryption
+- **GDPR**: Data residency and deletion
+- **PCI DSS**: Secure credential handling
+
+[Learn more →](/deployment/security)
+
+---
+
+## Performance Optimization
+
+Optimize TealTiger performance for your workload.
+
+### Performance Tuning
+
+1. **Cold Start Optimization**
+   - Use provisioned concurrency (Lambda)
+   - Keep containers warm (Cloud Run)
+   - Use smaller images (Alpine variants)
+
+2. **Memory Optimization**
+   - Right-size memory allocation
+   - Use memory profiling
+   - Enable garbage collection tuning
+
+3. **Network Optimization**
+   - Use regional endpoints
+   - Enable HTTP/2
+   - Implement connection pooling
+
+4. **Caching**
+   - Response caching
+   - Model caching
+   - Configuration caching
+
+[Learn more →](/deployment/performance)
+
+---
+
+## Migration Guides
+
+Migrate existing deployments to TealTiger.
+
+<CardGroup cols={2}>
+  <Card title="From LangChain" icon="link" href="/guides/migration/langchain">
+    Migrate LangChain applications to TealTiger
+  </Card>
+  
+  <Card title="From LlamaIndex" icon="llama" href="/guides/migration/llamaindex">
+    Migrate LlamaIndex applications to TealTiger
+  </Card>
+  
+  <Card title="From OpenAI SDK" icon="openai" href="/guides/migration/openai">
+    Migrate direct OpenAI SDK usage to TealTiger
+  </Card>
+  
+  <Card title="From Anthropic SDK" icon="anthropic" href="/guides/migration/anthropic">
+    Migrate Anthropic SDK usage to TealTiger
+  </Card>
+</CardGroup>
+
+---
+
+## Best Practices
+
+### Development
+
+- Use dev containers for consistent environments
+- Implement comprehensive testing
+- Use CI/CD for automated deployments
+- Version control infrastructure code
+
+### Staging
+
+- Mirror production environment
+- Test with production-like data
+- Validate performance and costs
+- Run security scans
+
+### Production
+
+- Use multiple availability zones
+- Implement health checks
+- Set up monitoring and alerting
+- Plan for disaster recovery
+- Document runbooks
+
+---
+
+## Support
+
+Need help with deployment?
+
+- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
+- **GitHub Issues**: [Report deployment issues](https://github.com/agentguard-ai/tealtiger/issues)
+- **Email**: [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)
+- **Community**: [Join our Discord](https://discord.gg/tealtiger)
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get started with TealTiger in 10 minutes
+  </Card>
+  
+  <Card title="Choose Deployment" icon="server" href="/deployment/serverless">
+    Select your deployment platform
+  </Card>
+  
+  <Card title="Infrastructure as Code" icon="code" href="/deployment/terraform">
+    Deploy with Terraform or Pulumi
+  </Card>
+  
+  <Card title="Monitoring" icon="chart-line" href="/deployment/monitoring">
+    Set up monitoring and observability
+  </Card>
+</CardGroup>

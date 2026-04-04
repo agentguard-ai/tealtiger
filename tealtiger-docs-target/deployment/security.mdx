@@ -1,0 +1,542 @@
+---
+title: Security & Compliance
+description: Deploy TealTiger with enterprise-grade security including secrets management, encryption, network isolation, and compliance frameworks.
+---
+
+# Security & Compliance
+
+Deploy TealTiger with enterprise-grade security features. This guide covers secrets management, encryption, network isolation, access control, and compliance requirements.
+
+---
+
+## Security Philosophy
+
+**Zero-Trust Security:**
+- ✅ **Secrets never hardcoded** - Use secrets managers
+- ✅ **Encryption everywhere** - At-rest and in-transit
+- ✅ **Least privilege** - Minimal IAM permissions
+- ✅ **Network isolation** - VPC, private subnets, security groups
+- ✅ **Audit everything** - Comprehensive audit trails
+
+**Compliance Frameworks:**
+- SOC 2 Type II
+- HIPAA
+- GDPR
+- PCI DSS
+- ISO 27001
+
+---
+
+## Secrets Management
+
+### AWS Secrets Manager
+
+```typescript
+import { TealOpenAI, AWSSecretsManager } from 'tealtiger';
+
+const secretsManager = new AWSSecretsManager({
+  region: 'us-east-1'
+});
+
+const client = new TealOpenAI({
+  apiKey: await secretsManager.getSecret('openai-api-key'),
+  secretsManager: secretsManager
+});
+
+// Automatic secret rotation
+secretsManager.onRotation('openai-api-key', async (newSecret) => {
+  client.updateApiKey(newSecret);
+});
+```
+
+### Azure Key Vault
+
+```typescript
+import { TealOpenAI, AzureKeyVault } from 'tealtiger';
+
+const keyVault = new AzureKeyVault({
+  vaultUrl: 'https://my-vault.vault.azure.net'
+});
+
+const client = new TealOpenAI({
+  apiKey: await keyVault.getSecret('openai-api-key'),
+  secretsManager: keyVault
+});
+```
+
+### Google Secret Manager
+
+```typescript
+import { TealOpenAI, GCPSecretManager } from 'tealtiger';
+
+const secretManager = new GCPSecretManager({
+  projectId: 'my-project'
+});
+
+const client = new TealOpenAI({
+  apiKey: await secretManager.getSecret('openai-api-key'),
+  secretsManager: secretManager
+});
+```
+
+### HashiCorp Vault
+
+```typescript
+import { TealOpenAI, HashiCorpVault } from 'tealtiger';
+
+const vault = new HashiCorpVault({
+  endpoint: 'https://vault.example.com',
+  token: process.env.VAULT_TOKEN
+});
+
+const client = new TealOpenAI({
+  apiKey: await vault.getSecret('secret/openai-api-key'),
+  secretsManager: vault
+});
+```
+
+---
+
+## Encryption
+
+### At-Rest Encryption
+
+```typescript
+// Enable encryption for stored data
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  encryption: {
+    enabled: true,
+    algorithm: 'AES-256-GCM',
+    keyId: 'arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012'
+  }
+});
+```
+
+
+### In-Transit Encryption
+
+```typescript
+// Enforce TLS 1.3
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  tls: {
+    minVersion: 'TLSv1.3',
+    ciphers: [
+      'TLS_AES_256_GCM_SHA384',
+      'TLS_CHACHA20_POLY1305_SHA256'
+    ]
+  }
+});
+```
+
+### Certificate Pinning
+
+```typescript
+// Pin provider certificates
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  certificatePinning: {
+    enabled: true,
+    pins: {
+      'api.openai.com': [
+        'sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
+      ]
+    }
+  }
+});
+```
+
+---
+
+## Network Isolation
+
+### AWS VPC Configuration
+
+```yaml
+# cloudformation-vpc.yaml
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: us-east-1a
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: TealTiger security group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 10.0.0.0/16
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          DestinationPrefixListId: pl-63a5400a  # S3 prefix list
+```
+
+### Kubernetes Network Policies
+
+```yaml
+# network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tealtiger-network-policy
+  namespace: production
+spec:
+  podSelector:
+    matchLabels:
+      app: tealtiger
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: production
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 443  # HTTPS only
+```
+
+---
+
+## Access Control
+
+### IAM Roles (AWS)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "arn:aws:secretsmanager:us-east-1:123456789012:secret:openai-api-key-*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Decrypt"
+      ],
+      "Resource": "arn:aws:kms:us-east-1:123456789012:key/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/lambda/tealtiger-*"
+    }
+  ]
+}
+```
+
+### Kubernetes RBAC
+
+```yaml
+# rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tealtiger-sa
+  namespace: production
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tealtiger-role
+  namespace: production
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tealtiger-rolebinding
+  namespace: production
+subjects:
+  - kind: ServiceAccount
+    name: tealtiger-sa
+roleRef:
+  kind: Role
+  name: tealtiger-role
+  apiGroup: rbac.authorization.k8s.io
+```
+
+---
+
+## Audit Logging
+
+### Enable Audit Logs
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  audit: {
+    enabled: true,
+    destination: 's3',
+    bucket: 'tealtiger-audit-logs',
+    encryption: true,
+    retention: 2555, // 7 years (HIPAA requirement)
+    redaction: {
+      pii: true,
+      apiKeys: true,
+      userContent: false
+    }
+  }
+});
+```
+
+### Audit Event Schema
+
+```typescript
+interface AuditEvent {
+  timestamp: string;
+  eventId: string;
+  eventType: 'policy_decision' | 'guardrail_violation' | 'api_call';
+  userId?: string;
+  correlationId: string;
+  decision: {
+    action: 'allow' | 'block' | 'warn';
+    reason: string;
+    riskScore: number;
+  };
+  metadata: {
+    provider: string;
+    model: string;
+    cost: number;
+    latency: number;
+  };
+  // PII redacted by default
+}
+```
+
+---
+
+## Compliance
+
+### SOC 2 Compliance
+
+```typescript
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  compliance: {
+    framework: 'soc2',
+    controls: {
+      accessControl: true,
+      encryption: true,
+      auditLogging: true,
+      changeManagement: true,
+      incidentResponse: true
+    }
+  }
+});
+```
+
+### HIPAA Compliance
+
+```typescript
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  compliance: {
+    framework: 'hipaa',
+    controls: {
+      phiRedaction: true,
+      encryption: true,
+      auditLogging: true,
+      accessControl: true,
+      dataRetention: 2555 // 7 years
+    }
+  },
+  guardrails: [
+    {
+      type: 'pii_detection',
+      action: 'BLOCK',
+      categories: ['PHI', 'SSN', 'MEDICAL_RECORD']
+    }
+  ]
+});
+```
+
+### GDPR Compliance
+
+```typescript
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  compliance: {
+    framework: 'gdpr',
+    controls: {
+      dataMinimization: true,
+      rightToErasure: true,
+      dataPortability: true,
+      consentManagement: true
+    }
+  },
+  dataResidency: 'eu-west-1' // EU data residency
+});
+```
+
+---
+
+## Security Scanning
+
+### Container Image Scanning
+
+```yaml
+# .github/workflows/security-scan.yml
+name: Security Scan
+
+on: [push, pull_request]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build image
+        run: docker build -t tealtiger-app .
+      
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: tealtiger-app
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+```
+
+### Dependency Scanning
+
+```yaml
+# .github/workflows/dependency-scan.yml
+name: Dependency Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Daily
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Snyk scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --severity-threshold=high
+```
+
+---
+
+## Security Best Practices
+
+1. **Never hardcode secrets** - Use secrets managers
+2. **Enable encryption** - At-rest and in-transit
+3. **Use least privilege** - Minimal IAM permissions
+4. **Isolate networks** - VPC, private subnets
+5. **Enable audit logging** - Comprehensive trails
+6. **Scan for vulnerabilities** - Regular security scans
+7. **Rotate secrets** - Automatic rotation
+8. **Monitor for anomalies** - Real-time alerts
+9. **Implement rate limiting** - Prevent abuse
+10. **Use MFA** - Multi-factor authentication
+
+---
+
+## Security Checklist
+
+### Pre-Deployment
+
+- [ ] Secrets stored in secrets manager
+- [ ] Encryption enabled (at-rest and in-transit)
+- [ ] IAM roles configured with least privilege
+- [ ] Network policies defined
+- [ ] Security groups configured
+- [ ] Audit logging enabled
+- [ ] Vulnerability scanning configured
+- [ ] Compliance controls enabled
+
+### Post-Deployment
+
+- [ ] Security scan passed
+- [ ] Penetration testing completed
+- [ ] Audit logs verified
+- [ ] Access controls tested
+- [ ] Incident response plan documented
+- [ ] Security monitoring enabled
+- [ ] Compliance audit passed
+
+---
+
+## Incident Response
+
+### Security Incident Workflow
+
+```typescript
+import { TealSecurityIncident } from 'tealtiger';
+
+const incident = new TealSecurityIncident({
+  severity: 'critical',
+  type: 'unauthorized_access',
+  description: 'Suspicious API key usage detected',
+  affectedResources: ['lambda-function-1'],
+  actions: [
+    'rotate_api_keys',
+    'revoke_access',
+    'notify_security_team'
+  ]
+});
+
+// Execute incident response
+await incident.execute();
+
+// Generate incident report
+const report = await incident.generateReport();
+```
+
+---
+
+## Support
+
+- **Security**: [security@tealtiger.ai](mailto:security@tealtiger.ai)
+- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
+- **GitHub Issues**: [Report issues](https://github.com/agentguard-ai/tealtiger/issues)
+- **Email**: [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)

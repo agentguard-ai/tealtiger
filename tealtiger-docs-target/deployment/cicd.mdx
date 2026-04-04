@@ -1,0 +1,411 @@
+---
+title: CI/CD Integration
+description: Integrate TealTiger Docker containers into your CI/CD pipelines with GitHub Actions, GitLab CI, Jenkins, and more.
+---
+
+# CI/CD Integration
+
+Use TealTiger Docker containers and official integrations in your CI/CD pipelines for consistent testing and deployment.
+
+---
+
+## GitHub Actions
+
+### Official TealTiger Action
+
+The recommended way to add TealTiger security scanning to GitHub Actions:
+
+```yaml
+name: TealTiger Security Scan
+
+on: [push, pull_request]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run TealTiger Scan
+        uses: agentguard-ai/tealtiger-action@v1
+        with:
+          scan-path: ./src
+          guardrails: pii,prompt-injection,content-moderation
+          sensitivity: medium
+          policy-file: ./tealtiger-policy.yml
+          fail-on-finding: true
+          report-format: sarif
+```
+
+**Inputs:**
+
+| Input | Description | Default |
+|-------|-------------|---------|
+| `scan-path` | Directory or file glob to scan | (required) |
+| `guardrails` | Comma-separated guardrails to enable | `pii,prompt-injection,content-moderation` |
+| `sensitivity` | Scan sensitivity: low, medium, high | `medium` |
+| `policy-file` | Path to policy configuration file | `""` |
+| `fail-on-finding` | Fail workflow on violation | `true` |
+| `report-format` | Output format: json, junit, sarif | `json` |
+
+### Container-Based Workflows
+
+You can also use TealTiger images directly as job containers:
+
+<CodeGroup>
+```yaml Python SDK
+name: Test with TealTiger
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: tealtigeradmin/tealtiger-python:1.1.1
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Run tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python -m pytest tests/
+      
+      - name: Run policy tests
+        run: python -m tealtiger test policies/
+```
+
+```yaml TypeScript SDK
+name: Test with TealTiger
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: tealtigeradmin/tealtiger-typescript:1.1.1
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm test
+      
+      - name: Run policy tests
+        run: npx tealtiger test policies/
+```
+</CodeGroup>
+
+---
+
+## GitLab CI
+
+### Official Reusable Template
+
+Include the official TealTiger GitLab CI template for turnkey security scanning:
+
+```yaml
+include:
+  - remote: 'https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/integrations/cicd/gitlab-ci/.gitlab-ci.yml'
+
+variables:
+  TEALTIGER_SCAN_PATH: "./src"
+  TEALTIGER_GUARDRAILS: "pii,prompt-injection,content-moderation"
+  TEALTIGER_SENSITIVITY: "medium"
+  TEALTIGER_FAIL_ON_FINDING: "true"
+```
+
+This template provides two jobs:
+- **tealtiger-scan** — Runs guardrail scanning with JUnit and Code Quality reports
+- **tealtiger-policy-test** — Runs policy tests (when `TEALTIGER_POLICY_FILE` is set)
+
+Both jobs use the `tealtigeradmin/tealtiger-docker:latest` image.
+
+### Container-Based Jobs
+
+<CodeGroup>
+```yaml Python SDK
+test:
+  image: tealtigeradmin/tealtiger-python:1.1.1
+  script:
+    - pip install -r requirements.txt
+    - python -m pytest tests/
+    - python -m tealtiger test policies/
+  variables:
+    OPENAI_API_KEY: $OPENAI_API_KEY
+```
+
+```yaml TypeScript SDK
+test:
+  image: tealtigeradmin/tealtiger-typescript:1.1.1
+  script:
+    - npm ci
+    - npm test
+    - npx tealtiger test policies/
+  variables:
+    OPENAI_API_KEY: $OPENAI_API_KEY
+```
+</CodeGroup>
+
+---
+
+## CircleCI
+
+### Official TealTiger Orb
+
+Use the TealTiger CircleCI orb for integrated security scanning:
+
+```yaml
+version: 2.1
+
+orbs:
+  tealtiger: tealtiger/security-scan@1.0
+
+workflows:
+  security:
+    jobs:
+      - tealtiger/full-scan:
+          scan-path: ./src
+          guardrails: pii,prompt-injection,content-moderation
+          sensitivity: medium
+          fail-on-finding: true
+```
+
+The orb uses the `tealtigeradmin/tealtiger-docker:latest` executor image and provides:
+- **scan** command — Run guardrail scans
+- **policy-test** command — Run policy tests
+- **full-scan** job — Combined guardrail + policy scan
+
+### Container-Based Jobs
+
+<CodeGroup>
+```yaml Python SDK
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: tealtigeradmin/tealtiger-python:1.1.1
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Run tests
+          command: python -m pytest tests/
+      - run:
+          name: Run policy tests
+          command: python -m tealtiger test policies/
+
+workflows:
+  test:
+    jobs:
+      - test
+```
+
+```yaml TypeScript SDK
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: tealtigeradmin/tealtiger-typescript:1.1.1
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Run tests
+          command: npm test
+      - run:
+          name: Run policy tests
+          command: npx tealtiger test policies/
+
+workflows:
+  test:
+    jobs:
+      - test
+```
+</CodeGroup>
+
+---
+
+## Jenkins
+
+<CodeGroup>
+```groovy Python SDK
+pipeline {
+    agent {
+        docker {
+            image 'tealtigeradmin/tealtiger-python:1.1.1'
+        }
+    }
+    
+    environment {
+        OPENAI_API_KEY = credentials('openai-api-key')
+    }
+    
+    stages {
+        stage('Test') {
+            steps {
+                sh 'pip install -r requirements.txt'
+                sh 'python -m pytest tests/'
+                sh 'python -m tealtiger test policies/'
+            }
+        }
+    }
+}
+```
+
+```groovy TypeScript SDK
+pipeline {
+    agent {
+        docker {
+            image 'tealtigeradmin/tealtiger-typescript:1.1.1'
+        }
+    }
+    
+    environment {
+        OPENAI_API_KEY = credentials('openai-api-key')
+    }
+    
+    stages {
+        stage('Test') {
+            steps {
+                sh 'npm ci'
+                sh 'npm test'
+                sh 'npx tealtiger test policies/'
+            }
+        }
+    }
+}
+```
+</CodeGroup>
+
+---
+
+## Azure Pipelines
+
+<CodeGroup>
+```yaml Python SDK
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+container: tealtigeradmin/tealtiger-python:1.1.1
+
+steps:
+- script: |
+    pip install -r requirements.txt
+    python -m pytest tests/
+    python -m tealtiger test policies/
+  displayName: 'Test with TealTiger'
+  env:
+    OPENAI_API_KEY: $(OPENAI_API_KEY)
+```
+
+```yaml TypeScript SDK
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+container: tealtigeradmin/tealtiger-typescript:1.1.1
+
+steps:
+- script: |
+    npm ci
+    npm test
+    npx tealtiger test policies/
+  displayName: 'Test with TealTiger'
+  env:
+    OPENAI_API_KEY: $(OPENAI_API_KEY)
+```
+</CodeGroup>
+
+---
+
+## Best Practices
+
+### Use Specific Tags
+
+Don't use `latest` in production CI/CD. Pin to specific versions:
+
+```yaml
+container:
+  image: tealtigeradmin/tealtiger-python:1.1.1
+```
+
+### Cache Dependencies
+
+Speed up builds by caching dependencies:
+
+```yaml
+# GitHub Actions
+- uses: actions/cache@v3
+  with:
+    path: ~/.cache/pip
+    key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+```
+
+### Parallel Testing
+
+Run tests in parallel for faster feedback:
+
+```yaml
+# GitHub Actions
+strategy:
+  matrix:
+    test-group: [unit, integration, policy]
+```
+
+### Security Scanning
+
+Scan containers for vulnerabilities:
+
+```yaml
+# GitHub Actions
+- name: Run Trivy scanner
+  uses: aquasecurity/trivy-action@master
+  with:
+    image-ref: 'tealtigeradmin/tealtiger-python:1.1.1'
+    format: 'sarif'
+    output: 'trivy-results.sarif'
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Docker Guide" icon="docker" href="/deployment/docker">
+    Learn about TealTiger Docker images
+  </Card>
+  
+  <Card title="Kubernetes" icon="dharmachakra" href="/deployment/kubernetes">
+    Deploy on Kubernetes
+  </Card>
+  
+  <Card title="Serverless" icon="bolt" href="/deployment/serverless">
+    Deploy on serverless platforms
+  </Card>
+  
+  <Card title="Policy Testing" icon="shield-check" href="/api-reference/typescript/policy-testing">
+    Test your policies in CI/CD
+  </Card>
+</CardGroup>
