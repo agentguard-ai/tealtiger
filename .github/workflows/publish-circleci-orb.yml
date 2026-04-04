@@ -1,0 +1,38 @@
+name: Publish CircleCI Orb
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Orb version (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install CircleCI CLI
+        run: curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | bash
+
+      - name: Validate orb
+        env:
+          CIRCLECI_CLI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+        run: circleci orb validate integrations/cicd/circleci-orb/orb.yml
+
+      - name: Create namespace (first time only)
+        env:
+          CIRCLECI_CLI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+        run: circleci namespace create tealtiger github agentguard-ai --no-prompt || true
+
+      - name: Create orb (first time only)
+        env:
+          CIRCLECI_CLI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+        run: circleci orb create tealtiger/security-scan --no-prompt || true
+
+      - name: Publish orb
+        env:
+          CIRCLECI_CLI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+        run: circleci orb publish integrations/cicd/circleci-orb/orb.yml tealtiger/security-scan@${{ github.event.inputs.version }}
