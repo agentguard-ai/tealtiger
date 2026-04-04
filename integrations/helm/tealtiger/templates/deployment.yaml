@@ -1,0 +1,105 @@
+{{- include "tealtiger.validateMode" . }}
+{{- if eq .Values.mode "standalone" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tealtiger.fullname" . }}
+  labels:
+    {{- include "tealtiger.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "tealtiger.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tealtiger.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "tealtiger.serviceAccountName" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: tealtiger
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.probes.liveness.port }}
+              protocol: TCP
+          env:
+            - name: TEALTIGER_GUARDRAILS
+              value: {{ include "tealtiger.guardrails" . | quote }}
+            - name: TEALTIGER_SENSITIVITY
+              value: {{ .Values.sensitivity | quote }}
+          {{- if .Values.policyConfig }}
+          volumeMounts:
+            - name: policy-config
+              mountPath: /etc/tealtiger/policy
+              readOnly: true
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.policyConfig }}
+      volumes:
+        - name: policy-config
+          configMap:
+            name: {{ include "tealtiger.fullname" . }}-policy
+      {{- end }}
+{{- end }}
+{{- if eq .Values.mode "sidecar" }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tealtiger.fullname" . }}-sidecar
+  labels:
+    {{- include "tealtiger.labels" . | nindent 4 }}
+data:
+  sidecar.yaml: |
+    containers:
+      - name: tealtiger-sidecar
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+          - name: http
+            containerPort: {{ .Values.probes.liveness.port }}
+            protocol: TCP
+        env:
+          - name: TEALTIGER_GUARDRAILS
+            value: {{ include "tealtiger.guardrails" . | quote }}
+          - name: TEALTIGER_SENSITIVITY
+            value: {{ .Values.sensitivity | quote }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.probes.liveness.path }}
+            port: {{ .Values.probes.liveness.port }}
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.probes.readiness.path }}
+            port: {{ .Values.probes.readiness.port }}
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+{{- end }}

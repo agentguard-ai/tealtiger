@@ -1,0 +1,169 @@
+version: 2.1
+
+description: >
+  TealTiger Security Scan — Run AI security guardrails (PII detection,
+  prompt injection, content moderation) and policy tests in your CircleCI
+  pipelines.
+
+display:
+  home_url: https://github.com/agentguard-ai/tealtiger
+  source_url: https://github.com/agentguard-ai/tealtiger/tree/main/integrations/cicd/circleci-orb
+
+executors:
+  tealtiger:
+    description: TealTiger Docker executor with the official TealTiger image.
+    docker:
+      - image: tealtigeradmin/tealtiger-docker:latest
+
+commands:
+  scan:
+    description: >
+      Run TealTiger guardrail scan against a target directory or file glob.
+    parameters:
+      scan-path:
+        type: string
+        description: Directory or file glob containing prompts or text to scan.
+      guardrails:
+        type: string
+        default: "pii,prompt-injection,content-moderation"
+        description: Comma-separated list of guardrails to enable.
+      sensitivity:
+        type: enum
+        enum: ["low", "medium", "high"]
+        default: "medium"
+        description: Scan sensitivity level.
+      fail-on-finding:
+        type: boolean
+        default: true
+        description: Whether to fail the step when a guardrail violation is detected.
+      report-format:
+        type: enum
+        enum: ["json", "junit", "sarif"]
+        default: "json"
+        description: Report output format.
+    steps:
+      - run:
+          name: Run TealTiger Guardrail Scan
+          command: |
+            export TEALTIGER_SCAN_PATH="<< parameters.scan-path >>"
+            export TEALTIGER_GUARDRAILS="<< parameters.guardrails >>"
+            export TEALTIGER_SENSITIVITY="<< parameters.sensitivity >>"
+            export TEALTIGER_FAIL_ON_FINDING="<< parameters.fail-on-finding >>"
+            export TEALTIGER_REPORT_FORMAT="<< parameters.report-format >>"
+            export TEALTIGER_REPORT_OUTPUT="./tealtiger-report"
+            /usr/local/bin/tealtiger-scan.sh
+      - store_test_results:
+          path: tealtiger-report
+      - store_artifacts:
+          path: tealtiger-report
+          destination: tealtiger-scan-report
+
+  policy-test:
+    description: >
+      Run TealTiger policy tests against a policy configuration file.
+    parameters:
+      policy-file:
+        type: string
+        description: Path to a TealTiger policy configuration file.
+    steps:
+      - run:
+          name: Run TealTiger Policy Test
+          command: |
+            export TEALTIGER_SCAN_PATH="."
+            export TEALTIGER_POLICY_FILE="<< parameters.policy-file >>"
+            export TEALTIGER_REPORT_FORMAT="junit"
+            export TEALTIGER_REPORT_OUTPUT="./tealtiger-policy-report"
+            /usr/local/bin/tealtiger-scan.sh
+      - store_test_results:
+          path: tealtiger-policy-report
+      - store_artifacts:
+          path: tealtiger-policy-report
+          destination: tealtiger-policy-report
+
+jobs:
+  full-scan:
+    description: >
+      Run a full TealTiger security scan combining guardrail scan and policy
+      tests in a single job.
+    executor: tealtiger
+    parameters:
+      scan-path:
+        type: string
+        description: Directory or file glob containing prompts or text to scan.
+      guardrails:
+        type: string
+        default: "pii,prompt-injection,content-moderation"
+        description: Comma-separated list of guardrails to enable.
+      sensitivity:
+        type: enum
+        enum: ["low", "medium", "high"]
+        default: "medium"
+        description: Scan sensitivity level.
+      fail-on-finding:
+        type: boolean
+        default: true
+        description: Whether to fail the job when a guardrail violation is detected.
+      report-format:
+        type: enum
+        enum: ["json", "junit", "sarif"]
+        default: "json"
+        description: Report output format.
+      policy-file:
+        type: string
+        default: ""
+        description: Path to a TealTiger policy configuration file.
+    steps:
+      - checkout
+      - scan:
+          scan-path: << parameters.scan-path >>
+          guardrails: << parameters.guardrails >>
+          sensitivity: << parameters.sensitivity >>
+          fail-on-finding: << parameters.fail-on-finding >>
+          report-format: << parameters.report-format >>
+      - when:
+          condition: << parameters.policy-file >>
+          steps:
+            - policy-test:
+                policy-file: << parameters.policy-file >>
+
+examples:
+  basic-scan:
+    description: Run a basic TealTiger security scan on every commit.
+    usage:
+      version: 2.1
+      orbs:
+        tealtiger: agentguard-ai/tealtiger@1.0
+      workflows:
+        security:
+          jobs:
+            - tealtiger/full-scan:
+                scan-path: ./prompts
+
+  scan-with-policy:
+    description: >
+      Run a TealTiger scan with policy testing and high sensitivity.
+    usage:
+      version: 2.1
+      orbs:
+        tealtiger: agentguard-ai/tealtiger@1.0
+      workflows:
+        security:
+          jobs:
+            - tealtiger/full-scan:
+                scan-path: ./src
+                sensitivity: high
+                policy-file: ./tealtiger-policy.yml
+                fail-on-finding: false
+
+  custom-guardrails:
+    description: Run only PII and prompt injection guardrails.
+    usage:
+      version: 2.1
+      orbs:
+        tealtiger: agentguard-ai/tealtiger@1.0
+      workflows:
+        security:
+          jobs:
+            - tealtiger/full-scan:
+                scan-path: ./prompts
+                guardrails: pii,prompt-injection

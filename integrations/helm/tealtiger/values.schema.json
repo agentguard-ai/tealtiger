@@ -1,0 +1,126 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["mode", "image", "guardrails", "sensitivity", "resources", "probes"],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["standalone", "sidecar"],
+      "description": "Deployment mode: standalone or sidecar"
+    },
+    "image": {
+      "type": "object",
+      "required": ["repository", "tag"],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Image pull policy"
+        }
+      }
+    },
+    "guardrails": {
+      "type": "object",
+      "properties": {
+        "pii": {
+          "type": "boolean",
+          "description": "Enable PII detection guardrail"
+        },
+        "promptInjection": {
+          "type": "boolean",
+          "description": "Enable prompt injection detection guardrail"
+        },
+        "contentModeration": {
+          "type": "boolean",
+          "description": "Enable content moderation guardrail"
+        }
+      }
+    },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Guardrail sensitivity level"
+    },
+    "policyConfig": {
+      "type": "object",
+      "description": "Policy configuration to mount as ConfigMap"
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "memory": { "type": "string" },
+            "cpu": { "type": "string" }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "memory": { "type": "string" },
+            "cpu": { "type": "string" }
+          }
+        }
+      }
+    },
+    "probes": {
+      "type": "object",
+      "properties": {
+        "liveness": {
+          "type": "object",
+          "required": ["path", "port", "initialDelaySeconds"],
+          "properties": {
+            "path": { "type": "string" },
+            "port": { "type": "integer" },
+            "initialDelaySeconds": { "type": "integer" }
+          }
+        },
+        "readiness": {
+          "type": "object",
+          "required": ["path", "port", "initialDelaySeconds"],
+          "properties": {
+            "path": { "type": "string" },
+            "port": { "type": "integer" },
+            "initialDelaySeconds": { "type": "integer" }
+          }
+        }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": { "type": "boolean" },
+        "name": { "type": "string" },
+        "annotations": { "type": "object" }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "type": "string" },
+        "annotations": { "type": "object" },
+        "hosts": { "type": "array" },
+        "tls": { "type": "array" }
+      }
+    },
+    "replicaCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "nodeSelector": { "type": "object" },
+    "tolerations": { "type": "array" },
+    "affinity": { "type": "object" }
+  }
+}

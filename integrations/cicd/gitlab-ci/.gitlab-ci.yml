@@ -1,0 +1,78 @@
+# TealTiger Security Scan — GitLab CI Reusable Template
+# Include this template in your .gitlab-ci.yml to add TealTiger security scans.
+#
+# Usage:
+#   include:
+#     - remote: 'https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/integrations/cicd/gitlab-ci/.gitlab-ci.yml'
+#
+# Configure via CI/CD variables:
+#   TEALTIGER_SCAN_PATH       — Directory or file glob to scan (required)
+#   TEALTIGER_GUARDRAILS      — Comma-separated guardrails (default: pii,prompt-injection,content-moderation)
+#   TEALTIGER_SENSITIVITY     — Sensitivity level: low, medium, high (default: medium)
+#   TEALTIGER_POLICY_FILE     — Path to policy configuration file (optional)
+#   TEALTIGER_FAIL_ON_FINDING — Fail on violation: true/false (default: true)
+
+stages:
+  - test
+
+variables:
+  TEALTIGER_SCAN_PATH: ""
+  TEALTIGER_GUARDRAILS: "pii,prompt-injection,content-moderation"
+  TEALTIGER_SENSITIVITY: "medium"
+  TEALTIGER_POLICY_FILE: ""
+  TEALTIGER_FAIL_ON_FINDING: "true"
+
+tealtiger-scan:
+  stage: test
+  image: tealtigeradmin/tealtiger-docker:latest
+  variables:
+    TEALTIGER_REPORT_FORMAT: "junit"
+    TEALTIGER_REPORT_OUTPUT: "./tealtiger-report"
+  script:
+    - |
+      export TEALTIGER_SCAN_PATH="${TEALTIGER_SCAN_PATH}"
+      export TEALTIGER_GUARDRAILS="${TEALTIGER_GUARDRAILS}"
+      export TEALTIGER_SENSITIVITY="${TEALTIGER_SENSITIVITY}"
+      export TEALTIGER_FAIL_ON_FINDING="${TEALTIGER_FAIL_ON_FINDING}"
+      export TEALTIGER_REPORT_FORMAT="${TEALTIGER_REPORT_FORMAT}"
+      export TEALTIGER_REPORT_OUTPUT="${TEALTIGER_REPORT_OUTPUT}"
+      /usr/local/bin/tealtiger-scan.sh
+    - |
+      # Generate Code Quality JSON report for GitLab integration
+      export TEALTIGER_REPORT_FORMAT="json"
+      export TEALTIGER_REPORT_OUTPUT="./tealtiger-codequality"
+      export TEALTIGER_FAIL_ON_FINDING="false"
+      /usr/local/bin/tealtiger-scan.sh || true
+  artifacts:
+    when: always
+    reports:
+      junit: tealtiger-report/scan-report.xml
+      codequality: tealtiger-codequality/scan-report.json
+    paths:
+      - tealtiger-report/
+      - tealtiger-codequality/
+
+tealtiger-policy-test:
+  stage: test
+  image: tealtigeradmin/tealtiger-docker:latest
+  variables:
+    TEALTIGER_REPORT_FORMAT: "junit"
+    TEALTIGER_REPORT_OUTPUT: "./tealtiger-policy-report"
+  rules:
+    - if: $TEALTIGER_POLICY_FILE != ""
+  script:
+    - |
+      export TEALTIGER_SCAN_PATH="${TEALTIGER_SCAN_PATH:-.}"
+      export TEALTIGER_POLICY_FILE="${TEALTIGER_POLICY_FILE}"
+      export TEALTIGER_GUARDRAILS="${TEALTIGER_GUARDRAILS}"
+      export TEALTIGER_SENSITIVITY="${TEALTIGER_SENSITIVITY}"
+      export TEALTIGER_FAIL_ON_FINDING="${TEALTIGER_FAIL_ON_FINDING}"
+      export TEALTIGER_REPORT_FORMAT="${TEALTIGER_REPORT_FORMAT}"
+      export TEALTIGER_REPORT_OUTPUT="${TEALTIGER_REPORT_OUTPUT}"
+      /usr/local/bin/tealtiger-scan.sh
+  artifacts:
+    when: always
+    reports:
+      junit: tealtiger-policy-report/policy-report.xml
+    paths:
+      - tealtiger-policy-report/

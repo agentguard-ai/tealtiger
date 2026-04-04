@@ -1,0 +1,8 @@
+# Basic TealTiger Security Scan Pipeline
+# Runs TealTiger guardrails on every pipeline with default settings.
+
+include:
+  - remote: 'https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/integrations/cicd/gitlab-ci/.gitlab-ci.yml'
+
+variables:
+  TEALTIGER_SCAN_PATH: ./prompts

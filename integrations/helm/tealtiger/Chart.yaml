@@ -1,0 +1,19 @@
+apiVersion: v2
+name: tealtiger
+description: TealTiger AI security platform - guardrails, policy enforcement, and content moderation for LLM applications
+type: application
+version: 1.1.1
+appVersion: "1.1.1"
+keywords:
+  - ai-security
+  - guardrails
+  - pii-detection
+  - prompt-injection
+  - content-moderation
+  - llm
+home: https://github.com/agentguard-ai/tealtiger
+sources:
+  - https://github.com/agentguard-ai/tealtiger
+maintainers:
+  - name: TealTiger Team
+    url: https://github.com/agentguard-ai

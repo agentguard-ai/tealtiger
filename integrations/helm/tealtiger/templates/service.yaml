@@ -1,0 +1,17 @@
+{{- if eq .Values.mode "standalone" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tealtiger.fullname" . }}
+  labels:
+    {{- include "tealtiger.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.probes.liveness.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "tealtiger.selectorLabels" . | nindent 4 }}
+{{- end }}

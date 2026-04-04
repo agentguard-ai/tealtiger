@@ -1,0 +1,43 @@
+# Advanced TealTiger Workflow with Policy Testing and SARIF Upload
+# Runs guardrail scan + policy tests, uploads SARIF to GitHub Code Scanning.
+
+name: TealTiger Advanced Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run TealTiger Security Scan
+        id: tealtiger
+        uses: agentguard-ai/tealtiger-action@v1
+        with:
+          scan-path: ./src
+          guardrails: pii,prompt-injection,content-moderation
+          sensitivity: high
+          policy-file: ./tealtiger-policy.yml
+          report-format: sarif
+          fail-on-finding: "false"
+
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ./tealtiger-report/scan-report.sarif
+
+      - name: Check scan results
+        if: steps.tealtiger.outputs.passed == 'false'
+        run: |
+          echo "TealTiger found ${{ steps.tealtiger.outputs.findings-count }} violation(s)."
+          echo "Report: ${{ steps.tealtiger.outputs.report }}"
+          exit 1

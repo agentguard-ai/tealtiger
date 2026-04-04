@@ -1,0 +1,44 @@
+Thank you for installing TealTiger!
+
+{{- if eq .Values.mode "standalone" }}
+
+TealTiger has been deployed in STANDALONE mode.
+
+To access the TealTiger service:
+
+  export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "tealtiger.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+  kubectl port-forward $POD_NAME {{ .Values.probes.liveness.port }}:{{ .Values.probes.liveness.port }}
+
+Then visit http://localhost:{{ .Values.probes.liveness.port }}
+
+{{- else if eq .Values.mode "sidecar" }}
+
+TealTiger has been deployed in SIDECAR mode.
+
+A ConfigMap with the sidecar container spec has been created:
+  {{ include "tealtiger.fullname" . }}-sidecar
+
+To inject TealTiger as a sidecar, add the container spec from the ConfigMap
+to your application's pod template.
+
+{{- end }}
+
+Enabled guardrails:
+{{- if .Values.guardrails.pii }}
+  - PII Detection
+{{- end }}
+{{- if .Values.guardrails.promptInjection }}
+  - Prompt Injection Detection
+{{- end }}
+{{- if .Values.guardrails.contentModeration }}
+  - Content Moderation
+{{- end }}
+
+Sensitivity: {{ .Values.sensitivity }}
+
+For more information, visit: https://github.com/agentguard-ai/tealtiger
+
+Troubleshooting:
+  - Check pod status: kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+  - View logs: kubectl logs -l app.kubernetes.io/instance={{ .Release.Name }}
+  - Verify health: kubectl exec <pod-name> -- curl -s http://localhost:{{ .Values.probes.liveness.port }}/healthz

@@ -1,0 +1,53 @@
+mode: standalone  # standalone or sidecar
+
+image:
+  repository: tealtigeradmin/tealtiger-docker
+  tag: "1.1.1"
+  pullPolicy: IfNotPresent
+
+guardrails:
+  pii: true
+  promptInjection: true
+  contentModeration: true
+
+sensitivity: medium
+
+policyConfig: {}
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi
+    cpu: 500m
+
+probes:
+  liveness:
+    path: /healthz
+    port: 8080
+    initialDelaySeconds: 10
+  readiness:
+    path: /readyz
+    port: 8080
+    initialDelaySeconds: 5
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+replicaCount: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

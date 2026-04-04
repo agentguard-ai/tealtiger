@@ -1,0 +1,28 @@
+# TealTiger Sidecar Deployment Example
+# Usage: helm install tealtiger ./integrations/helm/tealtiger -f sidecar-values.yaml
+
+mode: sidecar
+
+image:
+  repository: tealtigeradmin/tealtiger-docker
+  tag: "1.1.1"
+  pullPolicy: IfNotPresent
+
+guardrails:
+  pii: true
+  promptInjection: true
+  contentModeration: false
+
+sensitivity: medium
+
+resources:
+  requests:
+    memory: 128Mi
+    cpu: 100m
+  limits:
+    memory: 256Mi
+    cpu: 500m
+
+serviceAccount:
+  create: true
+  name: tealtiger-sidecar

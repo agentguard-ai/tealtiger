@@ -1,0 +1,51 @@
+name: "TealTiger Security Scan"
+description: "Run TealTiger AI security guardrails (PII detection, prompt injection, content moderation) and policy tests in your GitHub Actions workflow."
+author: "TealTiger Team"
+
+branding:
+  icon: "shield"
+  color: "blue"
+
+inputs:
+  scan-path:
+    description: "Directory or file glob containing prompts or text to scan"
+    required: true
+  guardrails:
+    description: "Comma-separated list of guardrails to enable (pii, prompt-injection, content-moderation)"
+    required: false
+    default: "pii,prompt-injection,content-moderation"
+  sensitivity:
+    description: "Scan sensitivity level (low, medium, high)"
+    required: false
+    default: "medium"
+  policy-file:
+    description: "Path to a TealTiger policy configuration file for policy testing"
+    required: false
+    default: ""
+  fail-on-finding:
+    description: "Whether to fail the workflow when a guardrail violation is detected"
+    required: false
+    default: "true"
+  report-format:
+    description: "Report output format (json, junit, sarif)"
+    required: false
+    default: "json"
+
+outputs:
+  report:
+    description: "Path to the generated scan report file"
+  findings-count:
+    description: "Number of guardrail violations found"
+  passed:
+    description: "Whether the scan passed (true or false)"
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    TEALTIGER_SCAN_PATH: ${{ inputs.scan-path }}
+    TEALTIGER_GUARDRAILS: ${{ inputs.guardrails }}
+    TEALTIGER_SENSITIVITY: ${{ inputs.sensitivity }}
+    TEALTIGER_POLICY_FILE: ${{ inputs.policy-file }}
+    TEALTIGER_FAIL_ON_FINDING: ${{ inputs.fail-on-finding }}
+    TEALTIGER_REPORT_FORMAT: ${{ inputs.report-format }}

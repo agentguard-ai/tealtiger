@@ -1,0 +1,12 @@
+# Advanced TealTiger Pipeline with Policy Testing and Code Quality
+# Runs guardrail scan + policy tests, produces JUnit and Code Quality reports.
+
+include:
+  - remote: 'https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/integrations/cicd/gitlab-ci/.gitlab-ci.yml'
+
+variables:
+  TEALTIGER_SCAN_PATH: ./src
+  TEALTIGER_GUARDRAILS: pii,prompt-injection,content-moderation
+  TEALTIGER_SENSITIVITY: high
+  TEALTIGER_POLICY_FILE: ./tealtiger-policy.yml
+  TEALTIGER_FAIL_ON_FINDING: "false"

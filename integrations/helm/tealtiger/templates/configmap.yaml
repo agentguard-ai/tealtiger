@@ -1,0 +1,11 @@
+{{- if .Values.policyConfig }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tealtiger.fullname" . }}-policy
+  labels:
+    {{- include "tealtiger.labels" . | nindent 4 }}
+data:
+  policy.yaml: |
+    {{- toYaml .Values.policyConfig | nindent 4 }}
+{{- end }}

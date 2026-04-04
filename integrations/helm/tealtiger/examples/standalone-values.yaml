@@ -1,0 +1,35 @@
+# TealTiger Standalone Deployment Example
+# Usage: helm install tealtiger ./integrations/helm/tealtiger -f standalone-values.yaml
+
+mode: standalone
+
+image:
+  repository: tealtigeradmin/tealtiger-docker
+  tag: "1.1.1"
+  pullPolicy: IfNotPresent
+
+guardrails:
+  pii: true
+  promptInjection: true
+  contentModeration: true
+
+sensitivity: high
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 200m
+  limits:
+    memory: 512Mi
+    cpu: "1"
+
+replicaCount: 2
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: tealtiger.example.com
+      paths:
+        - path: /
+          pathType: Prefix
