@@ -12,8 +12,6 @@ WORKDIR /app
 RUN pip install --no-cache-dir tealtiger && \
     pip cache purge
 
-COPY ../README.md ./README.md 2>/dev/null || true
-
 RUN useradd -m tealtiger && chown -R tealtiger:tealtiger /app
 USER tealtiger
 
