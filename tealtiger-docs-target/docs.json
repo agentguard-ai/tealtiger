@@ -167,8 +167,15 @@
         ]
       },
       {
+        "group": "Blog",
+        "pages": [
+          "blog/v1-1-1-release"
+        ]
+      },
+      {
         "group": "Versions",
         "pages": [
+          "versions/v1.1.1",
           "versions/v1.1.0"
         ]
       },
