@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 260" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <filter id="ds"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/></filter>
+    <marker id="aW" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><path d="M0,0 L10,3.5 L0,7" fill="#fff"/></marker>
+  </defs>
+
+  <rect width="820" height="260" rx="12" fill="#0f172a"/>
+  <text x="410" y="30" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="600" letter-spacing="2.5">POLICY ROLLOUT STRATEGY</text>
+
+  <!-- REPORT_ONLY -->
+  <rect x="40" y="52" width="220" height="150" rx="10" fill="#92400e" filter="url(#ds)"/>
+  <rect x="40" y="52" width="220" height="40" rx="10" fill="#b45309"/>
+  <rect x="40" y="82" width="220" height="2" fill="#92400e"/>
+  <text x="150" y="78" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">REPORT_ONLY</text>
+  <text x="150" y="114" text-anchor="middle" fill="#fde68a" font-size="10">Log all decisions</text>
+  <text x="150" y="132" text-anchor="middle" fill="#fde68a" font-size="10">No enforcement</text>
+  <text x="150" y="150" text-anchor="middle" fill="#fde68a" font-size="10">Impact analysis</text>
+  <text x="150" y="172" text-anchor="middle" fill="#fcd34d" font-size="9" font-weight="600">Zero risk to production</text>
+  <rect x="60" y="186" width="180" height="6" rx="3" fill="#451a03"/>
+  <rect x="60" y="186" width="60" height="6" rx="3" fill="#fbbf24"/>
+
+  <!-- Arrow 1 -->
+  <line x1="260" y1="127" x2="296" y2="127" stroke="#fff" stroke-width="2" marker-end="url(#aW)"/>
+  <text x="278" y="118" text-anchor="middle" fill="#94a3b8" font-size="8" font-weight="500">Validate</text>
+
+  <!-- MONITOR -->
+  <rect x="300" y="52" width="220" height="150" rx="10" fill="#1e40af" filter="url(#ds)"/>
+  <rect x="300" y="52" width="220" height="40" rx="10" fill="#2563eb"/>
+  <rect x="300" y="82" width="220" height="2" fill="#1e40af"/>
+  <text x="410" y="78" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">MONITOR</text>
+  <text x="410" y="114" text-anchor="middle" fill="#bfdbfe" font-size="10">Allow all traffic</text>
+  <text x="410" y="132" text-anchor="middle" fill="#bfdbfe" font-size="10">Log violations</text>
+  <text x="410" y="150" text-anchor="middle" fill="#bfdbfe" font-size="10">Alert on issues</text>
+  <text x="410" y="172" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="600">Observe before enforcing</text>
+  <rect x="320" y="186" width="180" height="6" rx="3" fill="#172554"/>
+  <rect x="320" y="186" width="120" height="6" rx="3" fill="#3b82f6"/>
+
+  <!-- Arrow 2 -->
+  <line x1="520" y1="127" x2="556" y2="127" stroke="#fff" stroke-width="2" marker-end="url(#aW)"/>
+  <text x="538" y="118" text-anchor="middle" fill="#94a3b8" font-size="8" font-weight="500">Confirm</text>
+
+  <!-- ENFORCE -->
+  <rect x="560" y="52" width="220" height="150" rx="10" fill="#065f46" filter="url(#ds)"/>
+  <rect x="560" y="52" width="220" height="40" rx="10" fill="#059669"/>
+  <rect x="560" y="82" width="220" height="2" fill="#065f46"/>
+  <text x="670" y="78" text-anchor="middle" fill="#fff" font-size="14" font-weight="700">ENFORCE</text>
+  <text x="670" y="114" text-anchor="middle" fill="#a7f3d0" font-size="10">Block violations</text>
+  <text x="670" y="132" text-anchor="middle" fill="#a7f3d0" font-size="10">Full protection</text>
+  <text x="670" y="150" text-anchor="middle" fill="#a7f3d0" font-size="10">Production mode</text>
+  <text x="670" y="172" text-anchor="middle" fill="#6ee7b7" font-size="9" font-weight="600">Active enforcement</text>
+  <rect x="580" y="186" width="180" height="6" rx="3" fill="#022c22"/>
+  <rect x="580" y="186" width="180" height="6" rx="3" fill="#10b981"/>
+
+  <!-- Mode resolution note -->
+  <rect x="140" y="218" width="540" height="28" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="410" y="236" text-anchor="middle" fill="#94a3b8" font-size="9">Mode Resolution Hierarchy: policy-specific override → environment override → global default  •  &lt; 1ms</text>
+</svg>

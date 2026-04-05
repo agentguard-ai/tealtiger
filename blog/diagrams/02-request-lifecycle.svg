@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 580" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d9488"/><stop offset="100%" style="stop-color:#0f766e"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb"/><stop offset="100%" style="stop-color:#1e3a5f"/>
+    </linearGradient>
+    <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c3aed"/><stop offset="100%" style="stop-color:#3b1f5e"/>
+    </linearGradient>
+    <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626"/><stop offset="100%" style="stop-color:#991b1b"/>
+    </linearGradient>
+    <linearGradient id="gg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#059669"/><stop offset="100%" style="stop-color:#047857"/>
+    </linearGradient>
+    <filter id="ds"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/></filter>
+    <marker id="aR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#5eead4"/></marker>
+    <marker id="aRed" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#f87171"/></marker>
+    <marker id="aGray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#94a3b8"/></marker>
+  </defs>
+
+  <rect width="920" height="580" rx="12" fill="#0f172a"/>
+  <text x="460" y="32" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="600" letter-spacing="2.5">REQUEST LIFECYCLE</text>
+
+  <!-- Column headers -->
+  <rect x="40" y="50" width="100" height="32" rx="6" fill="url(#bg)" filter="url(#ds)"/>
+  <text x="90" y="71" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">Application</text>
+
+  <rect x="180" y="50" width="100" height="32" rx="6" fill="url(#tg)" filter="url(#ds)"/>
+  <text x="230" y="71" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">TealEngine</text>
+
+  <rect x="320" y="50" width="100" height="32" rx="6" fill="url(#tg)" filter="url(#ds)"/>
+  <text x="370" y="71" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">TealGuard</text>
+
+  <rect x="460" y="50" width="100" height="32" rx="6" fill="url(#tg)" filter="url(#ds)"/>
+  <text x="510" y="71" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">TealCircuit</text>
+
+  <rect x="600" y="50" width="100" height="32" rx="6" fill="url(#pg)" filter="url(#ds)"/>
+  <text x="650" y="71" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">LLM Provider</text>
+
+  <rect x="740" y="50" width="100" height="32" rx="6" fill="url(#tg)" filter="url(#ds)"/>
+  <text x="790" y="71" text-anchor="middle" fill="#fff" font-size="10" font-weight="600">TealAudit</text>
+
+  <!-- Lifelines -->
+  <line x1="90" y1="82" x2="90" y2="560" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="230" y1="82" x2="230" y2="560" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="370" y1="82" x2="370" y2="560" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="510" y1="82" x2="510" y2="560" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="650" y1="82" x2="650" y2="560" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="790" y1="82" x2="790" y2="560" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- Step 1: App -> TealEngine -->
+  <line x1="90" y1="110" x2="222" y2="110" stroke="#5eead4" stroke-width="1.5" marker-end="url(#aR)"/>
+  <rect x="110" y="96" width="90" height="18" rx="3" fill="#0f172a"/>
+  <text x="155" y="109" text-anchor="middle" fill="#5eead4" font-size="9" font-weight="600">1. Evaluate</text>
+
+  <!-- Step 1 activation box -->
+  <rect x="222" y="110" width="16" height="50" rx="3" fill="#0d9488" opacity="0.6"/>
+
+  <!-- Decision box -->
+  <rect x="140" y="128" width="180" height="36" rx="6" fill="#1e293b" stroke="#0d9488" stroke-width="1"/>
+  <text x="230" y="143" text-anchor="middle" fill="#5eead4" font-size="9" font-weight="600">Decision Object Created</text>
+  <text x="230" y="156" text-anchor="middle" fill="#94a3b8" font-size="8">action + reason_codes + risk_score</text>
+
+  <!-- Deny path -->
+  <line x1="230" y1="175" x2="98" y2="175" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aRed)"/>
+  <rect x="110" y="165" width="100" height="16" rx="3" fill="#0f172a"/>
+  <text x="160" y="176" text-anchor="middle" fill="#f87171" font-size="8" font-weight="500">if DENY → return</text>
+
+  <!-- Step 2: TealEngine -> TealGuard -->
+  <line x1="230" y1="200" x2="362" y2="200" stroke="#5eead4" stroke-width="1.5" marker-end="url(#aR)"/>
+  <rect x="255" y="186" width="80" height="18" rx="3" fill="#0f172a"/>
+  <text x="295" y="199" text-anchor="middle" fill="#5eead4" font-size="9" font-weight="600">2. Validate</text>
+
+  <!-- Step 2 activation -->
+  <rect x="362" y="200" width="16" height="50" rx="3" fill="#0d9488" opacity="0.6"/>
+
+  <!-- Guard checks -->
+  <rect x="390" y="204" width="140" height="42" rx="6" fill="#1e293b" stroke="#0d9488" stroke-width="1"/>
+  <text x="460" y="219" text-anchor="middle" fill="#ccfbf1" font-size="8">PII ∥ Injection ∥ Moderation</text>
+  <text x="460" y="233" text-anchor="middle" fill="#94a3b8" font-size="8">Parallel execution &lt; 5ms</text>
+
+  <!-- Guard deny path -->
+  <line x1="370" y1="260" x2="98" y2="260" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aRed)"/>
+  <rect x="160" y="250" width="120" height="16" rx="3" fill="#0f172a"/>
+  <text x="220" y="261" text-anchor="middle" fill="#f87171" font-size="8" font-weight="500">if UNSAFE → REDACT/DENY</text>
+
+  <!-- Step 3: TealGuard -> TealCircuit -->
+  <line x1="370" y1="285" x2="502" y2="285" stroke="#5eead4" stroke-width="1.5" marker-end="url(#aR)"/>
+  <rect x="395" y="271" width="80" height="18" rx="3" fill="#0f172a"/>
+  <text x="435" y="284" text-anchor="middle" fill="#5eead4" font-size="9" font-weight="600">3. Circuit</text>
+
+  <!-- Step 3 activation -->
+  <rect x="502" y="285" width="16" height="40" rx="3" fill="#0d9488" opacity="0.6"/>
+
+  <!-- Circuit open path -->
+  <line x1="510" y1="335" x2="98" y2="335" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#aRed)"/>
+  <rect x="230" y="325" width="130" height="16" rx="3" fill="#0f172a"/>
+  <text x="295" y="336" text-anchor="middle" fill="#f87171" font-size="8" font-weight="500">if OPEN → DEGRADE</text>
+
+  <!-- Step 4: TealCircuit -> LLM -->
+  <line x1="510" y1="360" x2="642" y2="360" stroke="#5eead4" stroke-width="1.5" marker-end="url(#aR)"/>
+  <rect x="535" y="346" width="80" height="18" rx="3" fill="#0f172a"/>
+  <text x="575" y="359" text-anchor="middle" fill="#5eead4" font-size="9" font-weight="600">4. Request</text>
+
+  <!-- LLM activation -->
+  <rect x="642" y="360" width="16" height="40" rx="3" fill="#7c3aed" opacity="0.6"/>
+
+  <!-- LLM response -->
+  <line x1="650" y1="410" x2="518" y2="410" stroke="#c4b5fd" stroke-width="1.5" marker-end="url(#aGray)"/>
+  <rect x="545" y="400" width="80" height="16" rx="3" fill="#0f172a"/>
+  <text x="585" y="411" text-anchor="middle" fill="#c4b5fd" font-size="8">Response</text>
+
+  <!-- Step 5: Track metrics (to the right, implied) -->
+  <rect x="420" y="425" width="180" height="30" rx="6" fill="#1e293b" stroke="#0d9488" stroke-width="1"/>
+  <text x="510" y="444" text-anchor="middle" fill="#5eead4" font-size="9" font-weight="600">5. Track metrics + cost</text>
+
+  <!-- Step 6: Audit -->
+  <line x1="510" y1="455" x2="782" y2="470" stroke="#5eead4" stroke-width="1.5" marker-end="url(#aR)"/>
+  <rect x="600" y="450" width="100" height="18" rx="3" fill="#0f172a"/>
+  <text x="650" y="463" text-anchor="middle" fill="#5eead4" font-size="9" font-weight="600">6. Audit (redacted)</text>
+
+  <!-- Audit activation -->
+  <rect x="782" y="470" width="16" height="40" rx="3" fill="#0d9488" opacity="0.6"/>
+
+  <!-- Audit details -->
+  <rect x="806" y="472" width="100" height="36" rx="6" fill="#1e293b" stroke="#0d9488" stroke-width="1"/>
+  <text x="856" y="487" text-anchor="middle" fill="#ccfbf1" font-size="8">SHA-256 hash</text>
+  <text x="856" y="500" text-anchor="middle" fill="#94a3b8" font-size="8">correlation_id traced</text>
+
+  <!-- Final response back to App -->
+  <line x1="510" y1="520" x2="98" y2="520" stroke="#34d399" stroke-width="2" marker-end="url(#aR)"/>
+  <rect x="220" y="508" width="180" height="18" rx="3" fill="#0f172a"/>
+  <text x="310" y="520" text-anchor="middle" fill="#34d399" font-size="9" font-weight="600">Response + Decision metadata</text>
+
+  <!-- Legend -->
+  <rect x="40" y="542" width="840" height="28" rx="6" fill="#1e293b"/>
+  <line x1="60" y1="556" x2="90" y2="556" stroke="#5eead4" stroke-width="1.5"/>
+  <text x="96" y="560" fill="#94a3b8" font-size="8">Happy path</text>
+  <line x1="180" y1="556" x2="210" y2="556" stroke="#f87171" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="216" y="560" fill="#94a3b8" font-size="8">Deny/block path</text>
+  <line x1="320" y1="556" x2="350" y2="556" stroke="#34d399" stroke-width="2"/>
+  <text x="356" y="560" fill="#94a3b8" font-size="8">Final response</text>
+  <rect x="460" y="550" width="10" height="12" rx="2" fill="#0d9488" opacity="0.6"/>
+  <text x="476" y="560" fill="#94a3b8" font-size="8">Component active</text>
+</svg>
