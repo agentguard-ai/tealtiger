@@ -3,7 +3,7 @@ title: "TealTiger v1.1.1: Enterprise-Grade AI Agent Security — Zero Infrastruc
 published: true
 description: "A deep dive into TealTiger v1.1.1 — the open-source AI agent security SDK with policy enforcement, guardrails, circuit breakers, audit logging, and 7-provider coverage. No servers required."
 tags: ai, security, opensource, typescript
-cover_image: https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/01-platform-architecture.svg
+cover_image: https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/01-platform-architecture.png
 canonical_url: https://docs.tealtiger.ai/blog/v1-1-1-release
 series: "TealTiger Release Notes"
 ---
@@ -20,7 +20,7 @@ This post walks through the architecture, capabilities, and enterprise features 
 
 TealTiger is built around five core components, each handling a distinct security concern. They compose together through a unified request pipeline, or work independently when you only need one capability.
 
-![TealTiger Platform Architecture](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/01-platform-architecture.svg)
+![TealTiger Platform Architecture](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/01-platform-architecture.png)
 
 Every request flows through the same deterministic pipeline: policy evaluation → content validation → circuit breaker check → provider call → audit logging. Each step is optional, composable, and adds sub-millisecond overhead.
 
@@ -30,7 +30,7 @@ Every request flows through the same deterministic pipeline: policy evaluation �
 
 Understanding how a single request traverses the TealTiger stack is key to appreciating the depth of protection. Here's the complete lifecycle:
 
-![Request Lifecycle](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/02-request-lifecycle.svg)
+![Request Lifecycle](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/02-request-lifecycle.png)
 
 Every step produces a typed `Decision` object with a consistent contract — action, reason codes, risk score, and correlation ID. This means your application logic can handle any outcome uniformly, regardless of which component triggered it.
 
@@ -44,7 +44,7 @@ TealEngine is the brain of the platform. It evaluates security policies against 
 
 **Policy Rollout Modes** allow gradual deployment without risk:
 
-![Policy Rollout Modes](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/03-policy-rollout-modes.svg)
+![Policy Rollout Modes](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/03-policy-rollout-modes.png)
 
 Start in `REPORT_ONLY` to measure impact, promote to `MONITOR` to catch violations without blocking, then move to `ENFORCE` when confident. Mode resolution follows a strict hierarchy: policy-specific override → environment override → global default. Resolution completes in under 1ms.
 
@@ -90,7 +90,7 @@ TealGuard runs content validation entirely in-process — no network calls, no l
 
 Guardrails execute in parallel for maximum throughput:
 
-![TealGuard Parallel Execution](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/04-guardrail-parallel.svg)
+![TealGuard Parallel Execution](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/04-guardrail-parallel.png)
 
 **Detection capabilities:**
 - PII: emails, phone numbers, SSNs, credit card numbers, addresses
@@ -114,7 +114,7 @@ result = await engine.execute(user_input)
 
 TealMonitor establishes behavioral baselines for each agent and detects deviations in real time. It tracks cost velocity, request patterns, and tool usage — flagging anomalies before they become incidents.
 
-![TealMonitor Anomaly Detection](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/10-monitoring-anomaly.svg)
+![TealMonitor Anomaly Detection](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/10-monitoring-anomaly.png)
 
 Cost governance is built in. Set budgets at any scope (request, session, agent, tenant) with configurable windows (per minute, hour, day). When budgets are exceeded, TealEngine produces cost-specific decisions with reason codes like `COST_BUDGET_EXCEEDED` or `MODEL_DOWNGRADED` — enabling graceful degradation instead of hard failures.
 
@@ -124,7 +124,7 @@ Cost governance is built in. Set budgets at any scope (request, session, agent, 
 
 TealCircuit implements the circuit breaker pattern to prevent one failing provider from taking down your entire system. It manages state transitions automatically and integrates with TealMonitor for intelligent recovery.
 
-![TealCircuit State Machine](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/05-circuit-breaker.svg)
+![TealCircuit State Machine](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/05-circuit-breaker.png)
 
 Combined with multi-provider failover, TealCircuit enables architectures where a primary provider failure automatically routes to a backup — with full policy enforcement maintained across the switch.
 
@@ -147,7 +147,7 @@ TealAudit produces versioned, immutable audit events with security-by-default PI
 
 **Redaction levels** provide granular control:
 
-![TealAudit Redaction Levels](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/06-redaction-levels.svg)
+![TealAudit Redaction Levels](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/06-redaction-levels.png)
 
 The default (`HASH`) ensures raw prompts and responses never appear in logs. PII detection runs automatically before any redaction, catching sensitive data even when developers forget to configure it. Debug mode (`NONE`) requires explicit opt-in and emits a warning.
 
@@ -164,7 +164,7 @@ Every audit event carries:
 
 TealTiger wraps 7 LLM providers with consistent security, giving you 95%+ market coverage through a unified interface. Every provider gets the same guardrails, policies, audit logging, and cost tracking — no per-provider security gaps.
 
-![Multi-Provider Coverage](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/07-multi-provider.svg)
+![Multi-Provider Coverage](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/07-multi-provider.png)
 
 | Provider | Client | Unique Capabilities |
 |----------|--------|-------------------|
@@ -184,7 +184,7 @@ Both TypeScript and Python SDKs have full feature parity across all 7 providers.
 
 Every request in TealTiger carries an `ExecutionContext` that propagates through all components. This enables incident investigation, compliance auditing, and distributed tracing without manual plumbing.
 
-![End-to-End Traceability](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/09-traceability.svg)
+![End-to-End Traceability](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/09-traceability.png)
 
 Correlation IDs use cryptographically random UUID v4 to prevent prediction attacks. Context converts to and from HTTP headers for cross-service propagation. OpenTelemetry-compatible trace IDs integrate with existing observability stacks.
 
@@ -194,7 +194,7 @@ Correlation IDs use cryptographically random UUID v4 to prevent prediction attac
 
 TealTiger v1.1.1 maps directly to the OWASP Top 10 for Agentic Applications, covering 7 out of 10 vulnerability categories through its SDK-only architecture:
 
-![OWASP Coverage Map](https://raw.githack.com/agentguard-ai/tealtiger/main/blog/diagrams/08-owasp-coverage.svg)
+![OWASP Coverage Map](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/blog/diagrams-png/08-owasp-coverage.png)
 
 This coverage is achieved without deploying any infrastructure — a significant differentiator for teams that need security without operational overhead.
 
