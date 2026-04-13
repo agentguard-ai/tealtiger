@@ -10,12 +10,9 @@ build/
 # Test coverage
 coverage/
 .nyc_output/
-<<<<<<< HEAD
 htmlcov/
 .coverage
 .hypothesis/
-=======
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
 
 # Environment variables
 .env
@@ -28,7 +25,6 @@ htmlcov/
 *.swp
 *.swo
 *~
-.DS_Store
 
 # Logs
 logs/
@@ -46,78 +42,49 @@ temp/
 # OS files
 Thumbs.db
 .DS_Store
-<<<<<<< HEAD
 
-# Internal documentation and planning (SENSITIVE - DO NOT COMMIT)
+# ── SENSITIVE / INTERNAL — DO NOT COMMIT ─────────────────────────
+
+# Internal documentation and planning
 agentguard-internal-docs/
-docs/
 .kiro/
+
+# Internal analysis and strategy docs (root-level)
 *-INTERNAL-*.md
 *-STRATEGY.md
-*-PLAN.md
-*-PROGRESS-*.md
-*-STATUS*.md
-*-SUMMARY.md
-*-CHECKLIST*.md
-*-COMPLETE*.md
-DAILY-*.md
-WEEK-*.md
+*-ANALYSIS.md
+*-FEASIBILITY.md
+*-ALIGNMENT.md
+BRANDING-*.md
+CONTAINERIZATION-*.md
+DEPLOYMENT-*.md
+KUBERNETES-*.md
 PHASE-*.md
-LAUNCH-*.md
-PUBLISH-*.md
-RELEASE-*.md
-DEPLOY-*.md
-MARKETING-*.md
-SOCIAL-MEDIA-*.md
-BLOGGING-*.md
-BLOG-POST-*.md
-COMPETITIVE-*.md
-PRODUCT-*.md
-PROJECT-*.md
-DEVELOPMENT-*.md
-PYPI-*.md
-PYTHON-SDK-*.md
-GITHUB-*.md
-REPOSITORY-*.md
-CLEANUP-*.md
-AUDIT-*.md
-DISCOVERY-*.md
-POSITIONING-*.md
-REAL-*.md
-REALISTIC-*.md
-NEXT-STEPS-*.md
-TOMORROW-*.md
-URGENT-*.md
-FIX-*.md
-CREATE-*.md
-COPY-*.md
-RESEARCH-*.md
-DEVTO-*.md
-COVER-*.md
-CONFIDENTIAL-*.md
-QUICK-*.md
-PRE-*.md
-POST-*.md
-FINAL-*.md
-DAY-*.md
-HYBRID-*.md
-CONTENT-CALENDAR*.md
-COMPLETE-*.md
-PUBLIC-FILES-ONLY.md
-Document.txt
+POLICY-REGISTRY-*.md
+POST-LAUNCH-*.md
+TYPESCRIPT-PYTHON-PARITY-*.md
+TEALTIGER-*-ANALYSIS.md
+TEALTIGER-*-ALIGNMENT.md
+TEALTIGER-VS-*.md
+TEALTIGER-PLAYGROUND-*.md
+TEALTIGER-SERVERLESS-*.md
+TEALTIGER-SDK-CONTAINERIZATION-*.md
+TEALTIGER-CLINE-*.md
+DOCKER_README.md
+DOCKER-TEST-RESULTS.md
 
 # Internal scripts
 scripts/
+push-examples.sh
+push-examples.bat
 cleanup-*.bat
 copy-*.bat
 final-*.bat
 remove-*.bat
 update-*.bat
-push-examples.bat
-push-examples.sh
 CLEANUP-ACTION-REQUIRED.txt
 
-# Old/deprecated folders
+# Legacy / deprecated directories
 agentguard/
 agentguard-landing/
 agent-guard-sdk-public/
@@ -125,16 +92,67 @@ test-deprecated/
 test-install/
 tealtiger/
 
-# Database files
+# Infrastructure (should be in separate repos)
+ansible/
+helm/
+helm-charts-repo/
+terraform-aws-tealtiger-repo/
+docker/
 database/
-
-# Docker files (if not using Docker)
+Dockerfile
 docker-compose*.yml
 
-# Postman collections (if sensitive)
+# Internal source (monorepo backend — not for public SDK repo)
+src/
+
+# Postman collections
 postman/
 
-# Internal source (if this is just a monorepo wrapper)
-src/
-=======
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
+# Blog drafts and diagrams (published separately)
+blog/
+
+# Internal governance / SOT (separate repo)
+TealTiger-SOT/
+tealtiger-sot-repo/
+
+# Landing pages and websites (separate repos)
+TealTiger-LandingPage/
+TealTiger-Blog/
+TealTiger-Cookbook/
+TealTiger-MCP/
+tealtiger-docs-repo/
+tealtiger-docs-source/
+tealtiger-docs-target/
+tealtiger-action-repo/
+
+# Staging directories (development only)
+staging-py/
+staging-ts/
+
+# Package build artifacts
+package/
+
+# HTML coverage reports
+htmlcov/
+
+# Vertex extension (internal)
+packages/tealtiger-vertex-extension/
+
+# GitHub internal guides
+.github/ENABLE-*.md
+.github/SAMPLE_ISSUES.md
+.github/SOCIAL-PREVIEW-SPEC.md
+
+# Internal workflow files
+.github/workflows/docker-variants.yml
+.github/workflows/publish-circleci-orb.yml
+.github/workflows/v1-1-0-launch.yml
+
+# Build configs (monorepo-level, not needed by SDK users)
+jest.config.js
+tsconfig.json
+.eslintrc.js
+
+# Misc internal files
+.cleanup-sensitive-files.txt
+*.bat
