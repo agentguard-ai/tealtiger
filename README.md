@@ -24,6 +24,12 @@ Open source. TypeScript + Python. Works with any provider.
 
 TealTiger is an open-source SDK that provides **deterministic governance** for AI agents. It enforces security policies, tracks costs, and produces structured evidence — all at runtime, with no infrastructure required.
 
+> **Looking for the source code?** This is the hub repo. The SDK source lives in the language-specific repos:
+> - **TypeScript SDK**: [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod)
+> - **Python SDK**: [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod)
+>
+> Or clone this repo with submodules: `git clone --recurse-submodules https://github.com/agentguard-ai/tealtiger.git`
+
 Unlike probabilistic safety filters, TealTiger uses **deterministic policy evaluation**: same input + same policy = same decision, every time. Every governance verdict is reconstructable, traceable to the human who authored the policy, and exportable as structured evidence (SARIF, JUnit XML, JSON).
 
 **Key principle:** Governance should be an engineering property embedded in the runtime — not a document reviewed after the fact.
