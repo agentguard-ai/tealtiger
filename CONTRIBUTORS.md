@@ -4,7 +4,7 @@ Thank you to everyone who has contributed to TealTiger! 🐯
 
 ## Founding Contributors
 
-*Be the first! Check out our [Contributing Guide](./CONTRIBUTING.md) and [good first issues](https://github.com/agentguard-ai/tealtiger/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) to get started.*
+- **[@mvanhorn](https://github.com/mvanhorn)** — Anthropic Claude quickstart examples (TypeScript + Python) — PR #21
 
 ## Core Team
 
