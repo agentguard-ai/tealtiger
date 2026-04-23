@@ -11,7 +11,7 @@ Open source. TypeScript + Python. Works with any provider.
 
 [![npm version](https://badge.fury.io/js/tealtiger.svg)](https://www.npmjs.com/package/tealtiger)
 [![PyPI version](https://badge.fury.io/py/tealtiger.svg)](https://pypi.org/project/tealtiger/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub stars](https://img.shields.io/github/stars/agentguard-ai/tealtiger?style=social)](https://github.com/agentguard-ai/tealtiger)
 
 [Website](https://tealtiger.co.in) · [Documentation](#documentation) · [Examples](#examples) · [Contributing](#-build-with-us)
@@ -222,7 +222,7 @@ See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
 ## 📄 License
 
-TealTiger is [MIT licensed](./LICENSE).
+TealTiger is [Apache 2.0 licensed](./LICENSE).
 
 ---
 
