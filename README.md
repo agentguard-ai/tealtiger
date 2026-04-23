@@ -207,16 +207,19 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - Model/tool registry with allowlisting and provenance verification
 - Evidence export (SARIF v2.1.0, JUnit XML, JSON)
 
-See [ROADMAP.md](./ROADMAP.md) for the full plan.
+See the roadmap section above for the full plan.
 
 ---
 
 ## 🌟 Community
 
 - **GitHub Discussions**: [Ask questions, share ideas](https://github.com/agentguard-ai/tealtiger/discussions)
-- **LinkedIn**: [TealTiger](https://www.linkedin.com/company/agentguard-ai)
+- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
+- **Blog**: [blogs.tealtiger.ai](https://blogs.tealtiger.ai)
+- **Playground**: [playground.tealtiger.ai](https://playground.tealtiger.ai)
+- **LinkedIn**: [TealTiger](https://www.linkedin.com/company/tealtiger)
 - **Dev.to**: [Blog](https://dev.to/nagasatish_chilakamarti_2)
-- **Email**: tealtiger@proton.me
+- **Email**: reachout@tealtiger.ai
 
 ---
 
