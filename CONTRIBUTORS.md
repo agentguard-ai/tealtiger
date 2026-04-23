@@ -4,7 +4,7 @@ Thank you to everyone who has contributed to TealTiger! 🐯
 
 ## Founding Contributors
 
-- **[@mvanhorn](https://github.com/mvanhorn)** — Anthropic Claude quickstart examples (TypeScript + Python) — PR #21
+- **[@mvanhorn](https://github.com/mvanhorn)** (Matt Van Horn) — Anthropic Claude quickstart examples (TypeScript + Python) — PR #21
 
 ## Core Team
 
