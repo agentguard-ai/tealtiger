@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src=".github/logo/tealtiger-logo.png" alt="TealTiger Logo" width="200">
+<img src=".github/logo/tealtiger-logo-256.png" alt="TealTiger Logo" width="200">
 
 **AI Agent Security & Governance SDK**
 
