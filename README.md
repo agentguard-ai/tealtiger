@@ -1,271 +1,241 @@
+# TealTiger
+
 <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/logo/tealtiger-logo-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset=".github/logo/tealtiger-logo-light.png">
-    <img alt="TealTiger Logo" src=".github/logo/tealtiger-logo-light.png" width="300">
-  </picture>
-  
-  # TealTiger
-  
-  **Developer-First AI Security & Cost Governance SDK**
-  
-  [![npm version](https://badge.fury.io/js/tealtiger.svg)](https://www.npmjs.com/package/tealtiger)
-  [![PyPI version](https://badge.fury.io/py/tealtiger.svg)](https://pypi.org/project/tealtiger/)
-  [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-  [![Documentation](https://img.shields.io/badge/docs-docs.tealtiger.ai-teal)](https://docs.tealtiger.ai)
-  
-  **Secure your AI. Control your costs. Zero infrastructure.**
+
+<img src=".github/logo/tealtiger-logo.png" alt="TealTiger Logo" width="200">
+
+**AI Agent Security & Governance SDK**
+
+Deterministic governance, guardrails, cost tracking, and policy management for LLM applications.
+Open source. TypeScript + Python. Works with any provider.
+
+[![npm version](https://badge.fury.io/js/tealtiger.svg)](https://www.npmjs.com/package/tealtiger)
+[![PyPI version](https://badge.fury.io/py/tealtiger.svg)](https://pypi.org/project/tealtiger/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/agentguard-ai/tealtiger?style=social)](https://github.com/agentguard-ai/tealtiger)
+
+[Website](https://tealtiger.co.in) · [Documentation](#documentation) · [Examples](#examples) · [Contributing](#-build-with-us)
+
 </div>
-
-Drop-in SDKs that add security guardrails, policy enforcement, and cost tracking to your AI applications. Works with OpenAI, Anthropic, and more.
-
-> 📖 **[Read the introduction blog post](https://dev.to/nagasatish_chilakamarti_2/introducing-tealtiger-ai-security-cost-control-made-simple-4lma)** to learn more about TealTiger!
 
 ---
 
-## ✨ What is TealTiger?
+## What is TealTiger?
 
-TealTiger is an **SDK-only AI security and governance platform** that provides:
+TealTiger is an open-source SDK that provides **deterministic governance** for AI agents. It enforces security policies, tracks costs, and produces structured evidence — all at runtime, with no infrastructure required.
 
-- 🛡️ **Policy Enforcement** - ENFORCE / MONITOR / REPORT_ONLY modes for safe rollouts
-- 🔒 **Security Guardrails** - PII detection, prompt injection prevention, content moderation
-- 💰 **Cost Tracking** - Monitor and control AI spending across providers
-- 📊 **Audit Logging** - Redaction-by-default audit trails with correlation IDs
-- 🎯 **Deterministic Decisions** - Stable, typed Decision contract with reason codes
-- ⚡ **Zero Infrastructure** - No servers, no deployment complexity
+Unlike probabilistic safety filters, TealTiger uses **deterministic policy evaluation**: same input + same policy = same decision, every time. Every governance verdict is reconstructable, traceable to the human who authored the policy, and exportable as structured evidence (SARIF, JUnit XML, JSON).
+
+**Key principle:** Governance should be an engineering property embedded in the runtime — not a document reviewed after the fact.
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
+### TypeScript
 
-**TypeScript/JavaScript:**
 ```bash
 npm install tealtiger
 ```
 
-**Python:**
+```typescript
+import { TealOpenAI } from 'tealtiger';
+
+const client = new TealOpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  guardrails: {
+    piiDetection: true,
+    promptInjection: true,
+    contentModeration: true,
+  },
+  budget: {
+    maxCostPerRequest: 0.50,
+    maxCostPerDay: 10.00,
+  },
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }],
+});
+// Guardrails enforced. Cost tracked. Evidence produced.
+```
+
+### Python
+
 ```bash
 pip install tealtiger
 ```
 
-### Basic Usage
-
-**TypeScript:**
-```typescript
-import { TealEngine, PolicyMode } from 'tealtiger';
-
-const engine = new TealEngine({
-  policies: {
-    tools: {
-      web_search: { allowed: true },
-      file_delete: { allowed: false }
-    }
-  },
-  mode: PolicyMode.ENFORCE
-});
-
-const decision = engine.evaluate({
-  action: 'tool.execute',
-  tool_name: 'web_search',
-  context: { user_id: 'user-123' }
-});
-
-console.log(decision.action); // 'allow' or 'deny'
-console.log(decision.reason_code); // e.g., 'policy.tool.allowed'
-```
-
-**Python:**
 ```python
-from tealtiger import TealEngine, PolicyMode
+from tealtiger import TealOpenAI
 
-engine = TealEngine(
-    policies={
-        "tools": {
-            "web_search": {"allowed": True},
-            "file_delete": {"allowed": False}
-        }
+client = TealOpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    guardrails={
+        "pii_detection": True,
+        "prompt_injection": True,
+        "content_moderation": True,
     },
-    mode=PolicyMode.ENFORCE
+    budget={
+        "max_cost_per_request": 0.50,
+        "max_cost_per_day": 10.00,
+    },
 )
 
-decision = engine.evaluate({
-    "action": "tool.execute",
-    "tool_name": "web_search",
-    "context": {"user_id": "user-123"}
-})
-
-print(decision.action)  # 'allow' or 'deny'
-print(decision.reason_code)  # e.g., 'policy.tool.allowed'
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+# Guardrails enforced. Cost tracked. Evidence produced.
 ```
 
 ---
 
-## 📦 SDK Repositories
+## ✨ Features
 
-TealTiger provides separate repositories for each SDK with full documentation:
+### 🛡️ Security Guardrails
+- **PII Detection** — Detect and redact sensitive information automatically
+- **Prompt Injection Prevention** — Block malicious prompt injection attempts
+- **Content Moderation** — Filter toxic, harmful, or inappropriate content
+- **Secret Detection** — 500+ patterns across 9 categories with confidence scoring
+- **Custom Rules** — Define your own security policies
 
-<div align="center">
+### 💰 Cost Governance
+- **Budget Enforcement** — Hard limits per request, session, and day
+- **Cost Tracking** — Real-time monitoring across all providers
+- **Cost Alerts** — Notifications at configurable thresholds
+- **Circuit Breakers** — Prevent runaway cost loops automatically
 
-| SDK | Repository | Package | Documentation |
-|-----|------------|---------|---------------|
-| **TypeScript** | [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod) | [npm](https://www.npmjs.com/package/tealtiger) | [Docs](https://docs.tealtiger.ai/api-reference/typescript/index) |
-| **Python** | [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod) | [PyPI](https://pypi.org/project/tealtiger/) | [Docs](https://docs.tealtiger.ai/api-reference/python/index) |
+### 🔌 7 LLM Providers
+- **OpenAI** — GPT-4, GPT-4o, GPT-3.5
+- **Anthropic** — Claude 3.5, Claude 3
+- **Google Gemini** — Multimodal support
+- **AWS Bedrock** — Claude, Titan, Jurassic, Command, Llama
+- **Azure OpenAI** — Deployment-based routing
+- **Cohere** — Chat, RAG, embeddings
+- **Mistral AI** — European data residency
 
-</div>
+### 🏗️ Governance Architecture
+- **Deterministic Policy Evaluation** — No LLM in the governance path
+- **Structured Evidence** — Every decision produces a reconstructable record
+- **Correlation IDs** — End-to-end traceability across the decision chain
+- **Policy Traceability** — Every verdict traces to the human policy author
+- **OWASP ASI Coverage** — Addresses 8/10 OWASP Top 10 for Agentic Applications
 
 ---
 
-## 🌟 Key Features
+## 📦 SDKs
 
-### Policy Rollout Modes
-Deploy policies safely with three modes:
-- **ENFORCE**: Block violating actions in production
-- **MONITOR**: Log violations without blocking (shadow mode)
-- **REPORT_ONLY**: Collect data for policy tuning
-
-### Core Components (v1.1.0)
-
-- **TealEngine** - Policy evaluation engine with deterministic decisions
-- **TealGuard** - Security guardrails (PII, prompt injection, content moderation)
-- **TealCircuit** - Circuit breaker for cascading failure prevention
-- **TealAudit** - Audit logging with redaction-by-default
-- **TealMonitor** - Performance and cost monitoring
-
-### Enterprise Features (v1.1.x)
-
-- **Decision Contract** - Stable, typed Decision object with action, reason codes, risk scores
-- **Execution Context** - Correlation IDs and traceability across components
-- **Audit Redaction** - Security-by-default with configurable redaction levels
-- **Policy Testing** - CLI and library test runner for CI/CD integration
-
-### Provider Support
-
-**Current (v1.1.0):**
-- ✅ OpenAI (GPT-4, GPT-3.5)
-- ✅ Anthropic (Claude)
-
-**Coming in v1.1.x:**
-- 🔜 Google Gemini
-- 🔜 AWS Bedrock
-- 🔜 Azure OpenAI
-- 🔜 Cohere
-- 🔜 Mistral AI
+| Language | Source Code | Package | Install |
+|----------|------------|---------|---------|
+| TypeScript | [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod) | [npm](https://www.npmjs.com/package/tealtiger) | `npm install tealtiger` |
+| Python | [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod) | [PyPI](https://pypi.org/project/tealtiger/) | `pip install tealtiger` |
 
 ---
 
 ## 📚 Documentation
 
-- **[Official Documentation](https://docs.tealtiger.ai)** - Complete guides and API reference
-- **[Quickstart Guide](https://docs.tealtiger.ai/quickstart)** - Get started in 5 minutes
-- **[Core Concepts](https://docs.tealtiger.ai/concepts/decision-lifecycle)** - Understand the decision model
-- **[API Reference - TypeScript](https://docs.tealtiger.ai/api-reference/typescript/index)** - TypeScript API docs
-- **[API Reference - Python](https://docs.tealtiger.ai/api-reference/python/index)** - Python API docs
-- **[Migration Guide](https://docs.tealtiger.ai/guides/migration-v1.1.x)** - Upgrade to v1.1.x
-- **[FAQ](https://docs.tealtiger.ai/guides/faq)** - Frequently asked questions
+- [Quick Start Guide](#-quick-start)
+- [Security Guardrails](#️-security-guardrails)
+- [Cost Governance](#-cost-governance)
+- [Provider Setup](#-7-llm-providers)
+- [Contributing Guide](./CONTRIBUTING.md)
+- [Security Policy](./SECURITY.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Roadmap](./ROADMAP.md)
 
 ---
 
-## 🛡️ OWASP Coverage
+## 🐯 Build With Us — Early Contributor Program
 
-TealTiger v1.1.0 provides comprehensive coverage for **7 out of 10** OWASP Top 10 for Agentic Applications (ASI01-ASI10) vulnerabilities through its SDK-only architecture.
+TealTiger is open source and we're looking for early contributors to shape the future of AI agent governance.
 
-| ASI | Vulnerability | Coverage |
-|-----|--------------|----------|
-| ASI01 | Goal Hijacking & Prompt Injection | 🟡 Partial |
-| ASI02 | Tool Misuse & Unauthorized Actions | 🟢 Full |
-| ASI03 | Identity & Access Control Failures | 🟢 Full |
-| ASI04 | Supply Chain Vulnerabilities | 🔧 Support |
-| ASI05 | Unsafe Code Execution | 🟢 Full |
-| ASI06 | Memory & Context Corruption | 🟢 Full |
-| ASI07 | Inter-Agent Communication Security | ❌ Platform |
-| ASI08 | Cascading Failures & Resource Exhaustion | 🟢 Full |
-| ASI09 | Harmful Content Generation | 🔧 Support |
-| ASI10 | Rogue Agent Behavior | 🟢 Full |
+### What You Can Work On
 
-**Total Coverage: 7/10 ASIs (70%) with SDK alone**
+| Area | Examples | Difficulty |
+|------|----------|------------|
+| 🔍 Secret Detection | New detection patterns, custom categories | 🟢 Beginner |
+| 📝 Documentation | Guides, examples, API docs, typo fixes | 🟢 Beginner |
+| 🧪 Tests | Unit tests, property-based tests, integration tests | 🟡 Intermediate |
+| 🔌 Integrations | LangChain, CrewAI, AutoGen, LlamaIndex middleware | 🟡 Intermediate |
+| 💾 Memory Adapters | Redis, Pinecone, Weaviate, ChromaDB adapters | 🟡 Intermediate |
+| 🔄 CI/CD Templates | Jenkins, Azure Pipelines, Bitbucket Pipelines | 🟡 Intermediate |
+| 🏗️ Core Modules | Governance engine, evidence export, policy evaluation | 🔴 Advanced |
 
-Learn more: [OWASP ASI Mapping](./OWASP-AGENTIC-TOP10-TEALTIGER-MAPPING.md)
+### What Early Contributors Get
 
----
+- 🏆 **Named in CONTRIBUTORS.md** and release notes
+- 🎖️ **"Founding Contributor" badge** — first 25 merged PRs get permanent recognition
+- 📣 **Shoutout on TealTiger social channels** (LinkedIn, X, Dev.to)
+- 🔑 **Early access** to upcoming governance features before public release
+- 💬 **Direct access** to the core team via GitHub Discussions
+- 📝 **Co-authorship opportunity** on technical blog posts
 
-## 🎯 Use Cases
+### Get Started
 
-- **Enterprise AI Applications** - Policy enforcement and compliance
-- **Customer Support Bots** - Protect customer PII and sensitive data
-- **Healthcare AI** - HIPAA compliance and audit trails
-- **Financial Services** - Prevent data leakage and unauthorized actions
-- **E-commerce Agents** - Secure payment information and transactions
-- **Education Platforms** - Content safety and moderation
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
-
-### Development Setup
-
-**TypeScript SDK:**
 ```bash
+# 1. Star this repo (it helps!)
+
+# 2. Fork and clone the SDK you want to contribute to:
+# TypeScript SDK:
 git clone https://github.com/agentguard-ai/tealtiger-typescript-prod.git
-cd tealtiger-typescript-prod
-npm install
-npm test
+# Python SDK:
+git clone https://github.com/agentguard-ai/tealtiger-python-prod.git
+
+# 3. Pick a "good first issue"
+# https://github.com/agentguard-ai/tealtiger/issues?q=label%3A%22good+first+issue%22
+
+# 4. Submit a PR
+# 5. Join the team 🐯
 ```
 
-**Python SDK:**
-```bash
-git clone https://github.com/agentguard-ai/tealtiger-python-prod.git
-cd tealtiger-python-prod
-pip install -e ".[dev]"
-pytest
-```
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## 🗺️ Roadmap
+
+**Current:** v1.1.0 — 7 providers, TealEngine, guardrails, cost tracking
+
+**Next:** v1.2.0 — Governance Bundle
+- 7 governance modules across 6 dimensions
+- Formal evidence contract with named reason codes
+- Secret detection (500+ patterns, confidence scoring)
+- Memory governance (5 scopes, 4 classifications)
+- Reliability controls (retry budgets, circuit breakers, fallback chains)
+- Model/tool registry with allowlisting and provenance verification
+- Evidence export (SARIF v2.1.0, JUnit XML, JSON)
+
+See [ROADMAP.md](./ROADMAP.md) for the full plan.
+
+---
+
+## 🌟 Community
+
+- **GitHub Discussions**: [Ask questions, share ideas](https://github.com/agentguard-ai/tealtiger/discussions)
+- **LinkedIn**: [TealTiger](https://www.linkedin.com/company/agentguard-ai)
+- **Dev.to**: [Blog](https://dev.to/nagasatish_chilakamarti_2)
+- **Email**: tealtiger@proton.me
 
 ---
 
 ## 📄 License
 
-Apache 2.0 © TealTiger Team
-
-TealTiger SDKs are open source and will always remain free. The future SaaS platform will be a commercial offering.
-
-See [LICENSE](./LICENSE) for details.
+TealTiger is [MIT licensed](./LICENSE).
 
 ---
 
-## 🔒 Security
+## 🙏 Acknowledgments
 
-Security is our top priority. If you discover a security vulnerability, please see our [Security Policy](./SECURITY.md).
-
----
-
-## 📞 Support & Community
-
-- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
-- **GitHub Issues**: [Report bugs and request features](https://github.com/agentguard-ai/tealtiger/issues)
-- **Email**: [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)
-- **Blog**: [blogs.tealtiger.ai](https://blogs.tealtiger.ai)
-
----
-
-## 🌟 Links
-
-- **Website**: [tealtiger.ai](https://tealtiger.ai)
-- **Documentation**: [docs.tealtiger.ai](https://docs.tealtiger.ai)
-- **Playground**: [playground.tealtiger.ai](https://playground.tealtiger.ai)
-- **NPM Package**: [npmjs.com/package/tealtiger](https://www.npmjs.com/package/tealtiger)
-- **PyPI Package**: [pypi.org/project/tealtiger](https://pypi.org/project/tealtiger/)
-- **TypeScript SDK**: [github.com/agentguard-ai/tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod)
-- **Python SDK**: [github.com/agentguard-ai/tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod)
+Built with ❤️ by the TealTiger team and [contributors](./CONTRIBUTORS.md).
 
 ---
 
 <div align="center">
 
-**Made with ❤️ for the AI community**
+**⭐ Star this repo if you believe AI agents need governance, not just guardrails.**
 
-[⭐ Star us on GitHub](https://github.com/agentguard-ai/tealtiger) | [📖 Read the Docs](https://docs.tealtiger.ai) | [🐦 Follow us on Twitter](https://twitter.com/tealtiger)
+[Report Bug](https://github.com/agentguard-ai/tealtiger/issues/new?template=bug_report.md) · [Request Feature](https://github.com/agentguard-ai/tealtiger/issues/new?template=feature_request.md) · [Ask Question](https://github.com/agentguard-ai/tealtiger/issues/new?template=question.md)
 
 </div>
