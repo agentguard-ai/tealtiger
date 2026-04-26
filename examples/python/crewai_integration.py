@@ -18,7 +18,7 @@ Shows how to add TealTiger governance to a multi-agent CrewAI workflow:
 
 Run with:
 
-    pip install 'crewai>=0.55'
+    pip install 'crewai>=0.70'
     ANTHROPIC_API_KEY=sk-ant-...      # required for live LLM calls
     TEALTIGER_SSA_URL=http://...      # required for tool allowlist
     TEALTIGER_API_KEY=...
@@ -79,64 +79,63 @@ def build_crew_policy():
     )
 
 
-# 2. Guarded tool: every CrewAI tool _run() routes through TealTiger first.
-#    A deny short-circuits the tool with a clear error; the agent then
-#    sees the failure in its scratchpad and either tries another tool or
-#    stops.
-class GuardedTool(BaseTool):
-    """A CrewAI BaseTool that runs every call through TealTiger first."""
+# 2. Guarded tool: every CrewAI tool _run() routes through TealTiger
+#    first. A deny short-circuits the tool with a clear error; the agent
+#    then sees the failure in its scratchpad and either tries another
+#    tool or stops.
+#
+#    Each subclass declares its own typed _run() so CrewAI can derive an
+#    args_schema from the signature. A base class with **kwargs would
+#    drop the schema and the model would receive the tools as taking no
+#    arguments.
+def _guard_call(
+    guard: TealTiger,
+    tool_name: str,
+    agent_id: str,
+    parameters: Dict[str, Any],
+):
+    return guard.execute_tool_sync(
+        tool_name=tool_name,
+        parameters=parameters,
+        context={
+            "session_id": "crewai-demo",
+            "user_id": "demo-user",
+            "agent_id": agent_id,
+        },
+    )
 
-    name: str
-    description: str
 
-    def __init__(self, name: str, description: str, guard: TealTiger, agent_id: str):
-        super().__init__(name=name, description=description)
+class WebSearchTool(BaseTool):
+    name: str = "web_search"
+    description: str = "Search the public web and return result snippets"
+
+    def __init__(self, guard: TealTiger, agent_id: str):
+        super().__init__()
         self._guard = guard
         self._agent_id = agent_id
 
-    def _run(self, **kwargs: Any) -> str:
-        result = self._guard.execute_tool_sync(
-            tool_name=self.name,
-            parameters=kwargs,
-            context={
-                "session_id": "crewai-demo",
-                "user_id": "demo-user",
-                "agent_id": self._agent_id,
-            },
-        )
+    def _run(self, query: str) -> str:
+        result = _guard_call(self._guard, self.name, self._agent_id, {"query": query})
         if not result.success:
             return f"[blocked by TealTiger: {result.error}]"
-        return self._actual_run(**kwargs)
-
-    def _actual_run(self, **kwargs: Any) -> str:
-        # Subclasses override this with the real tool logic. Stubbed here
-        # so the example runs end-to-end without external services.
-        return f"[stub {self.name} result for {kwargs!r}]"
-
-
-class WebSearchTool(GuardedTool):
-    def __init__(self, guard: TealTiger, agent_id: str):
-        super().__init__(
-            name="web_search",
-            description="Search the public web and return result snippets",
-            guard=guard,
-            agent_id=agent_id,
-        )
-
-    def _actual_run(self, query: str = "") -> str:
         return f"[stub web_search result for {query!r}]"
 
 
-class CalculatorTool(GuardedTool):
-    def __init__(self, guard: TealTiger, agent_id: str):
-        super().__init__(
-            name="calculator",
-            description="Evaluate a deterministic arithmetic expression",
-            guard=guard,
-            agent_id=agent_id,
-        )
+class CalculatorTool(BaseTool):
+    name: str = "calculator"
+    description: str = "Evaluate a deterministic arithmetic expression"
 
-    def _actual_run(self, expression: str = "") -> str:
+    def __init__(self, guard: TealTiger, agent_id: str):
+        super().__init__()
+        self._guard = guard
+        self._agent_id = agent_id
+
+    def _run(self, expression: str) -> str:
+        result = _guard_call(
+            self._guard, self.name, self._agent_id, {"expression": expression}
+        )
+        if not result.success:
+            return f"[blocked by TealTiger: {result.error}]"
         # ast.literal_eval rejects anything except literals; safe for a demo.
         import ast
         try:
@@ -193,16 +192,19 @@ def main() -> None:
     ))
 
     # 5. Crew-wide budget. Multi-agent workflows fan out fast; a $5/day
-    #    cap with alerts at 50/75/90% catches runaway crews before they
-    #    bill. BudgetManager.create_budget takes positional fields, not a
-    #    pre-built BudgetConfig.
+    #    cap catches runaway crews before they bill. action="block" is
+    #    what enforces the cap; action="alert" only emits warnings and
+    #    still returns allowed=True from check_budget. Alert thresholds
+    #    at 50/75/90 fire on the way to the cap. BudgetManager
+    #    .create_budget takes positional fields, not a pre-built
+    #    BudgetConfig.
     budget_manager = BudgetManager(storage)
     budget_manager.create_budget(
         name="Research Crew Daily Budget",
         limit=5.0,
         period="daily",
         alert_thresholds=[50, 75, 90],
-        action="alert",
+        action="block",
         enabled=True,
     )
 
