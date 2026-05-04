@@ -1,71 +1,49 @@
-# Contributing to TealTiger SDK
+# Contributing to TealTiger
 
-First off, thank you for considering contributing to TealTiger SDK! It's people like you that make TealTiger such a great tool for securing AI agents.
+Thank you for considering contributing to TealTiger! It's people like you that make TealTiger a great tool for securing AI agents.
 
-## 🌟 Ways to Contribute
+## Ways to Contribute
 
-There are many ways to contribute to TealTiger SDK:
+- 🐛 **Report bugs** — Help us identify and fix issues
+- 💡 **Suggest features** — Share ideas for new functionality
+- 📝 **Improve documentation** — Help others understand and use the SDK
+- 🔧 **Submit pull requests** — Contribute code improvements
+- 🔍 **Add secret detection patterns** — Expand our 500+ pattern library
+- 💬 **Answer questions** — Help other users in [Discussions](https://github.com/agentguard-ai/tealtiger/discussions)
 
-- 🐛 **Report bugs** - Help us identify and fix issues
-- 💡 **Suggest features** - Share ideas for new functionality
-- 📝 **Improve documentation** - Help others understand and use the SDK
-- 🔧 **Submit pull requests** - Contribute code improvements
-- 💬 **Answer questions** - Help other users in discussions
-- 🎨 **Share examples** - Show how you're using TealTiger
+## Getting Started
 
-## 🚀 Getting Started
+### Which repo?
 
-### Prerequisites
+TealTiger uses separate repos for each SDK:
 
-- Node.js 16+ and npm
-- Git
-- TypeScript knowledge (for code contributions)
+| SDK | Repo | Setup |
+|-----|------|-------|
+| TypeScript | [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod) | `npm install && npm test` |
+| Python | [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod) | `pip install -e ".[dev]" && pytest` |
 
 ### Development Setup
 
-1. **Fork the repository**
-   ```bash
-   # Click the "Fork" button on GitHub
-   ```
+**TypeScript SDK:**
+```bash
+git clone https://github.com/agentguard-ai/tealtiger-typescript-prod.git
+cd tealtiger-typescript-prod
+npm install
+npm test
+npm run build
+```
 
-2. **Clone your fork**
-   ```bash
-<<<<<<< HEAD
-   git clone https://github.com/YOUR_USERNAME/tealtiger.git
-   cd tealtiger
-=======
-   git clone https://github.com/YOUR_USERNAME/tealtiger-typescript.git
-   cd tealtiger-typescript
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
-   ```
+**Python SDK:**
+```bash
+git clone https://github.com/agentguard-ai/tealtiger-python-prod.git
+cd tealtiger-python-prod
+pip install -e ".[dev]"
+pytest
+```
 
-3. **Add upstream remote**
-   ```bash
-<<<<<<< HEAD
-   git remote add upstream https://github.com/agentguard-ai/tealtiger.git
-=======
-   git remote add upstream https://github.com/agentguard-ai/tealtiger-typescript.git
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
-   ```
+## Development Workflow
 
-4. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-5. **Run tests**
-   ```bash
-   npm test
-   ```
-
-6. **Build the project**
-   ```bash
-   npm run build
-   ```
-
-## 📝 Development Workflow
-
-### 1. Create a Branch
+### 1. Create a branch
 
 ```bash
 git checkout -b feature/your-feature-name
@@ -73,364 +51,92 @@ git checkout -b feature/your-feature-name
 git checkout -b fix/your-bug-fix
 ```
 
-Branch naming conventions:
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation changes
-- `refactor/` - Code refactoring
-- `test/` - Test improvements
+Branch naming: `feature/`, `fix/`, `docs/`, `refactor/`, `test/`
 
-### 2. Make Your Changes
+### 2. Make your changes
 
-- Write clear, concise code
 - Follow the existing code style
 - Add tests for new functionality
 - Update documentation as needed
-- Keep commits focused and atomic
 
-### 3. Test Your Changes
+### 3. Test
 
 ```bash
-# Run all tests
+# TypeScript
 npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run linter
 npm run lint
 
-# Run type checking
-npm run type-check
+# Python
+pytest
+ruff check .
 ```
 
-### 4. Commit Your Changes
+### 4. Commit
 
 We follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```bash
-git commit -m "feat: add new policy validation feature"
-git commit -m "fix: resolve timeout issue in executeTool"
-git commit -m "docs: update API reference for PolicyBuilder"
+git commit -m "feat: add Twilio secret detection pattern"
+git commit -m "fix: resolve timeout in TealCircuit"
+git commit -m "docs: add CrewAI integration example"
 ```
 
-Commit message format:
-- `feat:` - New feature
-- `fix:` - Bug fix
-- `docs:` - Documentation changes
-- `style:` - Code style changes (formatting, etc.)
-- `refactor:` - Code refactoring
-- `test:` - Test additions or changes
-- `chore:` - Build process or auxiliary tool changes
+### 5. Submit a PR
 
-### 5. Push to Your Fork
+1. Push to your fork
+2. Open a PR against the appropriate SDK repo
+3. Fill out the PR template
+4. Wait for review (typically 2-3 business days)
 
-```bash
-git push origin feature/your-feature-name
-```
+## PR Checklist
 
-### 6. Create a Pull Request
-
-<<<<<<< HEAD
-1. Go to the [TealTiger repository](https://github.com/agentguard-ai/tealtiger)
-=======
-1. Go to the [TealTiger TypeScript SDK repository](https://github.com/agentguard-ai/tealtiger-typescript)
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
-2. Click "New Pull Request"
-3. Select your fork and branch
-4. Fill out the PR template
-5. Submit the pull request
-
-## 📋 Pull Request Guidelines
-
-### PR Title
-
-Use the same format as commit messages:
-```
-feat: add support for custom policy validators
-fix: resolve memory leak in SSA client
-docs: improve getting started guide
-```
-
-### PR Description
-
-Include:
-- **What** - What changes does this PR introduce?
-- **Why** - Why are these changes needed?
-- **How** - How were the changes implemented?
-- **Testing** - How were the changes tested?
-- **Screenshots** - If applicable, add screenshots
-
-### PR Checklist
-
-Before submitting, ensure:
-
-- [ ] Code follows the project's style guidelines
-- [ ] Tests pass locally (`npm test`)
+- [ ] Tests pass (`npm test` or `pytest`)
 - [ ] New tests added for new functionality
-- [ ] Documentation updated (if needed)
+- [ ] Documentation updated if needed
 - [ ] Commit messages follow conventional commits
-- [ ] No merge conflicts with main branch
-- [ ] PR description is clear and complete
+- [ ] No merge conflicts with main
 
-## 🧪 Testing Guidelines
+## Good First Issues
 
-### Writing Tests
+Look for issues labeled [`good first issue`](https://github.com/agentguard-ai/tealtiger/issues?q=label%3A%22good+first+issue%22) — these are specifically designed for new contributors.
 
-- Place tests in `__tests__` directories next to the code
-- Use descriptive test names
-- Test both success and failure cases
-- Aim for high code coverage (>80%)
+**Easy wins:**
+- Add secret detection patterns (e.g., SendGrid, Twilio, Slack webhook)
+- Add quickstart examples for specific providers
+- Improve documentation and add code comments
+- Add cost comparison tables
 
-Example test structure:
-
-```typescript
-describe('TealTiger', () => {
-  describe('executeTool', () => {
-    it('should execute tool successfully with valid parameters', async () => {
-      // Arrange
-      const guard = new TealTiger(config);
-      
-      // Act
-      const result = await guard.executeTool('test-tool', params);
-      
-      // Assert
-      expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-    });
-
-    it('should throw error when API key is invalid', async () => {
-      // Arrange
-      const guard = new TealTiger({ ...config, apiKey: 'invalid' });
-      
-      // Act & Assert
-      await expect(
-        guard.executeTool('test-tool', params)
-      ).rejects.toThrow('Invalid API key');
-    });
-  });
-});
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run specific test file
-npm test -- TealTiger.test.ts
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-## 📚 Documentation Guidelines
-
-### Code Documentation
-
-- Add JSDoc comments for all public APIs
-- Include parameter descriptions and return types
-- Provide usage examples
-
-```typescript
-/**
- * Execute a tool with security evaluation
- * 
- * @param toolName - Name of the tool to execute
- * @param parameters - Tool parameters
- * @param context - Execution context (sessionId, userId, etc.)
- * @param executor - Optional custom executor function
- * @returns Promise resolving to execution result
- * 
- * @example
- * ```typescript
- * const result = await guard.executeTool(
- *   'web-search',
- *   { query: 'AI security' },
- *   { sessionId: 'session-123' }
- * );
- * ```
- */
-async executeTool(
-  toolName: string,
-  parameters: Record<string, any>,
-  context: ExecutionContext,
-  executor?: ToolExecutor
-): Promise<ExecutionResult>
-```
-
-### README Updates
-
-- Keep examples up-to-date
-- Add new features to the feature list
-- Update API reference for new methods
-
-## 🎨 Code Style Guidelines
+## Code Style
 
 ### TypeScript
-
 - Use TypeScript for all new code
-- Define interfaces for all public APIs
-- Avoid `any` types when possible
-- Use meaningful variable names
+- Define interfaces for public APIs
+- Avoid `any` types
+- Add JSDoc comments for public methods
 
-### Formatting
+### Python
+- Type hints on all public functions
+- Docstrings on all public classes and methods
+- Follow PEP 8 (enforced by ruff)
 
-We use Prettier for code formatting:
+## Recognition
 
-```bash
-npm run format
-```
-
-### Linting
-
-We use ESLint for code quality:
-
-```bash
-npm run lint
-npm run lint:fix
-```
-
-## 🐛 Bug Reports
-
-### Before Submitting
-
-1. Check if the bug has already been reported
-2. Try to reproduce with the latest version
-3. Gather relevant information
-
-### Bug Report Template
-
-```markdown
-**Describe the bug**
-A clear description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Initialize TealTiger with '...'
-2. Call executeTool with '...'
-3. See error
-
-**Expected behavior**
-What you expected to happen.
-
-**Actual behavior**
-What actually happened.
-
-**Environment**
-- OS: [e.g., macOS 13.0]
-- Node.js version: [e.g., 18.0.0]
-- TealTiger SDK version: [e.g., 1.0.0]
-
-**Additional context**
-Any other relevant information.
-```
-
-## 💡 Feature Requests
-
-### Before Submitting
-
-1. Check if the feature has already been requested
-2. Consider if it fits the project's scope
-3. Think about how it would work
-
-### Feature Request Template
-
-```markdown
-**Is your feature request related to a problem?**
-A clear description of the problem.
-
-**Describe the solution you'd like**
-A clear description of what you want to happen.
-
-**Describe alternatives you've considered**
-Other solutions or features you've considered.
-
-**Additional context**
-Any other relevant information, mockups, or examples.
-```
-
-## 🔍 Code Review Process
-
-### What We Look For
-
-- **Correctness** - Does the code work as intended?
-- **Tests** - Are there adequate tests?
-- **Documentation** - Is the code well-documented?
-- **Style** - Does it follow our style guidelines?
-- **Performance** - Are there any performance concerns?
-- **Security** - Are there any security implications?
-
-### Review Timeline
-
-- Initial review: Within 2-3 business days
-- Follow-up reviews: Within 1-2 business days
-- Merge: After approval from at least one maintainer
-
-## 📜 Code of Conduct
-
-### Our Pledge
-
-We are committed to providing a welcoming and inspiring community for all.
-
-### Our Standards
-
-**Positive behavior includes:**
-- Using welcoming and inclusive language
-- Being respectful of differing viewpoints
-- Gracefully accepting constructive criticism
-- Focusing on what is best for the community
-- Showing empathy towards other community members
-
-**Unacceptable behavior includes:**
-- Harassment, trolling, or discriminatory comments
-- Publishing others' private information
-- Other conduct which could reasonably be considered inappropriate
-
-### Enforcement
-
-Violations may result in:
-1. Warning
-2. Temporary ban
-3. Permanent ban
-
-<<<<<<< HEAD
-Report violations to the repository maintainers via GitHub.
-=======
-Report violations to: support@tealtiger.co.in
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
-
-## 🏆 Recognition
-
-Contributors will be:
-<<<<<<< HEAD
-- Listed in our [Contributors](https://github.com/agentguard-ai/tealtiger/graphs/contributors) page
-=======
-- Listed in our [Contributors](https://github.com/agentguard-ai/tealtiger-typescript/graphs/contributors) page
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
+Contributors are:
+- Listed in [Contributors](https://github.com/agentguard-ai/tealtiger/graphs/contributors)
 - Mentioned in release notes for significant contributions
-- Invited to our contributors Discord channel (coming soon)
+- First 25 merged PRs get **"Founding Contributor"** recognition
 
-## 📞 Getting Help
+## Getting Help
 
-<<<<<<< HEAD
 - **Questions?** Open a [Discussion](https://github.com/agentguard-ai/tealtiger/discussions)
 - **Bug?** Open an [Issue](https://github.com/agentguard-ai/tealtiger/issues)
-- **Security?** See [SECURITY.md](SECURITY.md) for reporting security vulnerabilities
-=======
-- **Questions?** Open a [Discussion](https://github.com/agentguard-ai/tealtiger-typescript/discussions)
-- **Bug?** Open an [Issue](https://github.com/agentguard-ai/tealtiger-typescript/issues)
-- **Security?** Email support@tealtiger.co.in
->>>>>>> 8845eb6888bee5ea34f0a66b9da1a773d51da53a
+- **Security?** See [SECURITY.md](SECURITY.md)
+- **Email:** [reachout@tealtiger.ai](mailto:reachout@tealtiger.ai)
 
-## 📄 License
+## License
 
 By contributing, you agree that your contributions will be licensed under the Apache License 2.0.
 
 ---
 
-Thank you for contributing to TealTiger SDK! 🎉
+Thank you for contributing to TealTiger! 🐯
