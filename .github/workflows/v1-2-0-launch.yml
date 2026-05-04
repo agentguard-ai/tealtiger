@@ -1,11 +1,9 @@
 # TealTiger v1.2.0 Launch Workflow
 # Orchestrates publication across distribution channels in 5 sequential stages.
-# Stages: Package Managers → Container Registries → IaC Platforms → CI/CD Marketplaces → Post-Launch
+# Stages: Pre-Flight → Package Managers → Container Registries → IaC → Post-Launch
 #
-# v1.2 additions vs v1.1:
-# - Governance sidecar Docker image (tealtiger-typescript:1.2.0-governance)
-# - Python sidecar Docker image (tealtiger-python:1.2.0-sidecar)
-# - Updated Helm charts to 1.2.0
+# NOTE: This runs on the hub repo (tealtiger) which uses submodules.
+# SDK code lives in packages/tealtiger-sdk and packages/tealtiger-python.
 
 name: TealTiger v1.2.0 Launch
 
@@ -34,13 +32,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
+          submodules: true
 
       - name: Validate version format
         run: |
@@ -51,141 +44,107 @@ jobs:
           fi
           echo "✅ Version format valid: $VERSION"
 
-      - name: Check credentials exist
+      - name: Verify SDK versions match
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+
+          # Check TypeScript SDK version
+          TS_VERSION=$(node -p "require('./packages/tealtiger-sdk/package.json').version")
+          if [ "$TS_VERSION" != "$VERSION" ]; then
+            echo "::error::TypeScript SDK version ($TS_VERSION) does not match target ($VERSION)"
+            exit 1
+          fi
+          echo "✅ TypeScript SDK version: $TS_VERSION"
+
+          # Check Python SDK version
+          PY_VERSION=$(grep '^version' packages/tealtiger-python/pyproject.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
+          if [ "$PY_VERSION" != "$VERSION" ]; then
+            echo "::error::Python SDK version ($PY_VERSION) does not match target ($VERSION)"
+            exit 1
+          fi
+          echo "✅ Python SDK version: $PY_VERSION"
+
+      - name: Check required credentials
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
         run: |
           MISSING=""
-          [ -z "$NPM_TOKEN" ] && MISSING="$MISSING\n  - NPM_TOKEN"
-          [ -z "$PYPI_TOKEN" ] && MISSING="$MISSING\n  - PYPI_TOKEN"
-          [ -z "$DOCKERHUB_USERNAME" ] && MISSING="$MISSING\n  - DOCKERHUB_USERNAME"
-          [ -z "$DOCKERHUB_TOKEN" ] && MISSING="$MISSING\n  - DOCKERHUB_TOKEN"
-          [ -z "$TERRAFORM_CLOUD_TOKEN" ] && MISSING="$MISSING\n  - TERRAFORM_CLOUD_TOKEN"
-          [ -z "$PULUMI_ACCESS_TOKEN" ] && MISSING="$MISSING\n  - PULUMI_ACCESS_TOKEN"
-          [ -z "$ANSIBLE_GALAXY_TOKEN" ] && MISSING="$MISSING\n  - ANSIBLE_GALAXY_TOKEN"
-          [ -z "$GITLAB_TOKEN" ] && MISSING="$MISSING\n  - GITLAB_TOKEN"
-          [ -z "$CIRCLECI_TOKEN" ] && MISSING="$MISSING\n  - CIRCLECI_TOKEN"
+          [ -z "$NPM_TOKEN" ] && MISSING="$MISSING NPM_TOKEN"
+          [ -z "$PYPI_TOKEN" ] && MISSING="$MISSING PYPI_TOKEN"
+          [ -z "$DOCKERHUB_USERNAME" ] && MISSING="$MISSING DOCKERHUB_USERNAME"
+          [ -z "$DOCKERHUB_TOKEN" ] && MISSING="$MISSING DOCKERHUB_TOKEN"
           if [ -n "$MISSING" ]; then
             echo "::error::Missing required credentials:$MISSING"
             exit 1
           fi
-          echo "✅ All credentials present"
+          echo "✅ All required credentials present"
 
-      - name: Verify registry accounts
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx ts-node src/launch/scripts/verify-accounts.ts \
-            --version "${{ github.event.inputs.version }}" \
-            --skip azure_pipelines,lambda_layers,lambda_registry_website,helm
-
-  # ── Stage 1: Package Managers (npm, PyPI) ──────────────────────────
-  stage-1-packages:
-    name: "Stage 1 - Publish to ${{ matrix.registry }}"
+  # ── Stage 1a: Publish to npm ───────────────────────────────────────
+  stage-1a-npm:
+    name: "Stage 1a - Publish to npm"
     needs: pre-flight
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        registry: [npm, pypi]
-      fail-fast: false
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
+      - name: Install TS SDK dependencies
+        working-directory: packages/tealtiger-sdk
         run: npm install
+
+      - name: Build TS SDK
+        working-directory: packages/tealtiger-sdk
+        run: npm run build
 
       - name: Publish to npm
-        if: matrix.registry == 'npm'
+        working-directory: packages/tealtiger-sdk
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          cd packages/tealtiger-sdk
-          npm publish --access public
-        
-      - name: Publish to PyPI
-        if: matrix.registry == 'pypi'
-        env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          cd packages/tealtiger-python
-          pip install build twine
-          python -m build
-          twine upload dist/* --username __token__ --password "$PYPI_TOKEN"
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
 
-  # ── Stage 2: Container Registries (GHCR, Docker Hub) ───────────────
-  stage-2-containers:
-    name: "Stage 2 - Publish to ${{ matrix.registry }}"
-    needs: stage-1-packages
+  # ── Stage 1b: Publish to PyPI ──────────────────────────────────────
+  stage-1b-pypi:
+    name: "Stage 1b - Publish to PyPI"
+    needs: pre-flight
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        registry: [ghcr, dockerhub]
-      fail-fast: false
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          submodules: true
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR
-        if: matrix.registry == 'ghcr'
-        uses: docker/login-action@v3
+      - uses: actions/setup-python@v5
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          python-version: '3.11'
 
-      - name: Log in to Docker Hub
-        if: matrix.registry == 'dockerhub'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Install build tools
+        run: pip install build twine
 
-      - name: Publish to ${{ matrix.registry }}
+      - name: Build Python SDK
+        working-directory: packages/tealtiger-python
+        run: python -m build
+
+      - name: Publish to PyPI
+        working-directory: packages/tealtiger-python
         env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx ts-node src/launch/scripts/publish-container.ts \
-            --target "${{ matrix.registry }}" \
-            --version "${{ github.event.inputs.version }}"
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload dist/*
 
-  # ── Stage 2b: Governance Sidecar Images ────────────────────────────
-  stage-2b-sidecar:
-    name: "Stage 2b - Governance Sidecar (${{ matrix.variant }})"
-    needs: stage-1-packages
+  # ── Stage 2: Governance Sidecar Docker Images ──────────────────────
+  stage-2-sidecar:
+    name: "Stage 2 - Docker Sidecar (${{ matrix.variant }})"
+    needs: [stage-1a-npm, stage-1b-pypi]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
@@ -194,11 +153,19 @@ jobs:
           - variant: typescript-governance
             dockerfile: packages/tealtiger-sdk/Dockerfile.sidecar
             context: packages/tealtiger-sdk
-            tags: "tealtigeradmin/tealtiger-typescript:${{ github.event.inputs.version }}-governance,tealtigeradmin/tealtiger-typescript:governance"
+            tags: |
+              tealtigeradmin/tealtiger-typescript:${{ github.event.inputs.version }}-governance
+              tealtigeradmin/tealtiger-typescript:governance
+              ghcr.io/agentguard-ai/tealtiger-typescript:${{ github.event.inputs.version }}-governance
+              ghcr.io/agentguard-ai/tealtiger-typescript:governance
           - variant: python-sidecar
             dockerfile: packages/tealtiger-python/Dockerfile.sidecar
             context: packages/tealtiger-python
-            tags: "tealtigeradmin/tealtiger-python:${{ github.event.inputs.version }}-sidecar,tealtigeradmin/tealtiger-python:sidecar"
+            tags: |
+              tealtigeradmin/tealtiger-python:${{ github.event.inputs.version }}-sidecar
+              tealtigeradmin/tealtiger-python:sidecar
+              ghcr.io/agentguard-ai/tealtiger-python:${{ github.event.inputs.version }}-sidecar
+              ghcr.io/agentguard-ai/tealtiger-python:sidecar
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -226,189 +193,75 @@ jobs:
           tags: ${{ matrix.tags }}
           platforms: linux/amd64
 
-  # ── Stage 3: IaC Platforms (Terraform, Pulumi, Helm, Ansible) ──────
-  stage-3-iac:
-    name: "Stage 3 - Publish to ${{ matrix.platform }}"
-    needs: [stage-2-containers, stage-2b-sidecar]
+  # ── Stage 3: Helm Chart ────────────────────────────────────────────
+  stage-3-helm:
+    name: "Stage 3 - Package Helm Chart"
+    needs: stage-2-sidecar
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        platform: [terraform, pulumi, helm, ansible]
-      fail-fast: false
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - uses: azure/setup-helm@v4
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Install Helm (for helm target)
-        if: matrix.platform == 'helm'
-        uses: azure/setup-helm@v4
-
-      - name: Publish Helm chart
-        if: matrix.platform == 'helm'
+      - name: Package Helm chart
         run: |
-          mkdir -p .helm-packages
-          helm package helm/tealtiger -d .helm-packages
-          echo "✅ Helm chart packaged for v${{ github.event.inputs.version }}"
+          if [ -d "helm/tealtiger" ]; then
+            mkdir -p .helm-packages
+            helm package helm/tealtiger -d .helm-packages
+            echo "✅ Helm chart packaged for v${{ github.event.inputs.version }}"
+          else
+            echo "⏭️ No helm/tealtiger directory found, skipping"
+          fi
 
-      - name: Publish to ${{ matrix.platform }}
-        if: matrix.platform != 'helm'
-        env:
-          TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
-        run: |
-          npx ts-node src/launch/scripts/publish-iac.ts \
-            --target "${{ matrix.platform }}" \
-            --version "${{ github.event.inputs.version }}"
-
-  # ── Stage 4: CI/CD Marketplaces (GitHub, GitLab, CircleCI) ─────────
-  stage-4-cicd:
-    name: "Stage 4 - Publish to ${{ matrix.marketplace }}"
-    needs: stage-3-iac
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        marketplace: [github_marketplace, gitlab, circleci]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Install CircleCI CLI (for orb publishing)
-        if: matrix.marketplace == 'circleci'
-        run: curl -fLSs https://raw.githubusercontent.com/CircleCI-Public/circleci-cli/main/install.sh | bash
-
-      - name: Publish to ${{ matrix.marketplace }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-        run: |
-          npx ts-node src/launch/scripts/publish-cicd.ts \
-            --target "${{ matrix.marketplace }}" \
-            --version "${{ github.event.inputs.version }}"
-
-  # ── Post-Launch Tasks ──────────────────────────────────────────────
+  # ── Post-Launch: GitHub Release ────────────────────────────────────
   post-launch:
     name: Post-Launch
-    needs: [stage-1-packages, stage-2-containers, stage-2b-sidecar, stage-3-iac, stage-4-cicd]
+    needs: [stage-1a-npm, stage-1b-pypi, stage-2-sidecar, stage-3-helm]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Generate launch report
-        run: |
-          npx ts-node src/launch/scripts/generate-report.ts \
-            --version "${{ github.event.inputs.version }}"
-
-      - name: Update documentation
-        run: |
-          npx ts-node src/launch/scripts/update-docs.ts \
-            --version "${{ github.event.inputs.version }}"
-
-      - name: Generate announcements
-        run: |
-          npx ts-node src/launch/scripts/generate-announcements.ts \
-            --version "${{ github.event.inputs.version }}"
-
-      - name: Upload launch report
-        uses: actions/upload-artifact@v4
-        with:
-          name: launch-report
-          path: launch-report/
-          retention-days: 30
 
       - name: Create GitHub Release
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-            let body = `TealTiger v${{ github.event.inputs.version }} launched successfully across all distribution channels.`;
-            try {
-              body = fs.readFileSync('launch-report/release-notes.md', 'utf8');
-            } catch {}
+            const version = '${{ github.event.inputs.version }}';
+            const body = `## TealTiger v${version} — Governance Bundle
+
+            ### What's New
+            - **TealEngineV12** — Parallel module evaluation with "most restrictive action wins" merge
+            - **TealSecrets** — Secret detection with 500+ patterns and confidence scoring
+            - **TealRegistry** — Model/tool allowlisting with provenance verification
+            - **TealReliability** — Retry budgets, circuit breakers, and fallback chains
+            - **TealMemory** — Memory governance across 5 scopes and 4 classifications
+            - **GovernanceDashboard** — Governance visibility UI
+            - **BundleExporter** — Evidence export in SARIF v2.1.0, JUnit XML, and JSON
+            - **Docker Sidecar** — Language-agnostic governance via HTTP
+
+            ### Install
+            \`\`\`bash
+            npm install tealtiger@${version}
+            pip install tealtiger==${version}
+            docker run -p 8080:8080 tealtigeradmin/tealtiger-typescript:${version}-governance
+            \`\`\`
+
+            ### Links
+            - [npm](https://www.npmjs.com/package/tealtiger)
+            - [PyPI](https://pypi.org/project/tealtiger/)
+            - [Docker Hub](https://hub.docker.com/u/tealtigeradmin)
+            - [Helm Chart](https://github.com/agentguard-ai/helm-charts)
+            - [Documentation](https://docs.tealtiger.ai)
+            `;
+
             await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `v${{ github.event.inputs.version }}`,
-              name: `TealTiger v${{ github.event.inputs.version }} — Governance Bundle`,
+              tag_name: `v${version}`,
+              name: `TealTiger v${version} — Governance Bundle`,
               body,
               draft: false,
               prerelease: false,
             });
-
-  # ── Rollback on Failure ────────────────────────────────────────────
-  rollback:
-    name: Rollback on Failure
-    needs: [stage-1-packages, stage-2-containers, stage-2b-sidecar, stage-3-iac, stage-4-cicd]
-    if: failure()
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Execute rollback
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          TERRAFORM_CLOUD_TOKEN: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
-          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
-          ANSIBLE_GALAXY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_TOKEN }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-          CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx ts-node src/launch/scripts/rollback.ts \
-            --version "${{ github.event.inputs.version }}" \
-            --reason "Automated rollback due to stage failure" \
-            --skip azure_pipelines,lambda_layers,lambda_registry_website,helm
-
-      - name: Generate rollback report
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: |
-          npx ts-node src/launch/scripts/generate-report.ts \
-            --version "${{ github.event.inputs.version }}" \
-            --rollback
-
-      - name: Upload rollback report
-        uses: actions/upload-artifact@v4
-        with:
-          name: rollback-report
-          path: launch-report/
-          retention-days: 30
+            console.log(`✅ GitHub Release created for v${version}`);
