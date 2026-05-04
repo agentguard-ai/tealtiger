@@ -138,9 +138,17 @@ curl -X POST http://localhost:8080/evaluate \
 - **Policy Traceability** — Every verdict traces to the human policy author
 - **OWASP ASI Coverage** — Addresses 8/10 OWASP Top 10 for Agentic Applications
 
----
+### 🆕 Governance Bundle (v1.2.0)
+- **TealEngineV12** — Parallel module evaluation with "most restrictive action wins" merge
+- **TealSecrets** — Secret detection with 500+ patterns and confidence scoring
+- **TealRegistry** — Model/tool allowlisting with provenance verification
+- **TealReliability** — Retry budgets, circuit breakers, and fallback chains
+- **TealMemory** — Memory governance across 5 scopes and 4 classifications
+- **GovernanceDashboard** — Governance visibility UI
+- **BundleExporter** — Evidence export in SARIF v2.1.0, JUnit XML, and JSON
+- **Docker Sidecar** — Language-agnostic governance via HTTP (`POST /evaluate`)
 
-## 📦 SDKs
+---
 
 ## 📦 SDKs & Integrations
 
