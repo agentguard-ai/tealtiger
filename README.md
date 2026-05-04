@@ -100,6 +100,15 @@ print(decision.action)  # 'allow' or 'deny'
 print(decision.reason_code)  # e.g., 'policy.tool.allowed'
 ```
 
+**Docker Sidecar (any language):**
+```bash
+docker run -p 8080:8080 tealtigeradmin/tealtiger-typescript:1.2-governance
+
+curl -X POST http://localhost:8080/evaluate \
+  -H "Content-Type: application/json" \
+  -d '{"action": "tool.execute", "tool_name": "web_search", "context": {"user_id": "user-123"}}'
+```
+
 ---
 
 ## 📦 SDK Repositories
@@ -133,6 +142,17 @@ Deploy policies safely with three modes:
 - **TealAudit** - Audit logging with redaction-by-default
 - **TealMonitor** - Performance and cost monitoring
 
+### Governance Bundle (v1.2.0)
+
+- **TealEngineV12** - Parallel module evaluation with "most restrictive action wins" merge and fail-closed defaults
+- **TealSecrets** - Secret detection with 500+ patterns and confidence scoring
+- **TealRegistry** - Model/tool allowlisting with provenance verification
+- **TealReliability** - Retry budgets, circuit breakers, and fallback chains
+- **TealMemory** - Memory governance across 5 scopes and 4 classifications
+- **GovernanceDashboard** - Governance visibility UI
+- **BundleExporter** - Evidence export in SARIF v2.1.0, JUnit XML, and JSON
+- **Docker Sidecar** - Language-agnostic governance via HTTP (`POST /evaluate`)
+
 ### Enterprise Features (v1.1.x)
 
 - **Decision Contract** - Stable, typed Decision object with action, reason codes, risk scores
@@ -143,15 +163,15 @@ Deploy policies safely with three modes:
 ### Provider Support
 
 **Current (v1.1.0):**
-- ✅ OpenAI (GPT-4, GPT-3.5)
-- ✅ Anthropic (Claude)
+- ✅ OpenAI (GPT-4, GPT-3.5, GPT-4o)
+- ✅ Anthropic (Claude 3.5, Claude 3)
+- ✅ Google Gemini (Gemini 1.5 Pro, Flash)
+- ✅ AWS Bedrock (Claude, Titan, Jurassic, Command, Llama)
+- ✅ Azure OpenAI (GPT-4, GPT-3.5)
+- ✅ Cohere (Command R+, Command R)
+- ✅ Mistral AI (Large, Medium, Small)
 
-**Coming in v1.1.x:**
-- 🔜 Google Gemini
-- 🔜 AWS Bedrock
-- 🔜 Azure OpenAI
-- 🔜 Cohere
-- 🔜 Mistral AI
+**Market Coverage: 95%+ of LLM API usage**
 
 ---
 
@@ -169,7 +189,7 @@ Deploy policies safely with three modes:
 
 ## 🛡️ OWASP Coverage
 
-TealTiger v1.1.0 provides comprehensive coverage for **7 out of 10** OWASP Top 10 for Agentic Applications (ASI01-ASI10) vulnerabilities through its SDK-only architecture.
+TealTiger v1.2.0 provides comprehensive coverage for **7 out of 10** OWASP Top 10 for Agentic Applications (ASI01-ASI10) vulnerabilities through its SDK-only architecture.
 
 | ASI | Vulnerability | Coverage |
 |-----|--------------|----------|
