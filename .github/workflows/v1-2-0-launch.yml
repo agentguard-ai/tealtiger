@@ -110,7 +110,16 @@ jobs:
         working-directory: packages/tealtiger-sdk
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: |
+          npm publish --access public 2>&1 || {
+            EXIT_CODE=$?
+            # E403 = already published (idempotent success)
+            if npm view tealtiger@${{ github.event.inputs.version }} version 2>/dev/null; then
+              echo "✅ tealtiger@${{ github.event.inputs.version }} already published to npm — skipping"
+              exit 0
+            fi
+            exit $EXIT_CODE
+          }
 
   # ── Stage 1b: Publish to PyPI ──────────────────────────────────────
   stage-1b-pypi:
@@ -139,7 +148,16 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: twine upload dist/*
+        run: |
+          twine upload dist/* 2>&1 || {
+            EXIT_CODE=$?
+            # Check if already published
+            if pip index versions tealtiger 2>/dev/null | grep -q "${{ github.event.inputs.version }}"; then
+              echo "✅ tealtiger==${{ github.event.inputs.version }} already published to PyPI — skipping"
+              exit 0
+            fi
+            exit $EXIT_CODE
+          }
 
   # ── Stage 2: Governance Sidecar Docker Images ──────────────────────
   stage-2-sidecar:
