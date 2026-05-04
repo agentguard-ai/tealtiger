@@ -1,0 +1,19 @@
+apiVersion: v2
+name: tealtiger
+description: TealTiger AI agent security platform - guardrails, cost tracking, and policy management for LLM applications
+type: application
+version: 1.2.0
+appVersion: "1.2.0"
+home: https://docs.tealtiger.ai
+sources:
+  - https://github.com/agentguard-ai/tealtiger
+maintainers:
+  - name: TealTiger Team
+    url: https://github.com/agentguard-ai
+keywords:
+  - ai
+  - security
+  - guardrails
+  - llm
+  - policy
+  - cost-tracking
