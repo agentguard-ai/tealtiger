@@ -111,16 +111,18 @@ curl -X POST http://localhost:8080/evaluate \
 
 ---
 
-## 📦 SDK Repositories
+## 📦 SDK & Integration Repositories
 
-TealTiger provides separate repositories for each SDK with full documentation:
+TealTiger provides separate repositories for SDKs, infrastructure, and CI/CD integrations:
 
 <div align="center">
 
-| SDK | Repository | Package | Documentation |
-|-----|------------|---------|---------------|
-| **TypeScript** | [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod) | [npm](https://www.npmjs.com/package/tealtiger) | [Docs](https://docs.tealtiger.ai/api-reference/typescript/index) |
-| **Python** | [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod) | [PyPI](https://pypi.org/project/tealtiger/) | [Docs](https://docs.tealtiger.ai/api-reference/python/index) |
+| Component | Repository | Package | Documentation |
+|-----------|------------|---------|---------------|
+| **TypeScript SDK** | [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod) | [npm](https://www.npmjs.com/package/tealtiger) | [Docs](https://docs.tealtiger.ai/api-reference/typescript/index) |
+| **Python SDK** | [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod) | [PyPI](https://pypi.org/project/tealtiger/) | [Docs](https://docs.tealtiger.ai/api-reference/python/index) |
+| **Helm Charts** | [helm-charts](https://github.com/agentguard-ai/helm-charts) | `helm repo add tealtiger https://agentguard-ai.github.io/helm-charts` | [Chart README](https://github.com/agentguard-ai/helm-charts/blob/main/charts/tealtiger/README.md) |
+| **GitHub Action** | [tealtiger-action](https://github.com/agentguard-ai/tealtiger-action) | `uses: agentguard-ai/tealtiger-action@v1` | [Action README](https://github.com/agentguard-ai/tealtiger-action#readme) |
 
 </div>
 
