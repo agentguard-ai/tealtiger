@@ -1,87 +1,104 @@
 # Changelog
 
-All notable changes to TealTiger will be documented in this file.
+All notable changes to TealTiger are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.3.0] — 2026-06 — Autonomous Agent Governance
 
-## [Unreleased]
+### Added
 
-## [1.2.0] - 2026-05-04
+**Core Engine**
+- TealEngine v1.3 with pre/post evaluation pipeline
+- FREEZE rules — immutable, non-overridable safety controls
+- Automation levels (auto_allow, auto_deny, auto_sanitize, approval_required)
+- PLAN_ONLY mode — dry-run evaluation without enforcement
+- Policy bundle hot-swap with Ed25519 signature verification
+- Anti-tamper controls (forbidden config keys, bundle integrity, workload identity binding)
 
-### Added — Governance Bundle
-- **TealEngineV12** — Parallel module evaluation with "most restrictive action wins" merge and fail-closed defaults
-- **TealSecrets** — Secret detection with 500+ patterns across 9 categories with confidence scoring
-- **TealRegistry** — Model/tool allowlisting with provenance verification
-- **TealReliability** — Retry budgets, circuit breakers, and fallback chains
-- **TealMemory** — Memory governance (5 scopes, 4 classifications)
-- **GovernanceDashboard** — Governance visibility UI
-- **BundleExporter** — Evidence export (SARIF v2.1.0, JUnit XML, JSON)
-- **TEECValidator** — Typed Evidence & Evidence Contract validation
-- **Docker Sidecar** — Language-agnostic HTTP governance API for TypeScript and Python
+**New Governance Domains**
+- **Identity (NHI)** — Non-human identity lifecycle, scope enforcement, Zero Standing Privilege, JIT grants, agent attestation
+- **Workflow (FLOW)** — Declarative YAML governance workflows, job dependencies, org-level inheritance, floor enforcement
+- **Temporal (TEMP)** — Session TTL, cooldown periods, time-of-day restrictions, context size governance
+- **Drift (DRIFT)** — Behavioral drift detection, statistical baselines, MCP definition-drift monitoring
 
-### Added — Infrastructure
-- Serverless optimizations (lazy loading, cold start optimization, config caching)
-- Rollup build with tree-shakeable ESM + CJS bundles
-- Helm chart v1.2.0 with governance module configuration
-- v1.2.0 launch workflow (npm, PyPI, Docker, Helm, GitHub Release)
+**New Modules**
+- TealProof — Cryptographic governance receipts (Merkle tree + RFC 3161 timestamping), Governance Passport, Verification SDK
+- TealFlow — YAML workflow parser, execution engine, pretty printer with round-trip guarantee
+- TealClassifier — Local ONNX inference, 4 ensemble modes, confidence scoring, fallback behavior
+- TealDrift — Rolling baselines, 5 drift dimensions, min_samples guard
+- TealState — Token-based context limits, provenance metadata, eviction strategies
+- TealTemporal — Session TTL, cooldowns, time-of-day restrictions, rate limiting
+- TealMonitor v2 — Governance-owned cost ceilings, reasoning-token budgets, anomaly detection, per-agent attribution
+- NHI Governance — Agent lifecycle states, scope enforcement, JIT grants, attestation
 
-### Changed
-- README rewritten with v1.2 features, Docker sidecar quick start, and integrations table
-- SDK Repositories table expanded to include Helm Charts and GitHub Action
+**Platform Adapters**
+- AWS Bedrock Agents adapter (Lambda Layer / sidecar)
+- AWS AgentCore plugin (lifecycle governance hooks)
+- Azure AI Agent Service middleware (tool-call pipeline)
 
-### Distribution
-- npm: `tealtiger@1.2.0`
-- PyPI: `tealtiger==1.2.0`
-- Docker Hub: `tealtigeradmin/tealtiger-typescript:1.2.0-governance`, `tealtigeradmin/tealtiger-python:1.2.0-sidecar`
-- GHCR: `ghcr.io/agentguard-ai/tealtiger-typescript:1.2.0-governance`
-- Helm: `tealtiger` chart v1.2.0
+**Governance Features**
+- OWASP Agentic Top 10 Policy Pack (zero-config, ASI-01 through ASI-10)
+- SOC/IR evidence pipeline (SIEM export in JSON/CEF/LEEF, OpenTelemetry spans, response hooks)
+- Code change governance (CODE_CHANGE action class, path/branch allowlists, two-person rule)
 
-## [1.1.1] - 2026-04-03
+**Providers**
+- DeepSeek
+- Groq
+- Together AI
+- xAI (Grok)
+- HuggingFace TGI
+
+**Evidence**
+- TEEC v2.0.0 envelope (NHI identity, proof, provenance, verification level, cost evidence, control ID, OWASP category)
+- Governance Event Schema v1.0.0
+
+### Enhanced
+- TealGuard — Unicode normalization, encoded output detection, control character sanitization, markdown exfiltration detection
+- TealMemory — Write provenance tagging (5-tier trust), instruction injection detection, exfiltration detection
+- TealRegistry — MCP definition-drift monitoring, tool description injection scanning, adapter composition allowlist
 
 ### Fixed
-- README rewritten to accurately reflect all features included in v1.1.0
-- Removed misleading enterprise comparison tables
-- License updated from MIT to Apache 2.0
+- Version string assertions in TealCircuit and TealEngine tests (1.1.1 → 1.2.0)
+- Stripe secret key detection regex threshold (24+ chars)
+- TealMemory secret detection in SUMMARY_ONLY policy path
 
-### Notes
-- No code changes — documentation and metadata only
+### Compatibility
+- Backward-compatible with v1.2.x — no breaking changes
+- `evaluateV12()` preserved for existing code
+- All v1.2 policy configurations produce identical behavior
 
-## [1.1.0] - 2026-03-15
+---
 
-### Added
-- **TealEngine** — Deterministic policy evaluation (ENFORCE, MONITOR, REPORT_ONLY)
-- **TealGuard** — Client-side security guardrails (PII, prompt injection, content moderation)
-- **TealCircuit** — Circuit breaker for cascading failure prevention
-- **TealAudit** — Versioned audit logging with PII redaction
-- **Correlation IDs** — Auto-generated UUID v4 with OpenTelemetry-compatible trace IDs
-- **Decision Contract** — Typed Decision object with risk scores and reason codes
-- **Policy Test Harness** — CLI/library test runner with JUnit XML export
-- **Multi-Provider Support** — 7 providers (OpenAI, Anthropic, Gemini, Bedrock, Azure OpenAI, Cohere, Mistral)
-- **OWASP Coverage** — 7/10 ASIs covered with SDK-only architecture
-
-## [0.2.2] - 2026-01-31
+## [1.2.0] — 2026-05 — Governance Bundle
 
 ### Added
-- Cost tracking and budget management
-- Guarded AI clients (OpenAI, Anthropic, Azure OpenAI)
-- Azure OpenAI deployment-based routing
+- TealEngineV12 — Parallel module evaluation with "most restrictive action wins" merge
+- TealSecrets — Secret detection (500+ patterns, 9 categories, confidence scoring)
+- TealRegistry — Model/tool allowlisting with provenance verification
+- TealReliability — Retry budgets, circuit breakers, fallback chains
+- TealMemory — Memory governance (5 scopes, 4 classifications)
+- GovernanceDashboard — Governance visibility UI
+- BundleExporter — SARIF v2.1.0, JUnit XML, JSON evidence export
+- Docker governance sidecar (language-agnostic HTTP API)
+- TEEC v1.0 evidence contract (32 reason codes, 18 event types, 12 decision actions)
 
-## [0.2.0] - 2026-01-30
+---
+
+## [1.1.1] — 2026-04 — Stability & Multi-Provider Parity
 
 ### Added
-- Client-side guardrails (PII detection, prompt injection, content moderation)
+- Python SDK feature parity with TypeScript (7/7 providers)
+- Documentation fixes and Apache 2.0 license update
 
-## [0.1.0] - 2026-01-28
+---
+
+## [1.1.0] — 2026-03 — Foundation Release
 
 ### Added
-- Initial release (as AgentGuard)
-- Core security evaluation, policy enforcement, audit trail
-
-[Unreleased]: https://github.com/agentguard-ai/tealtiger/compare/v1.2.0...HEAD
-[1.2.0]: https://github.com/agentguard-ai/tealtiger/releases/tag/v1.2.0
-[1.1.1]: https://github.com/agentguard-ai/tealtiger/releases/tag/v1.1.1
-[1.1.0]: https://github.com/agentguard-ai/tealtiger/releases/tag/v1.1.0
-[0.2.2]: https://github.com/agentguard-ai/tealtiger/releases/tag/v0.2.2
-[0.2.0]: https://github.com/agentguard-ai/tealtiger/releases/tag/v0.2.0
-[0.1.0]: https://github.com/agentguard-ai/tealtiger/releases/tag/v0.1.0
+- TealEngine — Deterministic policy evaluation
+- TealGuard — PII detection, prompt injection, content moderation
+- TealMonitor — Cost tracking and budget management
+- TealCircuit — Circuit breaker for failure isolation
+- TealAudit — Audit logging with correlation IDs
+- 7 LLM providers (OpenAI, Anthropic, Gemini, Bedrock, Azure OpenAI, Cohere, Mistral)
+- Policy test harness with JUnit XML export
+- Three policy modes (ENFORCE, MONITOR, REPORT_ONLY)
