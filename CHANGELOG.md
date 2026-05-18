@@ -2,69 +2,46 @@
 
 All notable changes to TealTiger are documented in this file.
 
-## [1.3.0] — 2026-06 — Autonomous Agent Governance
+## [1.3.0] — 2026-05-18
 
 ### Added
+- **TealEngine v1.3** — Pre/post evaluation pipeline with sequential short-circuit stages
+- **Automation Levels** — `auto_allow`, `auto_deny`, `auto_sanitize`, `approval_required`
+- **FREEZE Rules** — Immutable emergency kill switches with tamper detection
+- **PLAN_ONLY Mode** — Block side-effects while allowing read-only operations
+- **Policy Hot-Swap** — Live bundle replacement with validation and rollback
+- **Anti-Tamper Controls** — Signed bundles, forbidden config key rejection, workload identity binding
+- **Non-Human Identity (NHI)** — Agent lifecycle management (active, suspended, revoked), scope enforcement, Zero Standing Privilege (JIT grants), agent attestation
+- **TealProof** — Cryptographic governance receipts using Merkle trees + RFC 3161 timestamping, Governance Passport, standalone Verification SDK
+- **TealFlow** — Declarative YAML governance workflows with org-level inheritance and floor enforcement
+- **TealClassifier** — Local ONNX-based ML inference for content classification (≤20ms, deterministic)
+- **TealDrift** — Behavioral drift detection with statistical baselines and min_samples guard
+- **TealState** — Context size governance with provenance metadata and mutation governance
+- **TealTemporal** — Session TTL enforcement, cooldown periods, time-of-day restrictions
+- **TealMonitor v2** — Governance-owned cost ceilings, anomaly detection, reasoning-token budgets, per-agent/per-workflow attribution
+- **TealGuard v2** — Unicode normalization stripping, encoded output detection, control character sanitization, markdown exfiltration detection, multimodal input governance
+- **TealMemory v2** — Write provenance tagging with transitive propagation, instruction injection detection, exfiltration prevention
+- **TealRegistry v2** — MCP definition-drift monitoring, tool description injection scanning, adapter composition allowlist
+- **OWASP Agentic Top 10 Policy Pack** — Zero-config governance for all 10 ASI risks
+- **SOC/IR Pipeline** — SIEM export (JSON, CEF, LEEF), OpenTelemetry spans, response hooks with dedup and rate limiting
+- **TEEC v2.0.0** — Enhanced evidence envelopes with NHI identity, proof, cost evidence, OWASP category
+- **Secure Change Governance** — CODE_CHANGE action class with path/branch allowlists and two-person rule
+- **Platform Adapters** — AWS Bedrock Agents, AWS AgentCore, Azure AI Agent Service
+- **5 New Providers** — DeepSeek, Groq, Together AI, HuggingFace TGI, xAI (Grok) — total 12
+- **GovernanceProvider Interface** — Portable, versioned evaluation context schema
+- **Backward Compatibility** — v1.2 configs produce identical behavior, all new fields optional
+- **Full Python SDK Parity** — All v1.3 modules ported with identical schemas and decisions
+- **Governance Documentation** — Enterprise operating model, persona definitions, RACI matrix, policy lifecycle, audit guides
+- **Reasoning-Trace Governance** — PII and secret redaction in chain-of-thought traces
+- **OPA-Compatible Rego Export** — Export governance policies to OPA Rego format
 
-**Core Engine**
-- TealEngine v1.3 with pre/post evaluation pipeline
-- FREEZE rules — immutable, non-overridable safety controls
-- Automation levels (auto_allow, auto_deny, auto_sanitize, approval_required)
-- PLAN_ONLY mode — dry-run evaluation without enforcement
-- Policy bundle hot-swap with Ed25519 signature verification
-- Anti-tamper controls (forbidden config keys, bundle integrity, workload identity binding)
-
-**New Governance Domains**
-- **Identity (NHI)** — Non-human identity lifecycle, scope enforcement, Zero Standing Privilege, JIT grants, agent attestation
-- **Workflow (FLOW)** — Declarative YAML governance workflows, job dependencies, org-level inheritance, floor enforcement
-- **Temporal (TEMP)** — Session TTL, cooldown periods, time-of-day restrictions, context size governance
-- **Drift (DRIFT)** — Behavioral drift detection, statistical baselines, MCP definition-drift monitoring
-
-**New Modules**
-- TealProof — Cryptographic governance receipts (Merkle tree + RFC 3161 timestamping), Governance Passport, Verification SDK
-- TealFlow — YAML workflow parser, execution engine, pretty printer with round-trip guarantee
-- TealClassifier — Local ONNX inference, 4 ensemble modes, confidence scoring, fallback behavior
-- TealDrift — Rolling baselines, 5 drift dimensions, min_samples guard
-- TealState — Token-based context limits, provenance metadata, eviction strategies
-- TealTemporal — Session TTL, cooldowns, time-of-day restrictions, rate limiting
-- TealMonitor v2 — Governance-owned cost ceilings, reasoning-token budgets, anomaly detection, per-agent attribution
-- NHI Governance — Agent lifecycle states, scope enforcement, JIT grants, attestation
-
-**Platform Adapters**
-- AWS Bedrock Agents adapter (Lambda Layer / sidecar)
-- AWS AgentCore plugin (lifecycle governance hooks)
-- Azure AI Agent Service middleware (tool-call pipeline)
-
-**Governance Features**
-- OWASP Agentic Top 10 Policy Pack (zero-config, ASI-01 through ASI-10)
-- SOC/IR evidence pipeline (SIEM export in JSON/CEF/LEEF, OpenTelemetry spans, response hooks)
-- Code change governance (CODE_CHANGE action class, path/branch allowlists, two-person rule)
-
-**Providers**
-- DeepSeek
-- Groq
-- Together AI
-- xAI (Grok)
-- HuggingFace TGI
-
-**Evidence**
-- TEEC v2.0.0 envelope (NHI identity, proof, provenance, verification level, cost evidence, control ID, OWASP category)
-- Governance Event Schema v1.0.0
-
-### Enhanced
-- TealGuard — Unicode normalization, encoded output detection, control character sanitization, markdown exfiltration detection
-- TealMemory — Write provenance tagging (5-tier trust), instruction injection detection, exfiltration detection
-- TealRegistry — MCP definition-drift monitoring, tool description injection scanning, adapter composition allowlist
+### Changed
+- TealEngine evaluation pipeline now supports pre-evaluation and post-evaluation stages
+- Cost tracking uses longest-prefix model matching for accurate pricing
+- Provider count increased from 7 to 12 (95%+ market coverage)
 
 ### Fixed
-- Version string assertions in TealCircuit and TealEngine tests (1.1.1 → 1.2.0)
-- Stripe secret key detection regex threshold (24+ chars)
-- TealMemory secret detection in SUMMARY_ONLY policy path
-
-### Compatibility
-- Backward-compatible with v1.2.x — no breaking changes
-- `evaluateV12()` preserved for existing code
-- All v1.2 policy configurations produce identical behavior
+- GPT-4 Turbo preview models now use correct Turbo pricing instead of GPT-4 pricing
 
 ---
 

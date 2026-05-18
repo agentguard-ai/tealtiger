@@ -39,7 +39,8 @@ If you get a 404 error (Security Advisories not enabled), please:
 
 | Version | Supported | Notes |
 |---------|-----------|-------|
-| 1.2.x | ✅ Yes | Current stable release |
+| 1.3.x | ✅ Yes | Current stable release |
+| 1.2.x | ✅ Yes | Security patches only |
 | 1.1.x | ✅ Yes | Security patches only |
 | < 1.1.0 | ❌ No | End of life |
 
@@ -76,6 +77,9 @@ If you get a 404 error (Security Advisories not enabled), please:
 - **Deterministic decisions** — Same input + same policy = same decision, every time. Reproducible and auditable.
 - **SDK-only architecture** — No external infrastructure dependency. No data leaves the process unless explicitly configured (telemetry export).
 - **Fail-closed by default** — TealEngine's parallel evaluation uses "most restrictive action wins" merge.
+- **FREEZE Rules** — Immutable emergency kill switches that cannot be overridden by any policy layer. Includes tamper detection to alert on modification attempts.
+- **Anti-Tamper Controls** — Ed25519-signed policy bundles, forbidden config key rejection, and workload identity binding prevent unauthorized governance modifications.
+- **OWASP Agentic Top 10 Coverage (10/10)** — Zero-config policy pack covering all 10 OWASP ASI risks (ASI-01 through ASI-10).
 
 ---
 
@@ -92,7 +96,7 @@ TealTiger's primary threat model addresses attempts to weaken, bypass, or tamper
 | Compromised workload | Attacker controls runtime | Full app-level access |
 | Network attacker | MITM during artifact fetch | Network-level interception |
 
-### Key Controls (v1.2)
+### Key Controls (v1.3)
 
 | Threat | Control |
 |--------|---------|
@@ -101,6 +105,10 @@ TealTiger's primary threat model addresses attempts to weaken, bypass, or tamper
 | Registry impersonation | TLS + endpoint allow-listing |
 | Evidence tampering | Versioned, append-only audit logs with policy version references |
 | SDK removal | Detectable via missing TEEC evidence (platform-level control) |
+| Policy bundle tampering | Ed25519-signed bundles with integrity verification |
+| Config key injection | Forbidden config key rejection prevents unauthorized overrides |
+| Workload impersonation | Workload identity binding ensures governance runs in authorized context |
+| Emergency bypass attempts | FREEZE rules are immutable and trigger tamper-detection alerts |
 
 ### Residual Risks (Honest Assessment)
 
