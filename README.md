@@ -198,6 +198,27 @@ Use [`schemas/tealtiger-policy.schema.json`](./schemas/tealtiger-policy.schema.j
 
 For YAML policies, configure your editor's YAML schema mapping to point policy files such as `tealtiger-policy.yml` at `./schemas/tealtiger-policy.schema.json`.
 
+### Validate Policy Files
+
+Use the policy validator script to check a TealTiger policy JSON file before
+using it in CI/CD or runtime governance:
+
+```bash
+npm install
+npx ts-node scripts/validate-policy.ts ./my-policy.json
+```
+
+You can also run the npm script:
+
+```bash
+npm run validate:policy -- ./my-policy.json
+```
+
+The validator loads
+[`schemas/tealtiger-policy.schema.json`](./schemas/tealtiger-policy.schema.json),
+prints schema validation errors, exits `0` when the policy is valid, and exits
+`1` when the policy is invalid.
+
 ---
 
 ## 🐯 Build With Us — Early Contributor Program
