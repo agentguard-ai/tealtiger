@@ -11,7 +11,7 @@ Thank you to everyone who has contributed to TealTiger! 🐯
 - **[@resolvicomai](https://github.com/resolvicomai)** — Port GPT-4 Turbo cost tracking fix to Python SDK: longest-prefix matching, numeric `response.cost` — PR #4 (tealtiger-python-prod)
 - **[@dagangtj](https://github.com/dagangtj)** — "Your First PR" walkthrough for CONTRIBUTING.md — PR #75
 - **[@aprv10](https://github.com/aprv10)** — LangChain governance example with TealEngine policy evaluation and cost tracking — PR #58
-- **[@MD-Mushfiqur123](https://github.com/MD-Mushfiqur123)** — Gemini quickstart example with guardrails and cost tracking — PR #76
+- **[@MD-Mushfiqur123](https://github.com/MD-Mushfiqur123)** — Gemini quickstart example with guardrails and cost tracking — PR #76; .editorconfig for consistent formatting — PR #77
 
 ## Core Team
 
