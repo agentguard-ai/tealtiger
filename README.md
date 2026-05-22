@@ -186,6 +186,18 @@ response = client.chat.completions.create(
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Roadmap](./ROADMAP.md)
 
+### TealEngine Policy Schema
+
+Use [`schemas/tealtiger-policy.schema.json`](./schemas/tealtiger-policy.schema.json) for editor autocomplete and validation when authoring TealEngine policy JSON or YAML files. JSON policy files can include:
+
+```json
+{
+  "$schema": "./schemas/tealtiger-policy.schema.json"
+}
+```
+
+For YAML policies, configure your editor's YAML schema mapping to point policy files such as `tealtiger-policy.yml` at `./schemas/tealtiger-policy.schema.json`.
+
 ---
 
 ## 🐯 Build With Us — Early Contributor Program

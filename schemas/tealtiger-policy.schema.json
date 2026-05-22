@@ -1,0 +1,389 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tealtiger.ai/schemas/tealtiger-policy.schema.json",
+  "title": "TealTiger TealEngine Policy",
+  "description": "JSON Schema for TealEngine policy configuration files. It covers the TealPolicy interface used by TealTiger's deterministic policy engine.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Optional schema URI used by editors to provide autocomplete and validation for this policy file."
+    },
+    "tools": {
+      "$ref": "#/$defs/toolPolicy",
+      "description": "Tool usage policies keyed by tool name. Each entry controls whether a tool is allowed and which limits apply to its use."
+    },
+    "identity": {
+      "$ref": "#/$defs/identityPolicy",
+      "description": "Agent identity and role-based access control policy."
+    },
+    "codeExecution": {
+      "$ref": "#/$defs/codeExecutionPolicy",
+      "description": "Code generation and execution restrictions for agents that can produce or run code."
+    },
+    "behavioral": {
+      "$ref": "#/$defs/behavioralPolicy",
+      "description": "Behavioral monitoring limits, including cost ceilings, request rate limits, and anomaly thresholds."
+    },
+    "memory": {
+      "$ref": "#/$defs/memoryPolicy",
+      "description": "Memory and context storage policy for agent memory operations."
+    },
+    "content": {
+      "$ref": "#/$defs/contentPolicy",
+      "description": "Content filtering and moderation policy, including PII detection and safety category thresholds."
+    }
+  },
+  "$defs": {
+    "toolPolicy": {
+      "type": "object",
+      "description": "Map of tool names to per-tool policy configuration. Use '*' to define a wildcard policy.",
+      "additionalProperties": {
+        "$ref": "#/$defs/toolConfig"
+      },
+      "propertyNames": {
+        "type": "string",
+        "description": "Tool name or '*' wildcard."
+      }
+    },
+    "toolConfig": {
+      "type": "object",
+      "description": "Policy configuration for a single tool.",
+      "additionalProperties": false,
+      "required": ["allowed"],
+      "properties": {
+        "allowed": {
+          "type": "boolean",
+          "description": "Whether the tool is allowed to be used."
+        },
+        "maxSize": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?\\s*(B|KB|MB|GB)$",
+          "description": "Maximum data size for tool parameters or operations, such as '1MB', '500KB', or '10GB'."
+        },
+        "rateLimit": {
+          "$ref": "#/$defs/toolRateLimit",
+          "description": "Maximum tool calls allowed during a time window."
+        },
+        "allowedTables": {
+          "type": "array",
+          "description": "Database table names the tool may access when the tool performs database operations.",
+          "items": {
+            "type": "string",
+            "description": "Allowed database table name."
+          },
+          "uniqueItems": true
+        },
+        "maxRows": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of rows a database tool may return."
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Additional tool-specific parameters. TealEngine treats these as opaque policy metadata for integrations.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "toolRateLimit": {
+      "type": "object",
+      "description": "Rate limit for a tool.",
+      "additionalProperties": false,
+      "required": ["max", "window"],
+      "properties": {
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of calls allowed during the configured window."
+        },
+        "window": {
+          "$ref": "#/$defs/timeWindow",
+          "description": "Time window for the limit, such as '1m', '1h', or '1d'."
+        }
+      }
+    },
+    "identityPolicy": {
+      "type": "object",
+      "description": "Identity and role-based access control policy for a single agent.",
+      "additionalProperties": false,
+      "required": ["agentId", "role", "permissions"],
+      "properties": {
+        "agentId": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Unique agent identifier expected in evaluated requests."
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Agent role, such as 'customer-support', 'admin', or 'analyst'."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "Allowed permissions for the agent. Permissions commonly use 'action:resource' format.",
+          "items": {
+            "type": "string",
+            "description": "Permission string granted to the agent."
+          },
+          "uniqueItems": true
+        },
+        "forbidden": {
+          "type": "array",
+          "description": "Actions or wildcard patterns that are explicitly forbidden for this identity.",
+          "items": {
+            "type": "string",
+            "description": "Forbidden action or wildcard pattern, such as 'delete:*'."
+          },
+          "uniqueItems": true
+        },
+        "costLimit": {
+          "$ref": "#/$defs/costLimit",
+          "description": "Optional cost limits scoped to this identity."
+        }
+      }
+    },
+    "codeExecutionPolicy": {
+      "type": "object",
+      "description": "Policy for generated or executable code.",
+      "additionalProperties": false,
+      "properties": {
+        "allowedLanguages": {
+          "type": "array",
+          "description": "Programming languages the agent may generate or execute. Use '*' only for permissive development policies.",
+          "items": {
+            "type": "string",
+            "description": "Allowed programming language name."
+          },
+          "uniqueItems": true
+        },
+        "blockedFunctions": {
+          "type": "array",
+          "description": "Function names that generated or executed code must not contain, such as 'eval', 'exec', or 'system'.",
+          "items": {
+            "type": "string",
+            "description": "Blocked function name or wildcard."
+          },
+          "uniqueItems": true
+        },
+        "blockedPatterns": {
+          "type": "array",
+          "description": "Regular expression patterns that generated or executed code must not match. JSON and YAML policies should store these as pattern strings.",
+          "items": {
+            "$ref": "#/$defs/regexPattern",
+            "description": "Blocked regular expression pattern."
+          }
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum code length in characters."
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Execution timeout in milliseconds."
+        },
+        "requireSandbox": {
+          "type": "boolean",
+          "description": "Whether code execution requires a sandbox."
+        },
+        "sandboxRequired": {
+          "type": "boolean",
+          "deprecated": true,
+          "description": "Deprecated alias for requireSandbox retained for compatibility with older policy examples."
+        }
+      }
+    },
+    "behavioralPolicy": {
+      "type": "object",
+      "description": "Runtime behavior limits for an agent.",
+      "additionalProperties": false,
+      "properties": {
+        "costLimit": {
+          "$ref": "#/$defs/costLimit",
+          "description": "Cost ceilings for requests evaluated under this policy."
+        },
+        "rateLimit": {
+          "$ref": "#/$defs/behavioralRateLimit",
+          "description": "Request rate limit for the agent or policy."
+        },
+        "anomalyThreshold": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Anomaly detection threshold multiplier. For example, 2.0 means 200% of baseline."
+        }
+      }
+    },
+    "memoryPolicy": {
+      "type": "object",
+      "description": "Policy for data stored in agent memory or context.",
+      "additionalProperties": false,
+      "properties": {
+        "maxSize": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum memory size in bytes."
+        },
+        "validateInputs": {
+          "type": "boolean",
+          "description": "Whether inputs should be validated before they are stored in memory."
+        },
+        "sanitizeBeforeStorage": {
+          "type": "boolean",
+          "description": "Whether content should be sanitized before it is stored in memory."
+        },
+        "blockedPatterns": {
+          "type": "array",
+          "description": "Regular expression patterns for content that must not be stored in memory. JSON and YAML policies should store these as pattern strings.",
+          "items": {
+            "$ref": "#/$defs/regexPattern",
+            "description": "Blocked regular expression pattern."
+          }
+        }
+      }
+    },
+    "contentPolicy": {
+      "type": "object",
+      "description": "Policy for content filtering, PII handling, and moderation.",
+      "additionalProperties": false,
+      "properties": {
+        "pii": {
+          "$ref": "#/$defs/piiPolicy",
+          "description": "PII detection and redaction settings."
+        },
+        "moderation": {
+          "$ref": "#/$defs/moderationPolicy",
+          "description": "Content moderation settings."
+        }
+      }
+    },
+    "piiPolicy": {
+      "type": "object",
+      "description": "PII detection configuration.",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether PII detection is enabled."
+        },
+        "blockedTypes": {
+          "type": "array",
+          "description": "PII types to block or redact, such as 'ssn', 'credit_card', 'email', 'phone', or 'address'.",
+          "items": {
+            "type": "string",
+            "description": "PII type name."
+          },
+          "uniqueItems": true
+        },
+        "redactInLogs": {
+          "type": "boolean",
+          "description": "Whether detected PII should be redacted in logs."
+        }
+      }
+    },
+    "moderationPolicy": {
+      "type": "object",
+      "description": "Content moderation configuration.",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether content moderation is enabled."
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Blocking threshold from 0 to 1."
+        },
+        "categories": {
+          "type": "array",
+          "description": "Moderation categories to evaluate, such as 'hate', 'violence', 'sexual', or 'self-harm'.",
+          "items": {
+            "type": "string",
+            "description": "Moderation category name."
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "costLimit": {
+      "type": "object",
+      "description": "Cost limit configuration in dollars.",
+      "additionalProperties": false,
+      "properties": {
+        "daily": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Daily cost limit in dollars."
+        },
+        "hourly": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Hourly cost limit in dollars."
+        },
+        "monthly": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Monthly cost limit in dollars."
+        }
+      }
+    },
+    "behavioralRateLimit": {
+      "type": "object",
+      "description": "Request rate limit configuration.",
+      "additionalProperties": false,
+      "required": ["requests", "window"],
+      "properties": {
+        "requests": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum number of requests allowed during the configured window."
+        },
+        "window": {
+          "$ref": "#/$defs/timeWindow",
+          "description": "Time window for the request limit, such as '1m', '1h', or '1d'."
+        }
+      }
+    },
+    "timeWindow": {
+      "type": "string",
+      "pattern": "^\\d+[smhd]$",
+      "description": "Duration string with a number and unit: seconds (s), minutes (m), hours (h), or days (d)."
+    },
+    "regexPattern": {
+      "type": "string",
+      "format": "regex",
+      "description": "Regular expression pattern string."
+    }
+  },
+  "examples": [
+    {
+      "$schema": "./schemas/tealtiger-policy.schema.json",
+      "tools": {
+        "chat": { "allowed": true },
+        "file_write": { "allowed": false }
+      },
+      "identity": {
+        "agentId": "custom-agent-001",
+        "role": "assistant",
+        "permissions": ["read", "chat"],
+        "forbidden": ["write", "delete"]
+      },
+      "behavioral": {
+        "costLimit": {
+          "daily": 10,
+          "hourly": 2
+        },
+        "rateLimit": {
+          "requests": 100,
+          "window": "1h"
+        }
+      }
+    }
+  ]
+}
