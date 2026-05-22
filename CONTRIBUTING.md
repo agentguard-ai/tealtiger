@@ -41,6 +41,51 @@ pip install -e ".[dev]"
 pytest
 ```
 
+## Your First PR (Step-by-Step)
+
+Never submitted a PR before? Here's the exact workflow:
+
+### 1. Fork & Clone
+```bash
+# Fork the repo via GitHub UI, then:
+git clone https://github.com/YOUR_USERNAME/tealtiger.git
+cd tealtiger
+```
+
+### 2. Create a Branch
+```bash
+git checkout -b fix/your-change-name
+```
+
+### 3. Make Your Change
+Edit the file(s) you want to change. Start small — typo fixes and doc improvements count!
+
+### 4. Test Locally
+```bash
+# TypeScript SDK
+cd tealtiger-typescript-prod
+npm install && npm test
+
+# Python SDK
+cd tealtiger-python-prod
+pip install -e ".[dev]" && pytest
+```
+
+### 5. Commit & Push
+```bash
+git add .
+git commit -m "docs: fix typo in CONTRIBUTING.md"
+git push origin fix/your-change-name
+```
+
+### 6. Open a PR
+- Go to your fork on GitHub
+- Click "Compare & pull request"
+- Fill out the PR template — reviewers look for: clear description, tests passing, scope focused
+- Submit and wait for review (typically 2–3 business days)
+
+---
+
 ## Development Workflow
 
 ### 1. Create a branch
