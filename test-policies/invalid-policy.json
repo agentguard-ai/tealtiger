@@ -1,0 +1,11 @@
+{
+  "$schema": "../schemas/tealtiger-policy.schema.json",
+  "tools": {
+    "search_docs": {
+      "rateLimit": {
+        "max": 0,
+        "window": "soon"
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "tealtiger-hub",
+  "private": true,
+  "version": "0.0.0",
+  "type": "commonjs",
+  "description": "Hub repository utilities for TealTiger documentation, schemas, examples, and integrations.",
+  "scripts": {
+    "validate:policy": "ts-node scripts/validate-policy.ts",
+    "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

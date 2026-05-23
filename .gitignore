@@ -74,7 +74,9 @@ DOCKER_README.md
 DOCKER-TEST-RESULTS.md
 
 # Internal scripts
-scripts/
+scripts/*
+!scripts/validate-policy.ts
+!scripts/test-validate-policy.ts
 push-examples.sh
 push-examples.bat
 cleanup-*.bat
@@ -150,7 +152,6 @@ packages/tealtiger-vertex-extension/
 
 # Build configs (monorepo-level, not needed by SDK users)
 jest.config.js
-tsconfig.json
 .eslintrc.js
 
 # Misc internal files

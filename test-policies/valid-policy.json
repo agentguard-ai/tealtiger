@@ -1,0 +1,17 @@
+{
+  "$schema": "../schemas/tealtiger-policy.schema.json",
+  "tools": {
+    "search_docs": {
+      "allowed": true,
+      "rateLimit": {
+        "max": 20,
+        "window": "1m"
+      }
+    }
+  },
+  "identity": {
+    "agentId": "support-agent",
+    "role": "customer-support",
+    "permissions": ["search:docs"]
+  }
+}
