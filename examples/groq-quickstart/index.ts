@@ -6,7 +6,7 @@
  *
  * Run with:
  *
- *   GROQ_API_KEY=your-key npx ts-node examples/groq-quickstart/index.ts
+ *   GROQ_API_KEY=your-key npx ts-node --project examples/groq-quickstart/tsconfig.json examples/groq-quickstart/index.ts
  */
 
 import {

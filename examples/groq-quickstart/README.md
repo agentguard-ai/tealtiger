@@ -26,7 +26,7 @@ export GROQ_API_KEY=your-groq-api-key
 Run the quickstart from the TealTiger repository root:
 
 ```bash
-npx ts-node examples/groq-quickstart/index.ts
+npx ts-node --project examples/groq-quickstart/tsconfig.json examples/groq-quickstart/index.ts
 ```
 
 ## What It Does
