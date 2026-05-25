@@ -182,6 +182,7 @@ response = client.chat.completions.create(
 - [Cost Governance](#-cost-governance)
 - [Provider Setup](#-7-llm-providers)
 - [Cross-SDK Feature Parity Matrix](./docs/cross-sdk-feature-parity-matrix.md)
+- [Error Code Reference](./docs/error-code-reference.md)
 - [Contributing Guide](./CONTRIBUTING.md)
 - [Security Policy](./SECURITY.md)
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
