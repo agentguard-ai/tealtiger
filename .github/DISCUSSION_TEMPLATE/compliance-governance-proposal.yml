@@ -1,0 +1,49 @@
+title: "[Compliance Proposal]: "
+labels: ["compliance", "collaboration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 Compliance / Governance Proposal
+        Propose industry-specific governance rules, compliance mappings, or regulatory alignment for TealTiger.
+
+  - type: input
+    id: industry
+    attributes:
+      label: Industry
+      description: Which industry does this apply to?
+      placeholder: "e.g., Healthcare, Finance, Government, Legal"
+    validations:
+      required: true
+
+  - type: input
+    id: regulation
+    attributes:
+      label: Regulation / Framework
+      description: Which regulation or compliance framework?
+      placeholder: "e.g., HIPAA, SOC 2, GDPR, NIST AI RMF, EU AI Act, OWASP"
+    validations:
+      required: true
+
+  - type: textarea
+    id: control-category
+    attributes:
+      label: Control Category
+      description: What type of controls are needed?
+      placeholder: "Data classification, access control, audit requirements, retention..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: policy-rules
+    attributes:
+      label: Proposed Policy Rules
+      description: What governance rules would implement this compliance requirement?
+      placeholder: "Block PII in outputs, enforce data residency, require approval for high-risk actions..."
+
+  - type: textarea
+    id: evidence-requirements
+    attributes:
+      label: Evidence Requirements
+      description: What evidence/audit trail is needed for compliance?
+      placeholder: "Decision logs, TEEC receipts, SARIF reports, retention periods..."

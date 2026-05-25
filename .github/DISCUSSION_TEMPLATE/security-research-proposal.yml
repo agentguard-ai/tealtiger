@@ -1,0 +1,56 @@
+title: "[Security Research]: "
+labels: ["security", "collaboration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔒 Security Research Proposal
+        Propose security research, adversarial testing, or defense improvements for TealTiger.
+
+  - type: dropdown
+    id: attack-type
+    attributes:
+      label: Attack / Research Type
+      options:
+        - Prompt Injection
+        - Memory Poisoning
+        - Tool Misuse
+        - Cost Exploitation
+        - Secret Leakage
+        - Policy Bypass
+        - Adversarial Evasion
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: target-module
+    attributes:
+      label: Target Module
+      description: Which TealTiger module does this research target?
+      placeholder: "e.g., TealGuard, TealSecrets, TealEngine, TealMemory"
+    validations:
+      required: true
+
+  - type: textarea
+    id: methodology
+    attributes:
+      label: Methodology
+      description: How would you approach this research?
+      placeholder: "Fuzz testing, red-team exercises, formal verification..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-outcomes
+    attributes:
+      label: Expected Outcomes
+      description: What would success look like?
+      placeholder: "Identified vulnerabilities, improved detection patterns, benchmark dataset..."
+
+  - type: textarea
+    id: dataset
+    attributes:
+      label: Dataset Contribution (Optional)
+      description: Would this produce a reusable test dataset?
+      placeholder: "Adversarial prompt corpus, evasion patterns, benchmark suite..."

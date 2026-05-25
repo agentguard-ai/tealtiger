@@ -1,0 +1,67 @@
+title: "[Research Collaboration]: "
+labels: ["research", "collaboration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔬 Research Collaboration Proposal
+        Propose a joint research effort, benchmark, or academic collaboration.
+
+  - type: input
+    id: research-topic
+    attributes:
+      label: Research Topic
+      description: What is the research about?
+      placeholder: "e.g., Formal verification of governance policies, adversarial robustness benchmarks"
+    validations:
+      required: true
+
+  - type: textarea
+    id: methodology
+    attributes:
+      label: Methodology
+      description: How would you approach this research?
+      placeholder: "Empirical evaluation, formal methods, red-team testing, user study..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: output-type
+    attributes:
+      label: Expected Output
+      options:
+        - Research Paper
+        - Technical Specification
+        - Open-Source Code / Tool
+        - Benchmark Dataset
+        - Joint Blog Post / Write-up
+        - Reference Architecture
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: collaboration-model
+    attributes:
+      label: Collaboration Model
+      options:
+        - Async (GitHub Discussions + PRs)
+        - Sync calls + async work
+        - Co-authorship (equal contribution)
+        - Advisory (you guide, we implement)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: your-background
+    attributes:
+      label: Your Background (Optional)
+      description: Brief context on your expertise or organization
+      placeholder: "Security researcher at..., PhD student working on..., maintainer of..."
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Related papers, projects, or prior work

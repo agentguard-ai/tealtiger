@@ -1,0 +1,64 @@
+title: "[Content Proposal]: "
+labels: ["blog", "documentation", "collaboration"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ✍️ Documentation / Content Proposal
+        Propose a blog post, tutorial, guide, or documentation contribution.
+
+  - type: input
+    id: topic
+    attributes:
+      label: Topic
+      description: What would you write about?
+      placeholder: "e.g., Securing a CrewAI workflow with TealTiger"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-audience
+    attributes:
+      label: Target Audience
+      options:
+        - Beginners (first-time AI agent developers)
+        - Intermediate (experienced developers, new to governance)
+        - Advanced (security engineers, architects)
+        - Decision Makers (engineering leads, CTOs)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: format
+    attributes:
+      label: Format
+      options:
+        - Tutorial (step-by-step)
+        - Blog Post (opinion/analysis)
+        - Guide (reference documentation)
+        - Comparison (TealTiger vs. alternatives)
+        - Case Study
+        - Video Walkthrough
+    validations:
+      required: true
+
+  - type: textarea
+    id: key-sections
+    attributes:
+      label: Key Sections
+      description: Outline the main sections of your content
+      placeholder: |
+        1. Problem statement
+        2. Setup / installation
+        3. Implementation
+        4. Results / demo
+        5. Conclusion
+    validations:
+      required: true
+
+  - type: textarea
+    id: publish-plan
+    attributes:
+      label: Publishing Plan
+      description: Where would you like this published?
+      placeholder: "Dev.to, blogs.tealtiger.ai, your own blog, LinkedIn, Medium..."
