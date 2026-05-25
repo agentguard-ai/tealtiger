@@ -110,17 +110,29 @@ This document describes how the TealTiger project is governed, how decisions are
 ## Issue Etiquette
 
 - **Check before you start** — Look at the "Development" section of an issue to see if a PR already exists
-- **Claim before you code** — Comment "I'll take this" and wait for assignment before starting work
-- **One at a time for good-first-issues** — Leave these for new contributors. If unclaimed after 7 days, anyone can take them
+- **Claim before you code** — Comment "I'd like to work on this" on the issue and **wait for a maintainer to assign you** before starting work. Do not open a PR for an issue you haven't been assigned to.
 - **3 issue limit** — Don't self-assign more than 3 open issues simultaneously
+
+### Good First Issues Policy
+
+`good first issue` labeled issues are **reserved for new contributors only**. The rules are:
+
+1. **New contributors only** — If you have 3 or more merged PRs on this project, you are no longer eligible for `good first issue` tasks. Move on to intermediate or advanced issues.
+2. **Claim and wait** — Comment on the issue expressing interest. A maintainer will assign it to you. Do not start work until assigned.
+3. **One at a time** — You may only be assigned one `good first issue` at a time.
+4. **7-day timeout** — If a `good first issue` is unclaimed after 7 days, any contributor may request it.
+5. **Graduation** — After 3 merged `good first issue` PRs, you graduate to regular issues. Congratulations — you're ready for bigger challenges!
+
+> **Why?** We want to keep the onboarding pipeline open for newcomers. Experienced contributors taking easy issues blocks new people from getting started.
 
 ## PR Review Process
 
 1. All PRs require at least 1 review before merge
-2. Documentation/example PRs: Reviewer can approve and merge
-3. Code PRs: Owner or Co-Maintainer must approve
-4. Security-sensitive PRs: Owner must approve
-5. PRs must include documentation (code without docs is not shippable)
+2. **One PR per issue** — Each PR must address a single issue. Do not bundle commits for multiple issues into one PR. PRs mixing unrelated changes will be asked to split.
+3. Documentation/example PRs: Reviewer can approve and merge
+4. Code PRs: Owner or Co-Maintainer must approve
+5. Security-sensitive PRs: Owner must approve
+6. PRs must include documentation (code without docs is not shippable)
 
 ## Promotion Process
 
@@ -142,7 +154,7 @@ To request consideration for promotion, reach out on Discord or open a Discussio
 | Co-Maintainer | — |
 | Reviewer | — |
 | Trusted Contributor | — |
-| Contributor | @mvanhorn, @tmchow, @pntech20, @lleonardo-franco, @resolvicomai, @dagangtj, @aprv10, @MD-Mushfiqur123 |
+| Contributor | @mvanhorn, @tmchow, @pntech20, @lleonardo-franco, @resolvicomai, @dagangtj, @aprv10, @MD-Mushfiqur123, @CleanDev-Fix |
 
 ---
 
