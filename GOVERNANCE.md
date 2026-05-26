@@ -153,8 +153,8 @@ To request consideration for promotion, reach out on Discord or open a Discussio
 | Owner | @nagasatish007 |
 | Co-Maintainer | — |
 | Reviewer | — |
-| Trusted Contributor | — |
-| Contributor | @mvanhorn, @tmchow, @pntech20, @lleonardo-franco, @resolvicomai, @dagangtj, @aprv10, @MD-Mushfiqur123, @CleanDev-Fix |
+| Trusted Contributor | @lleonardo-franco |
+| Contributor | @mvanhorn, @tmchow, @pntech20, @resolvicomai, @dagangtj, @aprv10, @MD-Mushfiqur123, @CleanDev-Fix |
 
 ---
 
