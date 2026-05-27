@@ -1,166 +1,93 @@
 # Troubleshooting
 
-Use this guide when setup or runtime errors block a TealTiger integration.
-For canonical error codes, see the [error code reference](./error-code-reference.md).
+Use this guide for common setup and runtime errors. Each entry includes the
+error message, likely cause, and a short fix.
 
-## `Cannot find module 'tealtiger'`
+## Missing API key
 
-### Symptom
-
-Node.js fails during startup or tests:
+**Error message**
 
 ```text
-Error: Cannot find module 'tealtiger'
+Missing API key
 ```
 
-### Cause
+**Cause:** The provider key was not set, or the environment variable name does
+not match the provider client.
 
-The package is not installed in the current workspace, or the app is importing
-from the wrong package name/path.
+**Fix:** Export the expected key before running the app, for example
+`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or the provider-specific key used by your
+example. Never commit real keys to source control.
 
-### Fix
+## Budget exceeded
 
-Install the package in the app that runs TealTiger and import from the public
-package entrypoint:
-
-```bash
-npm install tealtiger
-```
-
-```ts
-import { TealEngine } from "tealtiger";
-```
-
-In a monorepo, run the install command from the package that owns the
-application entrypoint, then restart the test runner or dev server.
-
-## `MISSING_API_KEY`
-
-### Symptom
-
-Client creation or the first model request fails with:
-
-```text
-MISSING_API_KEY
-```
-
-### Cause
-
-The selected provider needs an API key, but the key was not passed in config
-and the expected environment variable is not set.
-
-### Fix
-
-Set the provider key outside source control and pass it through configuration:
-
-```bash
-export OPENAI_API_KEY="sk-..."
-```
-
-```ts
-const engine = new TealEngine({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-```
-
-Do not commit real keys. Use `.env.example` files with placeholder values when
-documenting required environment variables.
-
-## `Policy violation: tool is not allowed`
-
-### Symptom
-
-A tool call is denied:
-
-```text
-Policy violation: tool is not allowed
-```
-
-### Cause
-
-The active policy does not include the requested tool in its allowlist, or the
-request is using a different tool name than the policy expects.
-
-### Fix
-
-Compare the tool name in the failing request with the policy allowlist:
-
-```json
-{
-  "tools": {
-    "allow": ["file-read", "search-docs"]
-  }
-}
-```
-
-Use an allowed tool, correct the request name, or update the policy only after
-reviewing the access risk. Avoid broad allowlists such as `"*"` for production
-agents.
-
-## `Circuit breaker is open`
-
-### Symptom
-
-Requests fail before reaching the downstream service:
-
-```text
-Circuit breaker is open
-```
-
-### Cause
-
-TealTiger has observed repeated downstream failures and opened the circuit to
-avoid cascading failures, retry storms, or uncontrolled cost.
-
-### Fix
-
-Check the downstream service first, then let the circuit timeout elapse:
-
-```ts
-const circuit = new TealCircuit({
-  failureThreshold: 5,
-  timeout: 30_000,
-  halfOpenRequests: 1,
-});
-```
-
-Tune circuit thresholds only when logs show the dependency is healthy and the
-defaults are too strict for normal traffic.
-
-## `Budget exceeded`
-
-### Symptom
-
-A request is blocked with a budget error:
+**Error message**
 
 ```text
 Budget exceeded
 ```
 
-or:
+**Cause:** The request would exceed the configured per-request, session, or
+daily budget.
+
+**Fix:** Lower the prompt size or `maxTokens`, choose a cheaper model, or raise
+the budget limit in the policy after confirming the spend is expected.
+
+## Guardrail blocked request
+
+**Error message**
 
 ```text
-COST_BUDGET_EXCEEDED
+Guardrail blocked request: PII detected
 ```
 
-### Cause
+**Cause:** A PII guardrail found sensitive data such as an email, phone number,
+token, or other protected identifier.
 
-The estimated or accumulated cost is above the configured per-request, session,
-daily, or agent budget.
+**Fix:** Remove the sensitive value, use test placeholders, or configure the
+guardrail to redact instead of block when redaction is appropriate.
 
-### Fix
+## Provider timeout or connection error
 
-Lower request cost or raise the budget intentionally:
+**Error message**
 
-```ts
-const engine = new TealEngine({
-  budget: {
-    perRequestUsd: 0.05,
-    perSessionUsd: 1,
-    perDayUsd: 10,
-  },
-});
+```text
+Provider timeout
+Connection error
 ```
 
-Prefer cheaper models, smaller prompts, lower token limits, or manual approval
-for expensive workflows before increasing production budgets.
+**Cause:** The provider endpoint is unreachable, overloaded, blocked by network
+settings, or configured with the wrong base URL.
+
+**Fix:** Check the provider status page, verify the endpoint and region, retry
+with backoff, and confirm local firewall or proxy settings allow the request.
+
+## Invalid policy configuration
+
+**Error message**
+
+```text
+Invalid policy configuration
+```
+
+**Cause:** The policy file is missing required fields, uses an unsupported
+value, or does not match the TealTiger policy schema.
+
+**Fix:** Validate the file with the policy validator:
+
+```bash
+npm run validate:policy -- ./my-policy.json
+```
+
+## Unknown provider type
+
+**Error message**
+
+```text
+Unknown provider type
+```
+
+**Cause:** The configured provider name does not match a supported provider or
+the provider package was not installed/exported.
+
+**Fix:** Check the provider name for typos, confirm the SDK version supports the
+provider, and use the matching client or provider adapter from the examples.
