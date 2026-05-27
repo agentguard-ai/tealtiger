@@ -63,6 +63,9 @@ set TEALTIGER_API_KEY=your-api-key
 python examples/openai-agents-governance/main.py
 ```
 
+Copy `.env.example` in this directory if you prefer loading sidecar environment
+variables from a file, and replace only the placeholder values.
+
 On macOS or Linux:
 
 ```bash

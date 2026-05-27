@@ -21,6 +21,9 @@ Set your DeepSeek API key:
 export DEEPSEEK_API_KEY=sk-your-deepseek-key
 ```
 
+Copy `.env.example` in this directory if you prefer loading environment
+variables from a file, and replace only the placeholder value.
+
 Run the quickstart from the TealTiger repository root:
 
 ```bash
