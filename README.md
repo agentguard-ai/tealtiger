@@ -188,6 +188,24 @@ response = client.chat.completions.create(
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Roadmap](./ROADMAP.md)
 
+### Python Hugging Face TGI Quickstart
+
+Use `examples/python/huggingface_tgi_quickstart.py` to try the guarded
+Hugging Face Text Generation Inference provider from the Python SDK.
+
+```bash
+export HF_API_TOKEN="your-hugging-face-token"
+export HF_TGI_ENDPOINT="https://your-endpoint.endpoints.huggingface.cloud"
+export HF_TGI_MODEL="meta-llama/Meta-Llama-3.1-8B-Instruct"
+
+python examples/python/huggingface_tgi_quickstart.py
+```
+
+The example enables guardrail and cost-tracking configuration, sends one sample
+chat request, then prints the response, token usage, estimated cost, provider,
+and correlation ID. Use placeholder values in docs and `.env.example` files;
+never commit a real `HF_API_TOKEN`.
+
 ### TealEngine Policy Schema
 
 Use [`schemas/tealtiger-policy.schema.json`](./schemas/tealtiger-policy.schema.json) for editor autocomplete and validation when authoring TealEngine policy JSON or YAML files. JSON policy files can include:
