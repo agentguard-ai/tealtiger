@@ -27,6 +27,9 @@ export AWS_SECRET_ACCESS_KEY=...
 export AWS_REGION=us-east-1
 ```
 
+Copy `.env.example` in this directory if you prefer loading environment
+variables from a file, and replace only the placeholder values.
+
 Run the quickstart from the TealTiger repository root:
 
 ```bash
