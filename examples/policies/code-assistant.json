@@ -1,0 +1,63 @@
+{
+  "$schema": "../../schemas/tealtiger-policy.schema.json",
+  "tools": {
+    "read_file": {
+      "allowed": true,
+      "maxSize": "1MB"
+    },
+    "write_file": {
+      "allowed": true,
+      "maxSize": "500KB"
+    },
+    "run_tests": {
+      "allowed": true,
+      "rateLimit": {
+        "max": 20,
+        "window": "1h"
+      }
+    },
+    "shell": {
+      "allowed": false
+    }
+  },
+  "identity": {
+    "agentId": "code-assistant-agent",
+    "role": "developer-assistant",
+    "permissions": [
+      "read:repo",
+      "write:sandbox",
+      "run:tests"
+    ],
+    "forbidden": [
+      "write:production",
+      "deploy:*"
+    ]
+  },
+  "codeExecution": {
+    "allowedLanguages": [
+      "typescript",
+      "python"
+    ],
+    "blockedFunctions": [
+      "eval",
+      "exec",
+      "system",
+      "spawn",
+      "subprocess"
+    ],
+    "blockedPatterns": [
+      "rm\\s+-rf",
+      "curl\\s+.*\\|\\s*(sh|bash)",
+      "Invoke-WebRequest\\s+.*\\|"
+    ],
+    "maxLength": 20000,
+    "timeout": 30000,
+    "requireSandbox": true
+  },
+  "behavioral": {
+    "rateLimit": {
+      "requests": 50,
+      "window": "1h"
+    }
+  }
+}

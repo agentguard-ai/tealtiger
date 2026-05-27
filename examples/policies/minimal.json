@@ -1,0 +1,8 @@
+{
+  "$schema": "../../schemas/tealtiger-policy.schema.json",
+  "tools": {
+    "chat": {
+      "allowed": true
+    }
+  }
+}
