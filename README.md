@@ -15,6 +15,7 @@ Open source. TypeScript + Python. Works with any provider.
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?logo=discord&logoColor=white)](https://discord.gg/X2ePf8QAj)
 [![GitHub stars](https://img.shields.io/github/stars/agentguard-ai/tealtiger?style=social)](https://github.com/agentguard-ai/tealtiger)
 [![Governed by TealTiger](./assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
+<a href="https://www.nvidia.com/en-us/startups/"><img src=".github/logo/nvidia-inception-badge.svg" alt="NVIDIA Inception Program" height="20"></a>
 
 [Website](https://tealtiger.co.in) · [Documentation](#documentation) · [Examples](#examples) · [Discord](https://discord.gg/X2ePf8QAj) · [Contributing](#-build-with-us)
 
