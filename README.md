@@ -14,6 +14,7 @@ Open source. TypeScript + Python. Works with any provider.
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?logo=discord&logoColor=white)](https://discord.gg/X2ePf8QAj)
 [![GitHub stars](https://img.shields.io/github/stars/agentguard-ai/tealtiger?style=social)](https://github.com/agentguard-ai/tealtiger)
+[![Governed by TealTiger](./assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
 
 [Website](https://tealtiger.co.in) · [Documentation](#documentation) · [Examples](#examples) · [Discord](https://discord.gg/X2ePf8QAj) · [Contributing](#-build-with-us)
 
@@ -189,6 +190,22 @@ response = client.chat.completions.create(
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Roadmap](./ROADMAP.md)
 
+### Badge
+
+Use the TealTiger badge to show that a project is governed by deterministic
+agent security and cost policies.
+
+Light badge:
+
+```md
+[![Governed by TealTiger](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
+```
+
+Dark badge:
+
+```md
+[![Governed by TealTiger](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/assets/badges/governed-by-tealtiger-dark.svg)](https://github.com/agentguard-ai/tealtiger)
+```
 ### Python Hugging Face TGI Quickstart
 
 Use `examples/python/huggingface_tgi_quickstart.py` to try the guarded
