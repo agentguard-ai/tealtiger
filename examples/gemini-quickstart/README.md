@@ -21,6 +21,9 @@ Set your Gemini API key:
 export GEMINI_API_KEY=your-gemini-api-key
 ```
 
+Copy `.env.example` in this directory if you prefer loading environment
+variables from a file, and replace only the placeholder value.
+
 Run the quickstart from the TealTiger repository root:
 
 ```bash

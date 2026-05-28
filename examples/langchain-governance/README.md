@@ -39,6 +39,9 @@ Set an OpenAI key:
 export OPENAI_API_KEY="sk-..."
 ```
 
+Copy `.env.example` in this directory if you prefer loading environment
+variables from a file, and replace only the placeholder values.
+
 On PowerShell:
 
 ```powershell
