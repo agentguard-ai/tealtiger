@@ -1,0 +1,18 @@
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - examples/**
+          - docs/**
+          - schemas/**
+          - "*.md"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/secrets/**
+          - src/tealtiger/secrets/**
+
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - tests/**
