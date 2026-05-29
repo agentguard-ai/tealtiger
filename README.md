@@ -14,6 +14,15 @@ Open source. TypeScript + Python. Works with any provider.
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?logo=discord&logoColor=white)](https://discord.gg/X2ePf8QAj)
 [![GitHub stars](https://img.shields.io/github/stars/agentguard-ai/tealtiger?style=social)](https://github.com/agentguard-ai/tealtiger)
+[![Governed by TealTiger](./assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
+
+<br>
+
+<a href="https://www.nvidia.com/en-us/startups/">
+  <img src=".github/logo/nvidia-inception-badge.svg" alt="NVIDIA Inception Program" width="250">
+</a>
+
+<br>
 
 [Website](https://tealtiger.co.in) · [Documentation](#documentation) · [Examples](#examples) · [Discord](https://discord.gg/X2ePf8QAj) · [Contributing](#-build-with-us)
 
@@ -183,10 +192,45 @@ response = client.chat.completions.create(
 - [Provider Setup](#-7-llm-providers)
 - [Cross-SDK Feature Parity Matrix](./docs/cross-sdk-feature-parity-matrix.md)
 - [Error Code Reference](./docs/error-code-reference.md)
+- [Troubleshooting](./docs/troubleshooting.md)
 - [Contributing Guide](./CONTRIBUTING.md)
 - [Security Policy](./SECURITY.md)
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Roadmap](./ROADMAP.md)
+
+### Badge
+
+Use the TealTiger badge to show that a project is governed by deterministic
+agent security and cost policies.
+
+Light badge:
+
+```md
+[![Governed by TealTiger](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
+```
+
+Dark badge:
+
+```md
+[![Governed by TealTiger](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/assets/badges/governed-by-tealtiger-dark.svg)](https://github.com/agentguard-ai/tealtiger)
+```
+### Python Hugging Face TGI Quickstart
+
+Use `examples/python/huggingface_tgi_quickstart.py` to try the guarded
+Hugging Face Text Generation Inference provider from the Python SDK.
+
+```bash
+export HF_API_TOKEN="your-hugging-face-token"
+export HF_TGI_ENDPOINT="https://your-endpoint.endpoints.huggingface.cloud"
+export HF_TGI_MODEL="meta-llama/Meta-Llama-3.1-8B-Instruct"
+
+python examples/python/huggingface_tgi_quickstart.py
+```
+
+The example enables guardrail and cost-tracking configuration, sends one sample
+chat request, then prints the response, token usage, estimated cost, provider,
+and correlation ID. Use placeholder values in docs and `.env.example` files;
+never commit a real `HF_API_TOKEN`.
 
 ### TealEngine Policy Schema
 

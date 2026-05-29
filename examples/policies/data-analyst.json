@@ -1,0 +1,68 @@
+{
+  "$schema": "../../schemas/tealtiger-policy.schema.json",
+  "tools": {
+    "query_database": {
+      "allowed": true,
+      "allowedTables": [
+        "orders",
+        "customers",
+        "products"
+      ],
+      "maxRows": 1000,
+      "rateLimit": {
+        "max": 25,
+        "window": "1h"
+      }
+    },
+    "read_report": {
+      "allowed": true,
+      "maxSize": "10MB"
+    },
+    "write_database": {
+      "allowed": false
+    },
+    "delete_record": {
+      "allowed": false
+    }
+  },
+  "identity": {
+    "agentId": "data-analyst-agent",
+    "role": "analyst",
+    "permissions": [
+      "read:reports",
+      "read:tables",
+      "query:analytics"
+    ],
+    "forbidden": [
+      "write:*",
+      "delete:*",
+      "export:pii"
+    ],
+    "costLimit": {
+      "daily": 10
+    }
+  },
+  "behavioral": {
+    "costLimit": {
+      "daily": 10,
+      "hourly": 2
+    },
+    "rateLimit": {
+      "requests": 100,
+      "window": "1d"
+    },
+    "anomalyThreshold": 2
+  },
+  "content": {
+    "pii": {
+      "enabled": true,
+      "blockedTypes": [
+        "ssn",
+        "credit_card",
+        "email",
+        "phone"
+      ],
+      "redactInLogs": true
+    }
+  }
+}
