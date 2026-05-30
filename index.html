@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en" class="light" data-theme="light" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="TealTiger Observability Dashboard — Real-time visibility into AI agent governance decisions, costs, tool usage, and security events." />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="application-name" content="TealTiger Dashboard" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TealTiger" />
+    <meta name="msapplication-TileColor" content="#0f766e" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Security headers (via meta) -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' ws:; form-action 'self';"
+    />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+
+    <!-- Preconnect to critical origins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <!-- Preload Inter font with fallback -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      as="style"
+      fetchpriority="high"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    </noscript>
+
+    <!-- Favicons – all platforms -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#0f766e" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Prefetch critical API endpoint -->
+    <link rel="prefetch" href="/api/health" as="fetch" crossorigin="anonymous" />
+
+    <title>TealTiger Dashboard</title>
+
+    <!-- ============================================
+    DESIGN SYSTEM TOKENS – CSS Custom Properties
+    ============================================ -->
+    <style>
+      /* --------------------------------------------
+         CSS Custom Properties (light & dark)
+         -------------------------------------------- */
+      :root {
+        /* TealTiger color primitives */
+        --tt-teal-50: #f0fdfa;
+        --tt-teal-100: #ccfbf1;
+        --tt-teal-200: #99f6e4;
+        --tt-teal-300: #5eead4;
+        --tt-teal-400: #2dd4bf;
+        --tt-teal-500: #14b8a6;
+        --tt-teal-600: #0d9488;
+        --tt-teal-700: #0f766e;
+        --tt-teal-800: #115e59;
+        --tt-teal-900: #134e4a;
+
+        /* Neutral palette */
+        --tt-neutral-50: #f8fafc;
+        --tt-neutral-100: #f1f5f9;
+        --tt-neutral-200: #e2e8f0;
+        --tt-neutral-300: #cbd5e1;
+        --tt-neutral-400: #94a3b8;
+        --tt-neutral-500: #64748b;
+        --tt-neutral-600: #475569;
+        --tt-neutral-700: #334155;
+        --tt-neutral-800: #1e293b;
+        --tt-neutral-900: #0f172a;
+
+        /* Semantic colors */
+        --tt-primary: var(--tt-teal-700);
+        --tt-primary-hover: var(--tt-teal-800);
+        --tt-primary-light: var(--tt-teal-100);
+        --tt-secondary: #6366f1;
+        --tt-secondary-hover: #4f46e5;
+        --tt-accent: #f59e0b;
+        --tt-accent-hover: #d97706;
+        --tt-success: #10b981;
+        --tt-success-bg: #d1fae5;
+        --tt-warning: #f59e0b;
+        --tt-warning-bg: #fef3c7;
+        --tt-danger: #ef4444;
+        --tt-danger-bg: #fee2e2;
+        --tt-info: #3b82f6;
+        --tt-info-bg: #dbeafe;
+
+        /* Surface & text (light) */
+        --tt-background: var(--tt-neutral-50);
+        --tt-surface: #ffffff;
+        --tt-surface-raised: #ffffff;
+        --tt-surface-overlay: rgba(15, 23, 42, 0.06);
+        --tt-border: var(--tt-neutral-200);
+        --tt-border-light: var(--tt-neutral-100);
+        --tt-text: var(--tt-neutral-900);
+        --tt-text-secondary: var(--tt-neutral-500);
+        --tt-text-muted: var(--tt-neutral-400);
+        --tt-text-inverse: #ffffff;
+
+        /* Typography */
+        --tt-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --tt-font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', Menlo, Courier, monospace;
+        --tt-font-weight-normal: 400;
+        --tt-font-weight-medium: 500;
+        --tt-font-weight-semibold: 600;
+        --tt-font-weight-bold: 700;
+
+        /* Spacing (4px base) */
+        --tt-space-1: 4px;
+        --tt-space-2: 8px;
+        --tt-space-3: 12px;
+        --tt-space-4: 16px;
+        --tt-space-5: 20px;
+        --tt-space-6: 24px;
+        --tt-space-8: 32px;
+        --tt-space-10: 40px;
+        --tt-space-12: 48px;
+        --tt-space-16: 64px;
+
+        /* Border radius */
+        --tt-radius-sm: 4px;
+        --tt-radius-md: 8px;
+        --tt-radius-lg: 12px;
+        --tt-radius-xl: 16px;
+        --tt-radius-full: 9999px;
+
+        /* Shadows */
+        --tt-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+        --tt-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+        --tt-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+        --tt-shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+        --tt-shadow-focus: 0 0 0 3px rgba(15, 118, 110, 0.25);
+
+        /* Transitions */
+        --tt-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        --tt-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        --tt-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+        /* Z-index scale */
+        --tt-z-dropdown: 100;
+        --tt-z-sticky: 200;
+        --tt-z-modal: 300;
+        --tt-z-toast: 400;
+        --tt-z-tooltip: 500;
+
+        /* Layout */
+        --tt-sidebar-width: 260px;
+        --tt-header-height: 60px;
+        --tt-content-max-width: 1440px;
+      }
+
+      /* Dark theme overrides */
+      :root.dark,
+      [data-theme='dark'] {
+        --tt-background: var(--tt-neutral-900);
+        --tt-surface: var(--tt-neutral-800);
+        --tt-surface-raised: var(--tt-neutral-700);
+        --tt-surface-overlay: rgba(248, 250, 252, 0.06);
+        --tt-border: var(--tt-neutral-700);
+        --tt-border-light: var(--tt-neutral-800);
+        --tt-text: var(--tt-neutral-50);
+        --tt-text-secondary: var(--tt-neutral-400);
+        --tt-text-muted: var(--tt-neutral-500);
+        --tt-primary-light: var(--tt-teal-900);
+        --tt-success-bg: #064e3b;
+        --tt-warning-bg: #78350f;
+        --tt-danger-bg: #7f1d1d;
+        --tt-info-bg: #1e3a5f;
+        --tt-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+        --tt-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        --tt-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+        --tt-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        --tt-shadow-focus: 0 0 0 3px rgba(45, 212, 191, 0.35);
+      }
+
+      /* --------------------------------------------
+         Base / Reset
+         -------------------------------------------- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        font-size: 16px;
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--tt-font-family);
+        font-weight: var(--tt-font-weight-normal);
+        color: var(--tt-text);
+        background-color: var(--tt-background);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        transition: background-color var(--tt-transition-base), color var(--tt-transition-base);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Improve focus visibility for keyboard users */
+      :focus-visible {
+        outline: 2px solid var(--tt-primary);
+        outline-offset: 2px;
+        box-shadow: var(--tt-shadow-focus);
+      }
+
+      :focus:not(:focus-visible) {
+        outline: none;
+      }
+
+      img,
+      svg,
+      video,
+      canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+
+      a {
+        color: var(--tt-primary);
+        text-decoration: none;
+        transition: color var(--tt-transition-fast);
+      }
+      a:hover {
+        color: var(--tt-primary-hover);
+        text-decoration: underline;
+      }
+
+      button {
+        cursor: pointer;
+        font: inherit;
+        border: none;
+        background: none;
+        color: inherit;
+      }
+
+      /* --------------------------------------------
+         Layout – Sidebar + Main
+         -------------------------------------------- */
+      .app-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: var(--tt-sidebar-width);
+        height: 100vh;
+        overflow-y: auto;
+        background-color: var(--tt-surface);
+        border-right: 1px solid var(--tt-border);
+        z-index: var(--tt-z-sticky);
+        padding: var(--tt-space-4);
+        display: flex;
+        flex-direction: column;
+        transition: transform var(--tt-transition-slow), box-shadow var(--tt-transition-slow);
+        /* scrollbar styling */
+        scrollbar-width: thin;
+        scrollbar-color: var(--tt-border) transparent;
+      }
+      .sidebar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .sidebar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .sidebar::-webkit-scrollbar-thumb {
+        background-color: var(--tt-border);
+        border-radius: var(--tt-radius-full);
+      }
+
+      .sidebar__logo {
+        display: flex;
+        align-items: center;
+        gap: var(--tt-space-3);
+        padding-bottom: var(--tt-space-6);
+        border-bottom: 1px solid var(--tt-border-light);
+        margin-bottom: var(--tt-space-6);
+      }
+
+      .sidebar__logo-icon {
+        width: 36px;
+        height: 36px;
+        background: var(--tt-primary);
+        border-radius: var(--tt-radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: var(--tt-font-weight-bold);
+        font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+
+      .sidebar__logo-text {
+        font-size: 1.125rem;
+        font-weight: var(--tt-font-weight-semibold);
+        color: var(--tt-text);
+      }
+
+      .sidebar__nav {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        flex: 1;
+      }
+
+      .sidebar__nav-item {
+        margin-bottom: var(--tt-space-1);
+      }
+
+      .sidebar__nav-link {
+        display: flex;
+        align-items: center;
+        gap: var(--tt-space-3);
+        padding: var(--tt-space-3) var(--tt-space-4);
+        border-radius: var(--tt-radius-md);
+        color: var(--tt-text-secondary);
+        font-weight: var(--tt-font-weight-medium);
+        transition: background-color var(--tt-transition-fast), color var(--tt-transition-fast);
+        text-decoration: none;
+      }
+      .sidebar__nav-link:hover {
+        background-color: var(--tt-surface-overlay);
+        color: var(--tt-text);
+        text-decoration: none;
+      }
+      .sidebar__nav-link--active {
+        background-color: var(--tt-primary-light);
+        color: var(--tt-primary);
+      }
+
+      .sidebar__nav-icon {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        opacity: 0.8;
+      }
+
+      .sidebar__footer {
+        margin-top: auto;
+        padding-top: var(--tt-space-4);
+        border-top: 1px solid var(--tt-border-light);
+      }
+
+      .sidebar__theme-toggle {
+        display: flex;
+        align-items: center;
+        gap: var(--tt-space-3);
+        padding: var(--tt-space-3) var(--tt-space-4);
+        border-radius: var(--tt-radius-md);
+        width: 100%;
+        text-align: left;
+        color: var(--tt-text-secondary);
+        transition: background-color var(--tt-transition-fast);
+      }
+      .sidebar__theme-toggle:hover {
+        background-color: var(--tt-surface-overlay);
+        color: var(--tt-text);
+      }
+
+      /* Main content area */
+      .main-content {
+        margin-left: var(--tt-sidebar-width);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* Header */
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: var(--tt-z-sticky);
+        height: var(--tt-header-height);
+        background-color: var(--tt-surface);
+        border-bottom: 1px solid var(--tt-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 var(--tt-space-6);
+        backdrop-filter: blur(8px);
+        background-color: rgba(255, 255, 255, 0.85);
+      }
+      :root.dark .header,
+      [data-theme='dark'] .header {
+        background-color: rgba(30, 41, 59, 0.85);
+      }
+
+      .header__left {
+        display: flex;
+        align-items: center;
+        gap: var(--tt-space-4);
+      }
+
+      .header__menu-btn {
+        display: none; /* shown on mobile */
+        background: none;
+        border: none;
+        padding: var(--tt-space-2);
+        color: var(--tt-text);
+        border-radius: var(--tt-radius-md);
+      }
+      .header__menu-btn:hover {
+        background-color: var(--tt-surface-overlay);
+      }
+
+      .header__title {
+        font-size: 1.125rem;
+        font-weight: var(--tt-font-weight-semibold);
+      }
+
+      .header__right {
+        display: flex;
+        align-items: center;
+        gap: var(--tt-space-4);
+      }
+
+      .header__status {
+        display: flex;
+        align-items: center;
+        gap: var(--tt-space-2);
+        font-size: 0.875rem;
+        color: var(--tt-text-secondary);
+      }
+
+      .header__status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: var(--tt-radius-full);
+        background-color: var(--tt-success);
+        animation: pulse 2s infinite;
+      }
+      .header__status-dot--error {
+        background-color: var(--tt-danger);
+        animation: none;
+      }
+      .header__status-dot--warning {
+        background-color: var(--tt-warning);
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* Page content wrapper */
+      .page {
+        padding: var(--tt-space-6);
+        max-width: var(--tt-content-max-width);
+        width: 100%;
+        margin: 0 auto;
+        flex: 1;
+      }
+
+      /* --------------------------------------------
+         Dashboard Widget Cards
+         -------------------------------------------- */
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--tt-space-6);
+        margin-bottom: var(--tt-space-8);
+      }
+
+      .card {
+        background-color: var(--tt-surface);
+        border: 1px solid var(--tt-border);
+        border-radius: var(--tt-radius-lg);
+        padding: var(--tt-space-6);
+        box-shadow: var(--tt-shadow-sm);
+        transition: box-shadow var(--tt-transition-base), border-color var(--tt-transition-base);
+      }
+      .card:hover {
+        box-shadow: var(--tt-shadow-md);
+        border-color: var(--tt-border);
+      }
+
+      .card__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--tt-space-4);
+      }
+
+      .card__title {
+        font-size: 0.875rem;
+        font-weight: var(--tt-font-weight-semibold);
+        color: var(--tt-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .card__value {
+        font-size: 2rem;
+        font-weight: var(--tt-font-weight-bold);
+        color: var(--tt-text);
+        line-height: 1.2;
+      }
+
+      .card__change {
+        font-size: 0.75rem;
+        font-weight: var(--tt-font-weight-medium);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--tt-space-1);
+        padding: 2px 8px;
+        border-radius: var(--tt-radius-full);
+      }
+      .card__change--positive {
+        color: var(--tt-success);
+        background-color: var(--tt-success-bg);
+      }
+      .card__change--negative {
+        color: var(--tt-danger);
+        background-color: var(--tt-danger-bg);
+      }
+
+      .card__icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--tt-radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--tt-primary-light);
+        color: var(--tt-primary);
+      }
+
+      /* --------------------------------------------
+         Tables
+         -------------------------------------------- */
+      .table-container {
+        overflow-x: auto;
+        border-radius: var(--tt-radius-lg);
+        border: 1px solid var(--tt-border);
+        background-color: var(--tt-surface);
+      }
+
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+      }
+
+      .table th {
+        text-align: left;
+        padding: var(--tt-space-3) var(--tt-space-4);
+        font-weight: var(--tt-font-weight-semibold);
+        color: var(--tt-text-secondary);
+        background-color: var(--tt-surface);
+        border-bottom: 2px solid var(--tt-border);
+        white-space: nowrap;
+      }
+
+      .table td {
+        padding: var(--tt-space-3) var(--tt-space-4);
+        border-bottom: 1px solid var(--tt-border-light);
+        vertical-align: middle;
+      }
+
+      .table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .table tr:hover td {
+        background-color: var(--tt-surface-overlay);
+      }
+
+      /* Badge for status */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--tt-space-1);
+        padding: 2px 10px;
+        border-radius: var(--tt-radius-full);
+        font-size: 0.75rem;
+        font-weight: var(--tt-font-weight-medium);
+        white-space: nowrap;
+      }
+      .badge--success { background-color: var(--tt-success-bg); color: var(--tt-success); }
+      .badge--warning { background-color: var(--tt-warning-bg); color: var(--tt-warning); }
+      .badge--danger { background-color: var(--tt-danger-bg); color: var(--tt-danger); }
+      .badge--info { background-color: var(--tt-info-bg); color: var(--tt-info); }
+
+      /* Loading / Error states */
+      .loading-spinner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--tt-space-8);
+        color: var(--tt-text-muted);
+      }
+      .loading-spinner::after {
+        content: '';
+        width: 24px;
+        height: 24px;
+        border: 3px solid var(--tt-border);
+        border-top-color: var(--tt-primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-left: var(--tt-space-3);
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .error-message {
+        padding: var(--tt-space-6);
+        text-align: center;
+        color: var(--tt-danger);
+        background-color: var(--tt-danger-bg);
+        border-radius: var(--tt-radius-md);
+        font-weight: var(--tt-font-weight-medium);
+      }
+
+      .empty-state {
+        padding: var(--tt-space-10);
+        text-align: center;
+        color: var(--tt-text-muted);
+      }
+
+      /* --------------------------------------------
+         Responsive
+         -------------------------------------------- */
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+          box-shadow: none;
+        }
+        .sidebar--open {
+          transform: translateX(0);
+          box-shadow: var(--tt-shadow-xl);
+        }
+        .main-content {
+          margin-left: 0;
+        }
+        .header__menu-btn {
+          display: block;
+        }
+        .page {
+          padding: var(--tt-space-4);
+        }
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .dashboard-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (min-width: 1025px) {
+        .dashboard-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      /* --------------------------------------------
+         Utility classes
+         -------------------------------------------- */
+      .text-muted { color: var(--tt-text-muted); }
+      .text-small { font-size: 0.75rem; }
+      .flex { display: flex; }
+      .flex-col { flex-direction: column; }
+      .items-center { align-items: center; }
+      .gap-2 { gap: var(--tt-space-2); }
+      .gap-4 { gap: var(--tt-space-4); }
+      .mt-4 { margin-top: var(--tt-space-4); }
+      .mb-4 { margin-bottom: var(--tt-space-4); }
+      .w-full { width: 100%; }
+
+      /* Print styles */
+      @media print {
+        .sidebar,
+        .header {
+          display: none;
+        }
+        .main-content {
+          margin-left: 0;
+        }
+        .card {
+          box-shadow: none;
+          border: 1px solid #ccc;
+          break-inside: avoid;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <div class="sidebar__logo">
+          <div class="sidebar__logo-icon" aria-hidden="true">TT</div>
+          <span class="sidebar__logo-text">TealTiger</span>
+        </div>
+
+        <nav aria-label="Dashboard sections">
+          <ul class="sidebar__nav" role="list">
+            <li class="sidebar__nav-item">
+              <a href="#" class="sidebar__nav-link sidebar__nav-link--active" aria-current="page">
+                <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                Overview
+              </a>
+            </li>
+            <li class="sidebar__nav-item">
+              <a href="#" class="sidebar__nav-link">
+                <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Governance
+              </a>
+            </li>
+            <li class="sidebar__nav-item">
+              <a href="#" class="sidebar__nav-link">
+                <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><circle cx="12" cy="12" r="3"/></svg>
+                Costs
+              </a>
+            </li>
+            <li class="sidebar__nav-item">
+              <a href="#" class="sidebar__nav-link">
+                <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                Tools
+              </a>
+            </li>
+            <li class="sidebar__nav-item">
+              <a href="#" class="sidebar__nav-link">
+                <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Security
+              </a>
+            </li>
+            <li class="sidebar__nav-item">
+              <a href="#" class="sidebar__nav-link">
+                <svg class="sidebar__nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Events
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="sidebar__footer">
+          <button class="sidebar__theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+            <svg class="sidebar__nav-icon" id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span id="themeLabel">Dark mode</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Mobile overlay -->
+      <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.3); z-index:150;"></div>
+
+      <!-- Main content -->
+      <main class="main-content" id="mainContent" role="main">
+        <!-- Header -->
+        <header class="header" role="banner">
+          <div class="header__left">
+            <button class="header__menu-btn" id="menuToggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sidebar">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <h1 class="header__title">Dashboard Overview</h1>
+          </div>
+          <div class="header__right">
+            <div class="header__status" id="healthStatus" aria-live="polite">
+              <span class="header__status-dot" id="statusDot"></span>
+              <span id="statusText">Connecting...</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Page content -->
+        <div class="page">
+          <!-- Summary cards -->
+          <section aria-label="Key metrics" class="dashboard-grid" id="metricsGrid">
+            <!-- Cards will be populated by JavaScript -->
+            <div class="card" data-metric="governance">
+              <div class="card__header">
+                <span class="card__title">Governance Decisions</span>
+                <div class="card__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                </div>
+              </div>
+              <div class="card__value" id="metricGovernance">—</div>
+              <div class="mt-4 flex items-center gap-2">
+                <span class="card__change card__change--positive" id="changeGovernance">+0%</span>
+                <span class="text-muted text-small">vs last week</span>
+              </div>
+            </div>
+            <div class="card" data-metric="costs">
+              <div class="card__header">
+                <span class="card__title">Costs Incurred</span>
+                <div class="card__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </div>
+              </div>
+              <div class="card__value" id="metricCosts">—</div>
+              <div class="mt-4 flex items-center gap-2">
+                <span class="card__change card__change--negative" id="changeCosts">+0%</span>
+                <span class="text-muted text-small">vs last week</span>
+              </div>
+            </div>
+            <div class="card" data-metric="tools">
+              <div class="card__header">
+                <span class="card__title">Tools Used</span>
+                <div class="card__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                </div>
+              </div>
+              <div class="card__value" id="metricTools">—</div>
+              <div class="mt-4 flex items-center gap-2">
+                <span class="card__change card__change--positive" id="changeTools">+0%</span>
+                <span class="text-muted text-small">vs last week</span>
+              </div>
+            </div>
+            <div class="card" data-metric="security">
+              <div class="card__header">
+                <span class="card__title">Security Events</span>
+                <div class="card__icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+              </div>
+              <div class="card__value" id="metricSecurity">—</div>
+              <div class="mt-4 flex items-center gap-2">
+                <span class="card__change card__change--negative" id="changeSecurity">+0%</span>
+                <span class="text-muted text-small">vs last week</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Recent events table -->
+          <section aria-label="Recent governance events">
+            <h2 class="card__title mb-4">Recent Events</h2>
+            <div class="table-container" id="eventsTableContainer">
+              <table class="table" id="eventsTable">
+                <thead>
+                  <tr>
+                    <th scope="col">Timestamp</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Agent</th>
+                    <th scope="col">Action</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="eventsBody">
+                  <tr>
+                    <td colspan="5" class="empty-state">Loading events...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- ============================================
+    JavaScript – Production quality
+    - Strict mode
+    - Error handling with try/catch
+    - Input validation (where applicable)
+    - Async/await with retry logic
+    - Local storage for theme
+    - Accessibility
+    - Performance: debounce, animationFrame, passive events
+    ============================================ -->
+    <script>
+      'use strict';
+
+      (function() {
+        const CONFIG = {
+          healthEndpoint: '/api/health',
+          eventsEndpoint: '/api/events',
+          metricsEndpoint: '/api/metrics',
+          retryAttempts: 3,
+          retryDelayMs: 1000,
+          refreshIntervalMs: 30000,
+        };
+
+        // ----------------------------
+        // State
+        // ----------------------------
+        const state = {
+          theme: null, // 'light' or 'dark'
+          health: null,
+          metrics: null,
+          events: [],
+          refreshTimer: null,
+        };
+
+        // ----------------------------
+        // DOM refs (cached)
+        // ----------------------------
+        const dom = {
+          html: document.documentElement,
+          themeToggle: document.getElementById('themeToggle'),
+          themeIcon: document.getElementById('themeIcon'),
+          themeLabel: document.getElementById('themeLabel'),
+          sidebar: document.getElementById('sidebar'),
+          menuToggle: document.getElementById('menuToggle'),
+          overlay: document.getElementById('sidebarOverlay'),
+          statusDot: document.getElementById('statusDot'),
+          statusText: document.getElementById('statusText'),
+          metrics: {
+            governance: document.getElementById('metricGovernance'),
+            costs: document.getElementById('metricCosts'),
+            tools: document.getElementById('metricTools'),
+            security: document.getElementById('metricSecurity'),
+          },
+          changes: {
+            governance: document.getElementById('changeGovernance'),
+            costs: document.getElementById('changeCosts'),
+            tools: document.getElementById('changeTools'),
+            security: document.getElementById('changeSecurity'),
+          },
+          eventsBody: document.getElementById('eventsBody'),
+        };
+
+        // ----------------------------
+        // Utility functions
+        // ----------------------------
+        function getCssVar(name) {
+          return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+
+        function debounce(fn, delay) {
+          let timer;
+          return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+          };
+        }
+
+        function formatNumber(num) {
+          if (num === null || num === undefined) return '—';
+          if (num >= 1_000_000) return (num / 1_000_000).toFixed(1) + 'M';
+          if (num >= 1_000) return (num / 1_000).toFixed(1) + 'K';
+          return num.toLocaleString();
+        }
+
+        function formatCurrency(amount) {
+          if (amount === null || amount === undefined) return '—';
+          return '$' + amount.toFixed(2);
+        }
+
+        function formatTimestamp(ts) {
+          try {
+            const date = new Date(ts);
+            if (isNaN(date.getTime())) return 'Invalid date';
+            // Use Intl for locale-aware formatting
+            return new Intl.DateTimeFormat(undefined, {
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            }).format(date);
+          } catch {
+            return 'Invalid date';
+          }
+        }
+
+        function timeAgo(ts) {
+          try {
+            const now = Date.now();
+            const then = new Date(ts).getTime();
+            if (isNaN(then)) return '';
+            const diff = Math.max(0, now - then);
+            const seconds = Math.floor(diff / 1000);
+            if (seconds < 60) return `${seconds}s ago`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            return `${days}d ago`;
+          } catch {
+            return '';
+          }
+        }
+
+        // ----------------------------
+        // Retry fetch with exponential backoff
+        // ----------------------------
+        async function fetchWithRetry(url, options = {}, attempts = CONFIG.retryAttempts) {
+          for (let i = 0; i < attempts; i++) {
+            try {
+              const response = await fetch(url, {
+                ...options,
+                signal: AbortSignal.timeout(5000), // 5s timeout
+              });
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+              }
+              return await response.json();
+            } catch (error) {
+              if (i === attempts - 1) {
+                throw error; // last attempt failed
+              }
+              // Wait before retry
+              await new Promise(resolve => setTimeout(resolve, CONFIG.retryDelayMs * Math.pow(2, i)));
+            }
+          }
+        }
+
+        // ----------------------------
+        // Theme management
+        // ----------------------------
+        function setTheme(theme) {
+          try {
+            if (!['light', 'dark'].includes(theme)) {
+              console.warn(`Invalid theme "${theme}", defaulting to light`);
+              theme = 'light';
+            }
+            state.theme = theme;
+            dom.html.setAttribute('data-theme', theme);
+            dom.html.className = theme;
+            localStorage.setItem('tt-theme', theme);
+            // Update icon and label
+            const isDark = theme === 'dark';
+            dom.themeIcon.innerHTML = isDark
+              ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+              : '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+            dom.themeLabel.textContent = isDark ? 'Light mode' : 'Dark mode';
+          } catch (error) {
+            console.error('Theme set error:', error);
+          }
+        }
+
+        function toggleTheme() {
+          const newTheme = state.theme === 'dark' ? 'light' : 'dark';
+          setTheme(newTheme);
+        }
+
+        function initTheme() {
+          try {
+            const stored = localStorage.getItem('tt-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = stored || (prefersDark ? 'dark' : 'light');
+            setTheme(theme);
+          } catch (error) {
+            console.error('Theme init error:', error);
+            setTheme('light');
+          }
+        }
+
+        // ----------------------------
+        // Health check
+        // ----------------------------
+        async function checkHealth() {
+          try {
+            const data = await fetchWithRetry(CONFIG.healthEndpoint);
+            state.health = data;
+            const status = (data && data.status) || 'healthy';
+            dom.statusDot.className = 'header__status-dot';
+            if (status === 'healthy' || status === 'ok') {
+              dom.statusDot.classList.add('header__status-dot--success');
+              dom.statusText.textContent = 'All systems operational';
+            } else if (status === 'degraded') {
+              dom.statusDot.classList.add('header__status-dot--warning');
+              dom.statusText.textContent = 'Degraded performance';
+            } else {
+              dom.statusDot.classList.add('header__status-dot--error');
+              dom.statusText.textContent = 'Service disruption';
+            }
+          } catch (error) {
+            console.error('Health check failed:', error);
+            dom.statusDot.className = 'header__status-dot header__status-dot--error';
+            dom.statusText.textContent = 'Unable to connect';
+          }
+        }
+
+        // ----------------------------
+        // Metrics
+        // ----------------------------
+        async function loadMetrics() {
+          try {
+            const data = await fetchWithRetry(CONFIG.metricsEndpoint);
+            state.metrics = data;
+            if (data) {
+              dom.metrics.governance.textContent = formatNumber(data.governanceDecisions ?? data.decisions);
+              dom.metrics.costs.textContent = formatCurrency(data.costsIncurred ?? data.costs);
+              dom.metrics.tools.textContent = formatNumber(data.toolsUsed ?? data.tools);
+              dom.metrics.security.textContent = formatNumber(data.securityEvents ?? data.security);
+              // Update changes if available
+              if (data.changes) {
+                for (const key of ['governance', 'costs', 'tools', 'security']) {
+                  const change = data.changes[key];
+                  if (change !== undefined && dom.changes[key]) {
+                    const isPositive = change >= 0;
+                    dom.changes[key].className = `card__change ${isPositive ? 'card__change--positive' : 'card__change--negative'}`;
+                    dom.changes[key].textContent = `${isPositive ? '+' : ''}${change.toFixed(1)}%`;
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Metrics load error:', error);
+            // Keep existing values, optionally show error state
+          }
+        }
+
+        // ----------------------------
+        // Events
+        // ----------------------------
+        async function loadEvents() {
+          try {
+            const data = await fetchWithRetry(CONFIG.eventsEndpoint);
+            state.events = Array.isArray(data) ? data : (data && data.events ? data.events : []);
+            renderEvents(state.events);
+          } catch (error) {
+            console.error('Events load error:', error);
+            dom.eventsBody.innerHTML = `<tr><td colspan="5" class="error-message">Failed to load events. Retrying...</td></tr>`;
+          }
+        }
+
+        function renderEvents(events) {
+          if (!events || events.length === 0) {
+            dom.eventsBody.innerHTML = `<tr><td colspan="5" class="empty-state">No recent events.</td></tr>`;
+            return;
+          }
+          let html = '';
+          const fragment = document.createDocumentFragment();
+          const template = document.createElement('template');
+          for (const event of events) {
+            const timestamp = formatTimestamp(event.timestamp || event.ts);
+            const ago = timeAgo(event.timestamp || event.ts);
+            const type = escapeHtml(event.type || '—');
+            const agent = escapeHtml(event.agent || '—');
+            const action = escapeHtml(event.action || '—');
+            const status = event.status || 'unknown';
+            const badgeClass = status === 'approved' ? 'badge--success' : status === 'rejected' ? 'badge--danger' : status === 'pending' ? 'badge--warning' : 'badge--info';
+            const row = `
+              <tr>
+                <td>${timestamp} <span class="text-muted text-small">${ago}</span></td>
+                <td>${type}</td>
+                <td>${agent}</td>
+                <td>${action}</td>
+                <td><span class="badge ${badgeClass}">${escapeHtml(status)}</span></td>
+              </tr>`;
+            template.innerHTML = row.trim();
+            fragment.appendChild(template.content.firstChild);
+          }
+          dom.eventsBody.innerHTML = '';
+          dom.eventsBody.appendChild(fragment);
+        }
+
+        // Simple HTML escaping to prevent XSS
+        function escapeHtml(str) {
+          if (typeof str !== 'string') return String(str || '');
+          const div = document.createElement('div');
+          div.textContent = str;
+          return div.innerHTML;
+        }
+
+        // ----------------------------
+        // Refresh data
+        // ----------------------------
+        async function refreshAll() {
+          await Promise.allSettled([
+            checkHealth(),
+            loadMetrics(),
+            loadEvents(),
+          ]);
+        }
+
+        function startAutoRefresh() {
+          if (state.refreshTimer) clearInterval(state.refreshTimer);
+          state.refreshTimer = setInterval(refreshAll, CONFIG.refreshIntervalMs);
+        }
+
+        function stopAutoRefresh() {
+          if (state.refreshTimer) {
+            clearInterval(state.refreshTimer);
+            state.refreshTimer = null;
+          }
+        }
+
+        // ----------------------------
+        // Sidebar toggle (mobile)
+        // ----------------------------
+        function toggleSidebar(open) {
+          const isOpen = open !== undefined ? open : !dom.sidebar.classList.contains('sidebar--open');
+          dom.sidebar.classList.toggle('sidebar--open', isOpen);
+          dom.overlay.style.display = isOpen ? 'block' : 'none';
+          dom.menuToggle.setAttribute('aria-expanded', String(isOpen));
+          // Trap focus inside sidebar when open (basic)
+          if (isOpen) {
+            dom.sidebar.querySelector('a, button')?.focus();
+          }
+        }
+
+        // ----------------------------
+        // Event listeners
+        // ----------------------------
+        function setupListeners() {
+          // Theme toggle
+          dom.themeToggle.addEventListener('click', toggleTheme);
+
+          // Mobile menu toggle
+          dom.menuToggle.addEventListener('click', () => toggleSidebar());
+
+          // Overlay click to close sidebar
+          dom.overlay.addEventListener('click', () => toggleSidebar(false));
+
+          // Keyboard: Escape to close sidebar
+          document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && dom.sidebar.classList.contains('sidebar--open')) {
+              toggleSidebar(false);
+              dom.menuToggle.focus();
+            }
+          });
+
+          // Handle window resize – close sidebar on large screens if open
+          const handleResize = debounce(() => {
+            if (window.innerWidth > 768 && dom.sidebar.classList.contains('sidebar--open')) {
+              toggleSidebar(false);
+            }
+          }, 200);
+          window.addEventListener('resize', handleResize, { passive: true });
+
+          // Listen for visibility change to pause/resume refresh
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+              stopAutoRefresh();
+            } else {
+              refreshAll().then(startAutoRefresh);
+            }
+          });
+        }
+
+        // ----------------------------
+        // Bootstrap
+        // ----------------------------
+        async function init() {
+          try {
+            initTheme();
+            setupListeners();
+            await refreshAll();
+            startAutoRefresh();
+          } catch (error) {
+            console.error('Initialization error:', error);
+            // Show user-facing error message in status
+            dom.statusText.textContent = 'Initialization failed';
+            dom.statusDot.className = 'header__status-dot header__status-dot--error';
+          }
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+  </body>
+</html>
