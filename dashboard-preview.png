@@ -1,0 +1,238 @@
+#!/usr/bin/env python3
+"""
+TealTiger Dashboard Preview Generator
+Generates a production-grade PNG mockup of the observability dashboard.
+Usage: python generate_preview.py
+Output: /src/images/dashboard-preview.png
+"""
+
+import os
+from PIL import Image, ImageDraw, ImageFont
+
+# ─── Configuration ──────────────────────────────────────────────────────────────
+OUTPUT_PATH = "/src/images/dashboard-preview.png"
+WIDTH, HEIGHT = 1200, 800
+BG_COLOR = "#f8fafc"          # background
+SURFACE_COLOR = "#ffffff"
+SIDEBAR_COLOR = "#0f172a"     # dark sidebar
+TEXT_COLOR = "#0f172a"
+TEXT_SECONDARY = "#64748b"
+PRIMARY = "#0f766e"
+SECONDARY = "#6366f1"
+ACCENT = "#f59e0b"
+SUCCESS = "#10b981"
+DANGER = "#ef4444"
+WARNING = "#f59e0b"
+
+# Layout constants
+SIDEBAR_WIDTH = 220
+HEADER_HEIGHT = 56
+PADDING = 16
+CARD_GAP = 12
+
+# ─── Font setup (fallback if Inter not installed) ──────────────────────────────
+try:
+    FONT_BOLD = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 14)
+    FONT_REGULAR = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 12)
+    FONT_SMALL = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Regular.ttf", 10)
+    FONT_HEADER = ImageFont.truetype("/usr/share/fonts/truetype/inter/Inter-Bold.ttf", 16)
+except (IOError, OSError):
+    FONT_BOLD = ImageFont.load_default()
+    FONT_REGULAR = ImageFont.load_default()
+    FONT_SMALL = FONT_REGULAR
+    FONT_HEADER = FONT_BOLD
+
+FONT_REGULAR_12 = FONT_REGULAR  # alias
+
+# ─── Helper draw functions ──────────────────────────────────────────────────────
+
+def rounded_rect(draw, xy, radius, fill=None, outline=None, width=1):
+    """Draw a rounded rectangle using PIL.”””
+    x0, y0, x1, y1 = xy
+    # Ensure the bounding box is large enough for the radius
+    if radius > min(x1 - x0, y1 - y0) // 2:
+        radius = min(x1 - x0, y1 - y0) // 2
+    draw.rounded_rectangle(xy, radius=radius, fill=fill, outline=outline, width=width)
+
+def draw_metric_card(draw, x, y, width, height, title, value, sub_value, color):
+    """Draw a single metric card with title, big value, subtitle and colored accent bar."””
+    # Card background
+    rounded_rect(draw, [x, y, x+width, y+height], radius=8, fill=SURFACE_COLOR)
+    # Top accent bar (4px high)
+    draw.rectangle([x+4, y+2, x+width-4, y+6], fill=color)
+    # Title
+    draw.text((x+12, y+14), title, font=FONT_SMALL, fill=TEXT_SECONDARY)
+    # Main value
+    draw.text((x+12, y+32), value, font=FONT_BOLD, fill=TEXT_COLOR)
+    # Sub value
+    draw.text((x+12, y+56), sub_value, font=FONT_SMALL, fill=TEXT_SECONDARY)
+    # Sparkline placeholder (small line chart)
+    spark_x = x + width - 60
+    spark_y = y + 32
+    points = [(spark_x + i*8, spark_y - int((i%3)*6 + 4)) for i in range(6)]
+    for i in range(len(points)-1):
+        draw.line([points[i], points[i+1]], fill=color, width=2)
+
+def draw_sidebar(draw):
+    """Draw the left sidebar with logo, navigation items and user info."””
+    # Sidebar background
+    draw.rectangle([0, 0, SIDEBAR_WIDTH, HEIGHT], fill=SIDEBAR_COLOR)
+    # Logo / brand
+    draw.text((16, 16), "TealTiger", font=FONT_HEADER, fill="#ffffff")
+    draw.text((16, 38), "Observability", font=FONT_SMALL, fill="#94a3b8")
+    # Nav items
+    nav_items = [
+        ("Dashboard", PRIMARY),
+        ("Events", None),
+        ("Agents", None),
+        ("Compliance", None),
+        ("Costs", None),
+        ("Security", None),
+        ("Settings", None),
+    ]
+    y_offset = 90
+    for item, highlight in nav_items:
+        if highlight:
+            # Active state background
+            draw.rectangle([0, y_offset-4, SIDEBAR_WIDTH, y_offset+22], fill=PRIMARY+"30")
+            draw.rectangle([0, y_offset-4, 4, y_offset+22], fill=PRIMARY)
+        draw.text((20, y_offset), item, font=FONT_REGULAR, fill="#ffffff" if not highlight else PRIMARY)
+        y_offset += 36
+    # User info at bottom
+    draw.text((16, HEIGHT-60), "Operator: admin", font=FONT_SMALL, fill="#94a3b8")
+    draw.text((16, HEIGHT-40), "Status: Live", font=FONT_SMALL, fill=SUCCESS)
+
+def draw_header(draw):
+    """Draw the top header bar with title, search, and time range selector."””
+    x_start = SIDEBAR_WIDTH
+    draw.rectangle([x_start, 0, WIDTH, HEADER_HEIGHT], fill=SURFACE_COLOR)
+    # Title
+    draw.text((x_start+20, 16), "Governance Dashboard", font=FONT_HEADER, fill=TEXT_COLOR)
+    # Search bar placeholder
+    search_x = WIDTH - 320
+    rounded_rect(draw, [search_x, 12, search_x+200, 44], radius=6, fill="#f1f5f9")
+    draw.text((search_x+12, 18), "Search events, agents...", font=FONT_SMALL, fill=TEXT_SECONDARY)
+    # Time range selector
+    rounded_rect(draw, [WIDTH-100, 12, WIDTH-16, 44], radius=6, fill="#f1f5f9")
+    draw.text((WIDTH-90, 18), "Last 7 days", font=FONT_SMALL, fill=TEXT_COLOR)
+
+def draw_main_content(draw):
+    """Draw all dashboard content inside the main area below header, right of sidebar."””
+    x0 = SIDEBAR_WIDTH + PADDING
+    y0 = HEADER_HEIGHT + PADDING
+    main_width = WIDTH - SIDEBAR_WIDTH - 2*PADDING
+    # ── Metric cards row (4 cards) ──
+    card_w = (main_width - 3*CARD_GAP) // 4
+    card_h = 90
+    metrics = [
+        ("Total Events", "24,891", "+12.3% vs last week", PRIMARY),
+        ("Active Agents", "47", "3 in review", SUCCESS),
+        ("Avg Latency", "124ms", "p95: 210ms", ACCENT),
+        ("Cost Today", "$18.42", "Projected $24.10", DANGER),
+    ]
+    for i, (title, value, sub, color) in enumerate(metrics):
+        x = x0 + i*(card_w + CARD_GAP)
+        draw_metric_card(draw, x, y0, card_w, card_h, title, value, sub, color)
+
+    # ── Second row: Event Feed + Cost Analytics ──
+    row2_y = y0 + card_h + PADDING
+    # Left: Event Feed (recent events table)
+    feed_w = int(main_width * 0.62)
+    feed_h = 260
+    rounded_rect(draw, [x0, row2_y, x0+feed_w, row2_y+feed_h], radius=8, fill=SURFACE_COLOR)
+    # Section title
+    draw.text((x0+16, row2_y+12), "Recent Events", font=FONT_BOLD, fill=TEXT_COLOR)
+    # Table header
+    headers = ["Event Type", "Agent", "Status", "Timestamp"]
+    col_widths = [90, 130, 80, 100]
+    x_header = x0 + 16
+    for h, cw in zip(headers, col_widths):
+        draw.text((x_header, row2_y+32), h, font=FONT_SMALL, fill=TEXT_SECONDARY)
+        x_header += cw
+    # Table rows (fake data)
+    events_data = [
+        ("Decision", "agent-4", "Allowed", "13:42"),
+        ("Cost Record", "agent-7", "Warning", "13:38"),
+        ("Security Alert", "agent-2", "Blocked", "13:35"),
+        ("Tool Call", "agent-11", "Allowed", "13:31"),
+        ("Compliance Check", "agent-5", "Review", "13:22"),
+    ]
+    for idx, (ev_type, agent, status, time) in enumerate(events_data):
+        row_y = row2_y + 52 + idx*24
+        draw.rectangle([x0+16, row_y, x0+feed_w-16, row_y+22], fill="#f8fafc" if idx%2==0 else "#ffffff")
+        x_cell = x0 + 16
+        for j, val in enumerate([ev_type, agent, status, time]):
+            # Color coding for status
+            text_fill = TEXT_COLOR
+            if j == 2:
+                if status == "Blocked":
+                    text_fill = DANGER
+                elif status == "Warning":
+                    text_fill = WARNING
+                elif status == "Review":
+                    text_fill = ACCENT
+                else:
+                    text_fill = SUCCESS
+            draw.text((x_cell+4, row_y+4), val, font=FONT_SMALL, fill=text_fill)
+            x_cell += col_widths[j]
+
+    # Right: Cost Analytics (small bar chart)
+    cost_x = x0 + feed_w + CARD_GAP
+    cost_w = main_width - feed_w - CARD_GAP
+    cost_h = feed_h
+    rounded_rect(draw, [cost_x, row2_y, cost_x+cost_w, row2_y+cost_h], radius=8, fill=SURFACE_COLOR)
+    draw.text((cost_x+12, row2_y+12), "Cost by Agent (top 5)", font=FONT_BOLD, fill=TEXT_COLOR)
+    # Dummy bar chart
+    agents_cost = [("agent-4", 4.2), ("agent-7", 3.8), ("agent-2", 2.9), ("agent-11", 2.1), ("agent-5", 1.5)]
+    max_cost = max(a[1] for a in agents_cost)
+    bar_w = 20
+    bar_gap = 8
+    start_x = cost_x + 20
+    base_y = row2_y + 210
+    for i, (name, value) in enumerate(agents_cost):
+        bar_h = int((value / max_cost) * 100)
+        x = start_x + i*(bar_w+bar_gap)
+        draw.rectangle([x, base_y - bar_h, x+bar_w, base_y], fill=PRIMARY if i%2==0 else SECONDARY)
+        draw.text((x, base_y - bar_h - 14), f"${value:.1f}", font=FONT_SMALL, fill=TEXT_COLOR)
+        draw.text((x-4, base_y+4), name, font=FONT_SMALL, fill=TEXT_SECONDARY)
+
+    # ── Third row: Security Alerts + Compliance Status ──
+    row3_y = row2_y + feed_h + PADDING
+    alert_w = int(main_width * 0.48)
+    alert_h = 130
+    # Security Alerts card
+    rounded_rect(draw, [x0, row3_y, x0+alert_w, row3_y+alert_h], radius=8, fill=SURFACE_COLOR)
+    draw.text((x0+16, row3_y+12), "Security Alerts", font=FONT_BOLD, fill=TEXT_COLOR)
+    draw.text((x0+16, row3_y+36), "• 2 high severity alerts in last 24h", font=FONT_SMALL, fill=DANGER)
+    draw.text((x0+16, row3_y+56), "• 4 medium severity, action required", font=FONT_SMALL, fill=WARNING)
+    # Compliance Status card
+    comp_x = x0 + alert_w + CARD_GAP
+    comp_w = main_width - alert_w - CARD_GAP
+    rounded_rect(draw, [comp_x, row3_y, comp_x+comp_w, row3_y+alert_h], radius=8, fill=SURFACE_COLOR)
+    draw.text((comp_x+16, row3_y+12), "Compliance Status", font=FONT_BOLD, fill=TEXT_COLOR)
+    draw.rectangle([comp_x+16, row3_y+40, comp_x+16+100, row3_y+46], fill=SUCCESS)
+    draw.rectangle([comp_x+16+104, row3_y+40, comp_x+16+204, row3_y+46], fill="#e5e7eb")
+    draw.text((comp_x+16, row3_y+52), "68% Pass Rate", font=FONT_SMALL, fill=TEXT_SECONDARY)
+
+    # ── Footer status bar ──
+    footer_y = HEIGHT - 28
+    draw.rectangle([SIDEBAR_WIDTH, footer_y, WIDTH, HEIGHT], fill="#e5e7eb")
+    draw.text((x0, footer_y+6), "● Live events streaming  |  Last sync: 30s ago  |  20 capabilities registered  |  8 mesh nodes", font=FONT_SMALL, fill=TEXT_SECONDARY)
+
+def generate_preview():
+    """Main generation function.”””
+    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
+    img = Image.new("RGBA", (WIDTH, HEIGHT), BG_COLOR)
+    draw = ImageDraw.Draw(img)
+
+    # Draw all components in order
+    draw_sidebar(draw)
+    draw_header(draw)
+    draw_main_content(draw)
+
+    # Save as PNG
+    img.save(OUTPUT_PATH, "PNG")
+    print(f"Dashboard preview saved to {OUTPUT_PATH} | Size: {WIDTH}x{HEIGHT}")
+
+if __name__ == "__main__":
+    generate_preview()
