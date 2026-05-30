@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#0f766e" flood-opacity="0.15" />
+    </filter>
+  </defs>
+  <title>Security Alert</title>
+  <desc>A shield icon with an exclamation mark representing security alerts in the TealTiger dashboard</desc>
+  <!-- Shield body with subtle brand tint and drop shadow -->
+  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="#f0fdfa" stroke="#0f766e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
+  <!-- Alert exclamation mark -->
+  <line x1="12" y1="8" x2="12" y2="14" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Alert dot -->
+  <circle cx="12" cy="17" r="1.25" fill="#ef4444" />
+</svg>
