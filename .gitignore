@@ -154,6 +154,11 @@ packages/tealtiger-vertex-extension/
 jest.config.js
 .eslintrc.js
 
+# Dashboard package source and lockfile
+!packages/tealtiger-dashboard/src/
+!packages/tealtiger-dashboard/src/**
+!packages/tealtiger-dashboard/package-lock.json
+
 # Misc internal files
 .cleanup-sensitive-files.txt
 *.bat
