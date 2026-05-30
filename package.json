@@ -5,8 +5,13 @@
   "type": "commonjs",
   "description": "Hub repository utilities for TealTiger documentation, schemas, examples, and integrations.",
   "scripts": {
+    "build": "tsc --noEmit",
+    "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.17.3"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
