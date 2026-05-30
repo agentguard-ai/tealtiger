@@ -5,13 +5,19 @@
   "type": "commonjs",
   "description": "Hub repository utilities for TealTiger documentation, schemas, examples, and integrations.",
   "scripts": {
+    "api:start": "ts-node api/governance-events/index.ts",
     "build": "tsc --noEmit",
+    "test:api": "node --test -r ts-node/register tests/api/governance-api.test.ts",
     "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.3"
+    "@fastify/swagger": "^9.7.0",
+    "@libsql/client": "^0.17.3",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.8.5",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
