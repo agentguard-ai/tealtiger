@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- Chart grid background -->
+  <path d="M2 16h20" stroke="#e2e8f0" stroke-width="0.75" stroke-dasharray="2 3" stroke-linecap="round"/>
+  <path d="M2 22h20" stroke="#cbd5e1" stroke-width="0.75" stroke-linecap="round"/>
+
+  <!-- Bar 1 (shortest) — secondary indigo -->
+  <rect x="3" y="15" width="4" height="7" rx="1" fill="#6366f1" fill-opacity="0.15"/>
+  <rect x="3" y="15" width="4" height="7" rx="1" stroke="#6366f1" stroke-width="1.5"/>
+
+  <!-- Bar 2 (medium) — secondary indigo -->
+  <rect x="9" y="12" width="4" height="10" rx="1" fill="#6366f1" fill-opacity="0.25"/>
+  <rect x="9" y="12" width="4" height="10" rx="1" stroke="#6366f1" stroke-width="1.5"/>
+
+  <!-- Bar 3 (tallest) — primary teal, hosts dollar sign -->
+  <rect x="15" y="8" width="4" height="14" rx="1" fill="#0f766e" fill-opacity="0.15"/>
+  <rect x="15" y="8" width="4" height="14" rx="1" stroke="#0f766e" stroke-width="1.5"/>
+
+  <!-- Dollar sign — accent amber, representing cost -->
+  <path d="M17 3.5v5M15.5 4.5Q17 2.5 18.5 4.5M18.5 7Q17 9 15.5 7" stroke="#f59e0b" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
