@@ -1,0 +1,972 @@
+typescript
+// src/index.ts
+import express, { Express, Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import { WebSocketServer, WebSocket } from 'ws';
+import { createServer, Server as HttpServer } from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import winston from 'winston';
+import rateLimit from 'express-rate-limit';
+import { z, ZodError } from 'zod';
+import Database from 'better-sqlite3';
+
+// ---------------------------------------------------------------------------
+// DIRECTORY SETUP (for __dirname in ESM)
+// ---------------------------------------------------------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ---------------------------------------------------------------------------
+// LOGGING CONFIGURATION
+// ---------------------------------------------------------------------------
+
+/**
+ * Configures the application-wide logger using winston.
+ * Logs are output to console (with colorization) and to rotating files.
+ * Provides structured logging with service name and request ID context.
+ */
+const logger = winston.createLogger({
+  level: process.env.LOG_LEVEL ?? 'info',
+  format: winston.format.combine(
+    winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: { service: 'tealtiger-dashboard' },
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.printf(({ timestamp, level, message, service, requestId, ...meta }) => {
+          const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+          const reqId = requestId ? ` [req:${requestId}]` : '';
+          return `${timestamp} [${service}]${reqId} ${level}: ${message}${metaStr}`;
+        })
+      ),
+    }),
+    new winston.transports.File({
+      filename: path.join(__dirname, '..', 'logs', 'error.log'),
+      level: 'error',
+      maxsize: 10_485_760, // 10 MB
+      maxFiles: 5,
+    }),
+    new winston.transports.File({
+      filename: path.join(__dirname, '..', 'logs', 'combined.log'),
+      level: 'info',
+      maxsize: 10_485_760,
+      maxFiles: 10,
+    }),
+  ],
+});
+
+// ---------------------------------------------------------------------------
+// TYPE DEFINITIONS
+// ---------------------------------------------------------------------------
+
+/** Severity levels for governance events. */
+export type EventSeverity = 'info' | 'warning' | 'critical';
+
+/** Categories of governance events. */
+export type EventCategory = 'governance' | 'cost' | 'tool' | 'security';
+
+/** A single governance event. */
+export interface GovernanceEvent {
+  /** Unique identifier. */
+  id: string;
+  /** ISO-8601 timestamp. */
+  timestamp: Date;
+  /** Severity level. */
+  severity: EventSeverity;
+  /** Category. */
+  category: EventCategory;
+  /** Human-readable title. */
+  title: string;
+  /** Detailed description. */
+  description: string;
+  /** Optional structured metadata. */
+  metadata?: Record<string, unknown>;
+  /** Source agent or service. */
+  source: string;
+}
+
+/** Summary statistics for dashboard overview. */
+export interface DashboardSummary {
+  totalEvents: number;
+  criticalCount: number;
+  totalCost: number;
+  uniqueTools: number;
+  securityEvents: number;
+  lastEventTimestamp: string | null;
+}
+
+/** Application configuration. */
+export interface AppConfig {
+  port: number;
+  dbPath: string;
+  eventStorePath: string;
+  corsOrigins: string;
+  rateLimitWindow: number;
+  rateLimitMax: number;
+  wsEnabled: boolean;
+  maxInMemoryEvents: number;
+  staticDir: string;
+}
+
+// ---------------------------------------------------------------------------
+// CUSTOM ERROR CLASSES
+// ---------------------------------------------------------------------------
+
+/** Base application error for consistent error handling. */
+export class AppError extends Error {
+  public readonly statusCode: number;
+  public readonly isOperational: boolean;
+
+  constructor(message: string, statusCode: number = 500, isOperational: boolean = true) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/** Validation error for request data. */
+export class ValidationError extends AppError {
+  public readonly details: z.ZodError | undefined;
+
+  constructor(message: string, details?: z.ZodError) {
+    super(message, 400, true);
+    this.details = details;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/** Not found error. */
+export class NotFoundError extends AppError {
+  constructor(resource: string, id?: string) {
+    super(id ? `${resource} with id '${id}' not found` : `${resource} not found`, 404, true);
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+/** Database error. */
+export class DatabaseError extends AppError {
+  constructor(message: string, cause?: unknown) {
+    super(`Database error: ${message}`, 500, false);
+    this.cause = cause;
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SCHEMA VALIDATION (Zod)
+// ---------------------------------------------------------------------------
+
+/** Schema for creating a governance event. */
+const createEventSchema = z.object({
+  severity: z.enum(['info', 'warning', 'critical']),
+  category: z.enum(['governance', 'cost', 'tool', 'security']),
+  title: z.string().min(1, 'Title is required.').max(500, 'Title exceeds 500 characters.'),
+  description: z.string().min(1, 'Description is required.').max(10_000, 'Description exceeds 10,000 characters.'),
+  metadata: z.record(z.unknown()).optional(),
+  source: z.string().min(1, 'Source is required.').max(500, 'Source exceeds 500 characters.'),
+});
+
+/** Schema for query parameters on events endpoint. */
+const eventQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(1000).default(100),
+  severity: z.enum(['info', 'warning', 'critical']).optional(),
+  category: z.enum(['governance', 'cost', 'tool', 'security']).optional(),
+  source: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  sortBy: z.enum(['timestamp', 'severity', 'category']).default('timestamp'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+});
+
+/** Schema for configuration validation. */
+const configSchema = z.object({
+  PORT: z.coerce.number().int().positive().default(4200),
+  DB_PATH: z.string().default(path.join(__dirname, '..', 'data', 'dashboard.db')),
+  EVENT_STORE_PATH: z.string().default(path.join(__dirname, '..', 'data', 'events.jsonl')),
+  CORS_ORIGINS: z.string().default('*'),
+  RATE_LIMIT_WINDOW: z.coerce.number().int().positive().default(60_000),
+  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(100),
+  WS_ENABLED: z
+    .string()
+    .optional()
+    .transform((val) => val !== 'false')
+    .default('true'),
+  MAX_IN_MEMORY_EVENTS: z.coerce.number().int().positive().default(10_000),
+  STATIC_DIR: z.string().default(path.join(__dirname, '..', 'public')),
+});
+
+export type CreateEventInput = z.infer<typeof createEventSchema>;
+export type EventQueryParams = z.infer<typeof eventQuerySchema>;
+
+// ---------------------------------------------------------------------------
+// EVENT STORE (Append-only JSONL)
+// ---------------------------------------------------------------------------
+
+/**
+ * An append-only, line-delimited JSON event store for durable persistence.
+ * All writes are synchronous to ensure ordering and durability.
+ * Designed for high throughput with minimal overhead.
+ */
+export class EventStore {
+  private readonly filePath: string;
+  private writeStream: fs.WriteStream;
+  private writeQueue: Promise<void> = Promise.resolve();
+  private writeCount: number = 0;
+
+  /**
+   * Creates an EventStore instance for the given file path.
+   * Ensures the parent directory exists and opens a write stream.
+   * @param filePath - Path to the JSONL file.
+   * @throws {DatabaseError} If the directory cannot be created or the file cannot be opened.
+   */
+  constructor(filePath: string) {
+    this.filePath = filePath;
+    const dir = path.dirname(filePath);
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch (err) {
+      logger.error('Failed to create event store directory', { dir, error: err });
+      throw new DatabaseError(`Unable to create directory ${dir}`, err);
+    }
+
+    try {
+      // Open in append mode, create if not exists
+      this.writeStream = fs.createWriteStream(filePath, { flags: 'a' });
+      this.writeStream.on('error', (err) => {
+        logger.error('EventStore write stream error', { error: err });
+      });
+    } catch (err) {
+      logger.error('Failed to open event store write stream', { filePath, error: err });
+      throw new DatabaseError(`Unable to open event store at ${filePath}`, err);
+    }
+  }
+
+  /**
+   * Appends an event to the store. Uses an internal write queue to ensure ordering.
+   * @param event - The GovernanceEvent to persist.
+   * @returns A promise that resolves when the write is complete.
+   */
+  async append(event: GovernanceEvent): Promise<void> {
+    const line = JSON.stringify(event) + '\n';
+    this.writeQueue = this.writeQueue.then(() => {
+      return new Promise<void>((resolve, reject) => {
+        const canContinue = this.writeStream.write(line, 'utf8', (err) => {
+          if (err) {
+            logger.error('Failed to write event to store', { eventId: event.id, error: err });
+            reject(new DatabaseError('Write failed', err));
+          } else {
+            this.writeCount++;
+            resolve();
+          }
+        });
+        if (!canContinue) {
+          // Wait for drain event if backpressure
+          logger.warn('EventStore backpressure detected, waiting for drain');
+          this.writeStream.once('drain', () => resolve());
+        }
+      });
+    });
+  }
+
+  /**
+   * Reads all events from the store sequentially.
+   * @returns An async generator of GovernanceEvent objects.
+   */
+  async *readAll(): AsyncGenerator<GovernanceEvent> {
+    try {
+      const lines = fs.readFileSync(this.filePath, 'utf8').split('\n').filter((line) => line.trim() !== '');
+      for (const line of lines) {
+        try {
+          const event: GovernanceEvent = JSON.parse(line);
+          yield event;
+        } catch (err) {
+          logger.error('Failed to parse event line from store', { line, error: err });
+        }
+      }
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+        // File does not exist yet, return empty
+        return;
+      }
+      logger.error('Failed to read event store', { error: err });
+      throw new DatabaseError('Read failed', err);
+    }
+  }
+
+  /**
+   * Returns the total number of events written since startup (approximate).
+   */
+  getWriteCount(): number {
+    return this.writeCount;
+  }
+
+  /**
+   * Closes the write stream cleanly.
+   */
+  async close(): Promise<void> {
+    return new Promise<void>((resolve) => {
+      this.writeStream.end(resolve);
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DATABASE WRAPPER (SQLite via better-sqlite3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Manages the SQLite database for event storage and retrieval.
+ * Provides methods for inserting, querying, and summarizing events.
+ */
+export class DatabaseManager {
+  private db: Database.Database;
+  private readonly insertStmt: Database.Statement;
+  private readonly getByIdStmt: Database.Statement;
+  private readonly countAllStmt: Database.Statement;
+
+  /**
+   * Opens or creates the SQLite database and initializes schema.
+   * @param dbPath - Filesystem path to the SQLite database file.
+   * @throws {DatabaseError} If database cannot be opened or schema creation fails.
+   */
+  constructor(dbPath: string) {
+    const dir = path.dirname(dbPath);
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+    } catch (err) {
+      logger.error('Failed to create database directory', { dir, error: err });
+      throw new DatabaseError(`Unable to create directory ${dir}`, err);
+    }
+
+    try {
+      this.db = new Database(dbPath);
+      // Enable WAL mode for better concurrent performance
+      this.db.pragma('journal_mode = WAL');
+      this.db.pragma('foreign_keys = ON');
+    } catch (err) {
+      logger.error('Failed to open database', { dbPath, error: err });
+      throw new DatabaseError(`Unable to open database at ${dbPath}`, err);
+    }
+
+    try {
+      this.createTable();
+      this.insertStmt = this.db.prepare(`
+        INSERT INTO events (id, timestamp, severity, category, title, description, metadata, source)
+        VALUES (@id, @timestamp, @severity, @category, @title, @description, @metadata, @source)
+      `);
+      this.getByIdStmt = this.db.prepare(`SELECT * FROM events WHERE id = ?`);
+      this.countAllStmt = this.db.prepare(`SELECT COUNT(*) AS count FROM events`);
+    } catch (err) {
+      logger.error('Failed to prepare statements', { error: err });
+      throw new DatabaseError('Statement preparation failed', err);
+    }
+  }
+
+  /**
+   * Creates the events table if it does not exist.
+   */
+  private createTable(): void {
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS events (
+        id TEXT PRIMARY KEY,
+        timestamp TEXT NOT NULL,
+        severity TEXT NOT NULL CHECK(severity IN ('info','warning','critical')),
+        category TEXT NOT NULL CHECK(category IN ('governance','cost','tool','security')),
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        metadata TEXT,
+        source TEXT NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp DESC);
+      CREATE INDEX IF NOT EXISTS idx_events_severity ON events(severity);
+      CREATE INDEX IF NOT EXISTS idx_events_category ON events(category);
+    `);
+  }
+
+  /**
+   * Inserts a new governance event into the database.
+   * @param event - The event to insert.
+   * @throws {DatabaseError} On insertion failure.
+   */
+  insert(event: GovernanceEvent): void {
+    try {
+      this.insertStmt.run({
+        id: event.id,
+        timestamp: event.timestamp.toISOString(),
+        severity: event.severity,
+        category: event.category,
+        title: event.title,
+        description: event.description,
+        metadata: event.metadata ? JSON.stringify(event.metadata) : null,
+        source: event.source,
+      });
+    } catch (err) {
+      logger.error('Failed to insert event into database', { eventId: event.id, error: err });
+      throw new DatabaseError('Insert failed', err);
+    }
+  }
+
+  /**
+   * Retrieves an event by its ID.
+   * @param id - The event's UUID.
+   * @returns The event or null if not found.
+   */
+  getById(id: string): GovernanceEvent | null {
+    try {
+      const row = this.getByIdStmt.get(id) as Record<string, unknown> | undefined;
+      if (!row) return null;
+      return this.rowToEvent(row);
+    } catch (err) {
+      logger.error('Failed to fetch event by ID', { eventId: id, error: err });
+      throw new DatabaseError('GetById failed', err);
+    }
+  }
+
+  /**
+   * Queries events with pagination and optional filters.
+   * @param params - Query parameters.
+   * @returns Object with events array and total count.
+   */
+  queryEvents(params: EventQueryParams): { events: GovernanceEvent[]; total: number } {
+    const { page, limit, severity, category, source, startDate, endDate, sortBy, sortOrder } = params;
+
+    const conditions: string[] = [];
+    const values: Record<string, unknown> = {};
+
+    if (severity) {
+      conditions.push('severity = @severity');
+      values.severity = severity;
+    }
+    if (category) {
+      conditions.push('category = @category');
+      values.category = category;
+    }
+    if (source) {
+      conditions.push('source = @source');
+      values.source = source;
+    }
+    if (startDate) {
+      conditions.push('timestamp >= @startDate');
+      values.startDate = startDate;
+    }
+    if (endDate) {
+      conditions.push('timestamp <= @endDate');
+      values.endDate = endDate;
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const orderBy = `ORDER BY ${sortBy} ${sortOrder}`;
+    const offset = (page - 1) * limit;
+
+    const countSql = `SELECT COUNT(*) AS total FROM events ${whereClause}`;
+    const querySql = `SELECT * FROM events ${whereClause} ${orderBy} LIMIT @limit OFFSET @offset`;
+
+    try {
+      const totalRow = this.db.prepare(countSql).get(values) as { total: number };
+      const rows = this.db.prepare(querySql).all({ ...values, limit, offset }) as Record<string, unknown>[];
+      const events = rows.map((row) => this.rowToEvent(row));
+      return { events, total: totalRow.total };
+    } catch (err) {
+      logger.error('Failed to query events', { conditions, error: err });
+      throw new DatabaseError('Query failed', err);
+    }
+  }
+
+  /**
+   * Computes summary statistics from the events table.
+   * @returns DashboardSummary object.
+   */
+  getSummary(): DashboardSummary {
+    try {
+      const stats = this.db
+        .prepare(
+          `SELECT 
+            COUNT(*) AS totalEvents,
+            SUM(CASE WHEN severity = 'critical' THEN 1 ELSE 0 END) AS criticalCount,
+            COALESCE(SUM(CASE WHEN category = 'cost' THEN CAST(JSON_EXTRACT(metadata, '$.amount') AS REAL) ELSE 0 END), 0) AS totalCost,
+            (SELECT COUNT(DISTINCT JSON_EXTRACT(metadata, '$.toolName')) FROM events WHERE category = 'tool') AS uniqueTools,
+            SUM(CASE WHEN category = 'security' THEN 1 ELSE 0 END) AS securityEvents,
+            MAX(timestamp) AS lastEventTimestamp
+          FROM events`
+        )
+        .get() as {
+        totalEvents: number;
+        criticalCount: number;
+        totalCost: number;
+        uniqueTools: number;
+        securityEvents: number;
+        lastEventTimestamp: string | null;
+      };
+
+      return {
+        totalEvents: stats.totalEvents,
+        criticalCount: stats.criticalCount,
+        totalCost: stats.totalCost,
+        uniqueTools: stats.uniqueTools,
+        securityEvents: stats.securityEvents,
+        lastEventTimestamp: stats.lastEventTimestamp,
+      };
+    } catch (err) {
+      logger.error('Failed to compute dashboard summary', { error: err });
+      throw new DatabaseError('Summary failed', err);
+    }
+  }
+
+  /**
+   * Converts a database row object to a GovernanceEvent.
+   * @param row - Raw database row.
+   * @returns A GovernanceEvent instance.
+   */
+  private rowToEvent(row: Record<string, unknown>): GovernanceEvent {
+    return {
+      id: row.id as string,
+      timestamp: new Date(row.timestamp as string),
+      severity: row.severity as EventSeverity,
+      category: row.category as EventCategory,
+      title: row.title as string,
+      description: row.description as string,
+      metadata: row.metadata ? JSON.parse(row.metadata as string) : undefined,
+      source: row.source as string,
+    };
+  }
+
+  /**
+   * Closes the database connection gracefully.
+   */
+  close(): void {
+    try {
+      this.db.close();
+      logger.info('Database connection closed.');
+    } catch (err) {
+      logger.error('Error closing database', { error: err });
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// APPLICATION CONFIGURATION
+// ---------------------------------------------------------------------------
+
+/**
+ * Loads and validates configuration from environment variables.
+ * Falls back to sensible defaults for local development.
+ * @returns Validated AppConfig object.
+ */
+function loadConfig(): AppConfig {
+  const parsed = configSchema.safeParse(process.env);
+  if (!parsed.success) {
+    logger.error('Invalid configuration from environment', { errors: parsed.error.errors });
+    throw new ValidationError('Invalid environment configuration', parsed.error);
+  }
+
+  return {
+    port: parsed.data.PORT,
+    dbPath: parsed.data.DB_PATH,
+    eventStorePath: parsed.data.EVENT_STORE_PATH,
+    corsOrigins: parsed.data.CORS_ORIGINS,
+    rateLimitWindow: parsed.data.RATE_LIMIT_WINDOW,
+    rateLimitMax: parsed.data.RATE_LIMIT_MAX,
+    wsEnabled: parsed.data.WS_ENABLED,
+    maxInMemoryEvents: parsed.data.MAX_IN_MEMORY_EVENTS,
+    staticDir: parsed.data.STATIC_DIR,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// WEB SOCKET MANAGER
+// ---------------------------------------------------------------------------
+
+/**
+ * Manages WebSocket connections for real-time event streaming.
+ * Broadcasts new events to all connected clients.
+ */
+export class WebSocketManager {
+  private wss: WebSocketServer;
+  private clients: Set<WebSocket> = new Set();
+  private readonly pingInterval: ReturnType<typeof setInterval>;
+
+  /**
+   * Creates a WebSocket server attached to the HTTP server.
+   * @param server - HTTP server instance.
+   */
+  constructor(server: HttpServer) {
+    this.wss = new WebSocketServer({ server, path: '/ws' });
+    this.wss.on('connection', (ws: WebSocket) => {
+      this.clients.add(ws);
+      logger.info('WebSocket client connected', { totalClients: this.clients.size });
+
+      ws.on('close', () => {
+        this.clients.delete(ws);
+        logger.info('WebSocket client disconnected', { totalClients: this.clients.size });
+      });
+
+      ws.on('error', (err) => {
+        logger.error('WebSocket client error', { error: err });
+        this.clients.delete(ws);
+      });
+
+      // Send initial ping to confirm connection
+      ws.ping();
+    });
+
+    // Periodic ping to detect stale connections
+    this.pingInterval = setInterval(() => {
+      this.wss.clients.forEach((ws) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.ping();
+        }
+      });
+    }, 30_000);
+
+    this.wss.on('error', (err) => {
+      logger.error('WebSocket server error', { error: err });
+    });
+
+    logger.info('WebSocket server initialized', { path: '/ws' });
+  }
+
+  /**
+   * Broadcasts an event to all connected WebSocket clients.
+   * @param event - GovernanceEvent to send.
+   */
+  broadcast(event: GovernanceEvent): void {
+    const message = JSON.stringify(event);
+    this.wss.clients.forEach((ws) => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(message, (err) => {
+          if (err) {
+            logger.error('Failed to send WebSocket message', { error: err });
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Cleans up the WebSocket server and ping interval.
+   */
+  close(): void {
+    clearInterval(this.pingInterval);
+    this.wss.close();
+    logger.info('WebSocket server closed.');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// EXPRESS APPLICATION SETUP
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates and configures the Express application with middleware and routes.
+ * @param config - Application configuration.
+ * @param db - DatabaseManager instance.
+ * @param eventStore - EventStore instance.
+ * @param wsManager - WebSocketManager instance (optional).
+ * @returns Configured Express app.
+ */
+function createApp(
+  config: AppConfig,
+  db: DatabaseManager,
+  eventStore: EventStore,
+  wsManager?: WebSocketManager
+): Express {
+  const app: Express = express();
+
+  // -----------------------------------------------------------------------
+  // Middleware
+  // -----------------------------------------------------------------------
+
+  app.use(helmet());
+  app.use(
+    cors({
+      origin: config.corsOrigins === '*' ? '*' : config.corsOrigins.split(','),
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    })
+  );
+  app.use(compression());
+  app.use(express.json({ limit: '1mb' }));
+
+  // Global rate limit
+  const limiter = rateLimit({
+    windowMs: config.rateLimitWindow,
+    max: config.rateLimitMax,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (_req: Request, res: Response) => {
+      res.status(429).json({ error: 'Too many requests, please try again later.' });
+    },
+  });
+  app.use(limiter);
+
+  // Request ID middleware for tracing
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    (req as Request & { requestId: string }).requestId = uuidv4();
+    next();
+  });
+
+  // Log incoming requests
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    const requestId = (req as Request & { requestId: string }).requestId;
+    logger.info('Incoming request', {
+      method: req.method,
+      url: req.url,
+      requestId,
+      ip: req.ip,
+    });
+    next();
+  });
+
+  // -----------------------------------------------------------------------
+  // Routes
+  // -----------------------------------------------------------------------
+
+  // Health endpoint
+  app.get('/api/health', (_req: Request, res: Response) => {
+    res.json({
+      status: 'ok',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      eventStoreCount: eventStore.getWriteCount(),
+    });
+  });
+
+  // POST /api/events - Create a new event
+  app.post('/api/events', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = createEventSchema.parse(req.body);
+      const event: GovernanceEvent = {
+        id: uuidv4(),
+        timestamp: new Date(),
+        ...data,
+      };
+
+      // Persist to SQLite
+      db.insert(event);
+
+      // Persist to event store (JSONL) asynchronously
+      eventStore.append(event).catch((err) => {
+        logger.error('EventStore append failed (non-blocking)', { eventId: event.id, error: err });
+      });
+
+      // Broadcast to WebSocket clients
+      if (wsManager) {
+        wsManager.broadcast(event);
+      }
+
+      res.status(201).json(event);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /api/events - List events with filtering and pagination
+  app.get('/api/events', (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const query = eventQuerySchema.parse(req.query);
+      const result = db.queryEvents(query);
+      res.json({
+        events: result.events,
+        total: result.total,
+        page: query.page,
+        limit: query.limit,
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /api/events/:id - Get a single event
+  app.get('/api/events/:id', (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      if (!id || typeof id !== 'string') {
+        throw new ValidationError('Invalid event ID');
+      }
+      const event = db.getById(id);
+      if (!event) {
+        throw new NotFoundError('Event', id);
+      }
+      res.json(event);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /api/summary - Dashboard summary
+  app.get('/api/summary', (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const summary = db.getSummary();
+      res.json(summary);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Serve static dashboard UI (if built)
+  app.use(express.static(config.staticDir, {
+    maxAge: '1d',
+    etag: true,
+    lastModified: true,
+  }));
+
+  // Fallback to index.html for SPA routing
+  app.get('*', (req: Request, res: Response) => {
+    const indexPath = path.join(config.staticDir, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).json({ error: 'Not found' });
+    }
+  });
+
+  // -----------------------------------------------------------------------
+  // Error handling middleware
+  // -----------------------------------------------------------------------
+
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+    const requestId = (req as Request & { requestId: string }).requestId;
+
+    if (err instanceof ValidationError || err instanceof ZodError) {
+      const errors = err instanceof ZodError ? err.errors : err.details?.errors;
+      logger.warn('Validation error', { requestId, errors });
+      res.status(400).json({
+        error: 'Validation error',
+        details: errors ?? err.message,
+      });
+    } else if (err instanceof NotFoundError) {
+      logger.warn('Resource not found', { requestId, message: err.message });
+      res.status(404).json({ error: err.message });
+    } else if (err instanceof AppError && err.isOperational) {
+      logger.error('Operational error', { requestId, error: err });
+      res.status(err.statusCode).json({ error: err.message });
+    } else {
+      // Unexpected error – log full details, return generic message
+      logger.error('Unexpected error', { requestId, error: err, stack: err.stack });
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  return app;
+}
+
+// ---------------------------------------------------------------------------
+// GRACEFUL SHUTDOWN
+// ---------------------------------------------------------------------------
+
+/**
+ * Handles graceful shutdown of the server and resources.
+ * @param server - HTTP server instance.
+ * @param db - DatabaseManager instance.
+ * @param eventStore - EventStore instance.
+ * @param wsManager - WebSocketManager instance (optional).
+ */
+function setupGracefulShutdown(
+  server: HttpServer,
+  db: DatabaseManager,
+  eventStore: EventStore,
+  wsManager?: WebSocketManager
+): void {
+  const shutdown = async (signal: string) => {
+    logger.info(`Received ${signal}, starting graceful shutdown...`);
+    server.close(async () => {
+      logger.info('HTTP server closed.');
+      if (wsManager) {
+        wsManager.close();
+      }
+      await eventStore.close();
+      db.close();
+      logger.info('All resources closed. Goodbye.');
+      process.exit(0);
+    });
+
+    // Force shutdown after 10 seconds
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout.');
+      process.exit(1);
+    }, 10_000).unref();
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('uncaughtException', (err) => {
+    logger.error('Uncaught exception', { error: err, stack: err.stack });
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (reason) => {
+    logger.error('Unhandled promise rejection', { reason });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// ENTRY POINT
+// ---------------------------------------------------------------------------
+
+async function main(): Promise<void> {
+  try {
+    const config = loadConfig();
+    logger.info('Configuration loaded successfully.', {
+      port: config.port,
+      dbPath: config.dbPath,
+      eventStorePath: config.eventStorePath,
+    });
+
+    // Ensure data directories exist
+    fs.mkdirSync(path.dirname(config.dbPath), { recursive: true });
+    fs.mkdirSync(path.dirname(config.eventStorePath), { recursive: true });
+    fs.mkdirSync(path.join(__dirname, '..', 'logs'), { recursive: true });
+
+    // Initialize core components
+    const db = new DatabaseManager(config.dbPath);
+    logger.info('Database initialized.');
+
+    const eventStore = new EventStore(config.eventStorePath);
+    logger.info('Event store initialized.');
+
+    // Create HTTP server
+    const httpServer: HttpServer = createServer();
+    let wsManager: WebSocketManager | undefined;
+
+    if (config.wsEnabled) {
+      wsManager = new WebSocketManager(httpServer);
+      logger.info('WebSocket server enabled.');
+    }
+
+    const app = createApp(config, db, eventStore, wsManager);
+    httpServer.on('request', app);
+
+    // Start listening
+    httpServer.listen(config.port, () => {
+      logger.info(`TealTiger Dashboard server listening on port ${config.port}`);
+    });
+
+    httpServer.on('error', (err) => {
+      logger.error('HTTP server error', { error: err });
+      process.exit(1);
+    });
+
+    setupGracefulShutdown(httpServer, db, eventStore, wsManager);
+  } catch (err) {
+    logger.error('Fatal error during startup', { error: err });
+    process.exit(1);
+  }
+}
+
+// Self-executing if this is the main module
+if (process.argv[1] && (process.argv[1] === __filename || process.argv[1].endsWith('/index.ts'))) {
+  main();
+}
+
+export { main, createApp, loadConfig, DatabaseManager, EventStore, WebSocketManager, logger };
