@@ -5,14 +5,25 @@
   "type": "commonjs",
   "description": "Hub repository utilities for TealTiger documentation, schemas, examples, and integrations.",
   "scripts": {
+    "stream:start": "ts-node api/governance-stream/index.ts",
+    "build": "tsc --noEmit",
+    "test:stream": "node --test -r ts-node/register tests/api/governance-stream.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
   },
+  "dependencies": {
+    "ws": "^8.18.3"
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/ws": "^8.18.1",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.1",
+    "ws": "^8.21.0"
   }
 }
