@@ -1,0 +1,494 @@
+typescript
+/**
+ * @fileoverview TealTiger Observability Dashboard – Production-grade Web App Manifest
+ *
+ * Defines the Web App Manifest (W3C specification) with full TypeScript types,
+ * runtime validation via Zod, comprehensive error handling, structured logging,
+ * and security sanitization. Designed for maximum quality, maintainability,
+ * and safety in production environments.
+ *
+ * @module manifest
+ * @see https://www.w3.org/TR/appmanifest/
+ */
+
+import { z } from 'zod'; // zod@3.x – lightweight schema validation
+
+// ---------------------------------------------------------------------------
+// 1. Logging Infrastructure
+// ---------------------------------------------------------------------------
+
+/**
+ * Structured log levels for production observability.
+ */
+enum LogLevel {
+  DEBUG = 'DEBUG',
+  INFO = 'INFO',
+  WARN = 'WARN',
+  ERROR = 'ERROR',
+}
+
+/**
+ * Simple structured logger – outputs JSON to stdout/stderr.
+ * In a production microservice, replace with a proper logger (e.g., pino, winston).
+ */
+class Logger {
+  private source: string;
+
+  /**
+   * @param source – Module or component name for log attribution.
+   */
+  constructor(source: string) {
+    this.source = source;
+  }
+
+  private log(level: LogLevel, message: string, meta?: Record<string, unknown>): void {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      level,
+      source: this.source,
+      message,
+      ...(meta && { meta }),
+    };
+    const output = JSON.stringify(entry);
+    if (level === LogLevel.ERROR) {
+      process.stderr.write(output + '\n');
+    } else {
+      process.stdout.write(output + '\n');
+    }
+  }
+
+  debug(message: string, meta?: Record<string, unknown>): void {
+    this.log(LogLevel.DEBUG, message, meta);
+  }
+  info(message: string, meta?: Record<string, unknown>): void {
+    this.log(LogLevel.INFO, message, meta);
+  }
+  warn(message: string, meta?: Record<string, unknown>): void {
+    this.log(LogLevel.WARN, message, meta);
+  }
+  error(message: string, meta?: Record<string, unknown>): void {
+    this.log(LogLevel.ERROR, message, meta);
+  }
+}
+
+const logger = new Logger('Manifest');
+
+// ---------------------------------------------------------------------------
+// 2. Type Definitions (W3C Web App Manifest – all fields)
+// ---------------------------------------------------------------------------
+
+/**
+ * Valid icon purpose values per W3C specification.
+ */
+export type IconPurpose = 'any' | 'maskable' | 'monochrome';
+
+/**
+ * Valid display modes for a web application.
+ */
+export type DisplayMode = 'fullscreen' | 'standalone' | 'minimal-ui' | 'browser';
+
+/**
+ * Valid orientation values.
+ */
+export type Orientation =
+  | 'any'
+  | 'natural'
+  | 'landscape'
+  | 'landscape-primary'
+  | 'landscape-secondary'
+  | 'portrait'
+  | 'portrait-primary'
+  | 'portrait-secondary';
+
+/**
+ * A single icon entry in the manifest.
+ */
+export interface ManifestIcon {
+  /** Source URL (relative or absolute) */
+  src: string;
+  /** Dimensions in 'WIDTHxHEIGHT' format (e.g., '192x192') */
+  sizes: string;
+  /** MIME type (e.g., 'image/png') */
+  type: string;
+  /** Intended usage purpose */
+  purpose: IconPurpose;
+  /** Human-readable description (accessibility) */
+  description: string;
+}
+
+/**
+ * A shortcut entry in the manifest.
+ */
+export interface ManifestShortcut {
+  /** Human-readable name */
+  name: string;
+  /** Short name for constrained contexts */
+  short_name: string;
+  /** Description of the shortcut's functionality */
+  description: string;
+  /** URL the shortcut navigates to */
+  url: string;
+  /** Icons associated with this shortcut */
+  icons: ManifestIcon[];
+}
+
+/**
+ * A screenshot entry for store listings and install prompts.
+ */
+export interface ManifestScreenshot {
+  /** Source URL */
+  src: string;
+  /** Image dimensions */
+  sizes: string;
+  /** MIME type */
+  type: string;
+  /** Display form factor: 'wide' for desktop, 'narrow' for mobile */
+  form_factor: 'wide' | 'narrow';
+  /** Short caption */
+  label: string;
+}
+
+/**
+ * Share target parameter configuration.
+ */
+export interface ShareTargetParams {
+  /** Query parameter name for the shared title */
+  title: string;
+  /** Query parameter name for the shared text */
+  text: string;
+  /** Query parameter name for the shared URL */
+  url: string;
+}
+
+/**
+ * Share target configuration for Web Share Target API.
+ */
+export interface ShareTarget {
+  /** URL to handle share actions */
+  action: string;
+  /** HTTP method */
+  method: 'GET' | 'POST';
+  /** Encoding type */
+  enctype: string;
+  /** Mapping of share data fields to query/body parameters */
+  params: ShareTargetParams;
+}
+
+/**
+ * Related application entry.
+ */
+export interface RelatedApplication {
+  /** Platform identifier (e.g., 'play', 'itunes') */
+  platform: string;
+  /** Application store URL (optional if id is present) */
+  url?: string;
+  /** Application ID (optional if url is present) */
+  id?: string;
+}
+
+/**
+ * Launch handler configuration.
+ */
+export interface LaunchHandler {
+  /** Client mode when launching the application */
+  client_mode: 'focus-existing' | 'navigate-existing' | 'navigate-new';
+}
+
+/**
+ * Edge Side Panel configuration.
+ */
+export interface EdgeSidePanel {
+  /** Preferred panel width in pixels */
+  preferred_width: number;
+}
+
+/**
+ * Complete Web App Manifest as per W3C specification.
+ * All fields are optional per spec, but we enforce requirements at validation.
+ */
+export interface WebAppManifest {
+  /** Schema identifier (must match web app manifest URI) */
+  $schema: string;
+  /** Human-readable application name */
+  name: string;
+  /** Short name (max 12 characters recommended) */
+  short_name: string;
+  /** Description of the application */
+  description: string;
+  /** Start URL when the app is launched */
+  start_url: string;
+  /** Preferred display mode */
+  display: DisplayMode;
+  /** Allowable display mode overrides */
+  display_override: DisplayMode[];
+  /** Default orientation */
+  orientation: Orientation;
+  /** Background color for splash screen */
+  background_color: string;
+  /** Theme color for browser UI */
+  theme_color: string;
+  /** App categories for app stores */
+  categories: string[];
+  /** Primary language tag (BCP 47) */
+  lang: string;
+  /** Text direction */
+  dir: 'ltr' | 'rtl' | 'auto';
+  /** Navigation scope */
+  scope: string;
+  /** Unique identifier for the application */
+  id: string;
+  /** IARC rating ID (optional) */
+  iarc_rating_id: string;
+  /** Whether to prefer related applications over the web app */
+  prefer_related_applications: boolean;
+  /** List of related native applications */
+  related_applications: RelatedApplication[];
+  /** Configuration for the Web Share Target API */
+  share_target: ShareTarget;
+  /** Shortcuts for quick actions */
+  shortcuts: ManifestShortcut[];
+  /** Application icons for various contexts */
+  icons: ManifestIcon[];
+  /** Screenshots for store listings */
+  screenshots: ManifestScreenshot[];
+  /** How links within scope should be handled */
+  handle_links: 'preferred' | 'not-preferred';
+  /** Launch handler configuration */
+  launch_handler: LaunchHandler;
+  /** Edge Side Panel configuration */
+  edge_side_panel: EdgeSidePanel;
+}
+
+// ---------------------------------------------------------------------------
+// 3. Zod Schema – Runtime Validation
+// ---------------------------------------------------------------------------
+
+const IconPurposeSchema = z.enum(['any', 'maskable', 'monochrome']);
+const DisplayModeSchema = z.enum(['fullscreen', 'standalone', 'minimal-ui', 'browser']);
+const OrientationSchema = z.enum([
+  'any',
+  'natural',
+  'landscape',
+  'landscape-primary',
+  'landscape-secondary',
+  'portrait',
+  'portrait-primary',
+  'portrait-secondary',
+]);
+
+const ManifestIconSchema: z.ZodType<ManifestIcon> = z.object({
+  src: z
+    .string()
+    .url({ message: 'Icon src must be a valid URL' })
+    .max(2048, 'Icon URL too long'),
+  sizes: z
+    .string()
+    .regex(/^\d+x\d+$/, 'Sizes must be in WIDTHxHEIGHT format (e.g., "192x192")'),
+  type: z.string().min(1, 'Icon MIME type is required').max(128),
+  purpose: IconPurposeSchema,
+  description: z
+    .string()
+    .min(1, 'Icon description is required')
+    .max(512, 'Icon description too long')
+    .transform((val) => val.trim()),
+});
+
+const ManifestShortcutSchema: z.ZodType<ManifestShortcut> = z.object({
+  name: z.string().min(1, 'Shortcut name is required').max(256),
+  short_name: z.string().min(1, 'Shortcut short_name is required').max(64),
+  description: z.string().min(1, 'Shortcut description is required').max(1024),
+  url: z
+    .string()
+    .url({ message: 'Shortcut url must be a valid URL' })
+    .max(2048, 'Shortcut URL too long'),
+  icons: z.array(ManifestIconSchema).min(1, 'At least one icon is required for a shortcut'),
+});
+
+const ManifestScreenshotSchema: z.ZodType<ManifestScreenshot> = z.object({
+  src: z
+    .string()
+    .url({ message: 'Screenshot src must be a valid URL' })
+    .max(2048),
+  sizes: z
+    .string()
+    .regex(/^\d+x\d+$/, 'Sizes must be in WIDTHxHEIGHT format'),
+  type: z.string().min(1, 'Screenshot MIME type is required').max(128),
+  form_factor: z.enum(['wide', 'narrow']),
+  label: z
+    .string()
+    .min(1, 'Screenshot label is required')
+    .max(512, 'Screenshot label too long'),
+});
+
+const ShareTargetParamsSchema: z.ZodType<ShareTargetParams> = z.object({
+  title: z.string().min(1, 'Share target param title is required').max(64),
+  text: z.string().min(1, 'Share target param text is required').max(64),
+  url: z.string().min(1, 'Share target param url is required').max(64),
+});
+
+const ShareTargetSchema: z.ZodType<ShareTarget> = z.object({
+  action: z
+    .string()
+    .url({ message: 'Share target action must be a valid URL' })
+    .max(2048),
+  method: z.enum(['GET', 'POST']),
+  enctype: z.string().min(1, 'Enctype is required').max(256),
+  params: ShareTargetParamsSchema,
+});
+
+const RelatedApplicationSchema: z.ZodType<RelatedApplication> = z.object({
+  platform: z.string().min(1, 'Related application platform is required').max(128),
+  url: z
+    .string()
+    .url({ message: 'Related application url must be a valid URL' })
+    .max(2048)
+    .optional(),
+  id: z.string().max(512).optional(),
+}).refine(
+  (data) => data.url !== undefined || data.id !== undefined,
+  { message: 'Related application must have either a url or an id' }
+);
+
+const LaunchHandlerSchema: z.ZodType<LaunchHandler> = z.object({
+  client_mode: z.enum(['focus-existing', 'navigate-existing', 'navigate-new']),
+});
+
+const EdgeSidePanelSchema: z.ZodType<EdgeSidePanel> = z.object({
+  preferred_width: z
+    .number()
+    .int()
+    .positive('Preferred width must be a positive integer')
+    .lte(4096, 'Preferred width too large'),
+});
+
+/**
+ * Full Zod schema for the Web App Manifest.
+ * Validates all fields with sanitization, length limits, and URL checks.
+ */
+export const WebAppManifestSchema: z.ZodType<WebAppManifest> = z.object({
+  $schema: z
+    .string()
+    .url({ message: '$schema must be a valid URL' })
+    .refine(
+      (val) => val.includes('web-manifest-combined.json'),
+      { message: '$schema must reference a valid manifest schema URL (e.g., w3c spec)' }
+    ),
+  name: z
+    .string()
+    .min(1, 'Application name is required')
+    .max(256, 'Application name too long (max 256 characters)')
+    .transform((val) => val.trim()),
+  short_name: z
+    .string()
+    .min(1, 'Short name is required')
+    .max(64, 'Short name should be at most 12 characters recommended')
+    .transform((val) => val.trim()),
+  description: z
+    .string()
+    .min(1, 'Description is required')
+    .max(4096, 'Description too long')
+    .transform((val) => val.trim()),
+  start_url: z
+    .string()
+    .url({ message: 'start_url must be a valid URL' })
+    .max(2048, 'start_url too long'),
+  display: DisplayModeSchema,
+  display_override: z.array(DisplayModeSchema),
+  orientation: OrientationSchema,
+  background_color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'background_color must be a valid hex color (e.g., #ffffff)'),
+  theme_color: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, 'theme_color must be a valid hex color'),
+  categories: z.array(
+    z.string().min(1).max(128).transform((val) => val.trim())
+  ),
+  lang: z
+    .string()
+    .regex(/^[a-z]{2,3}(-[A-Z]{2})?$/, 'lang must be a BCP 47 language tag (e.g., en-US)')
+    .transform((val) => val.trim()),
+  dir: z.enum(['ltr', 'rtl', 'auto']),
+  scope: z
+    .string()
+    .url({ message: 'scope must be a valid URL' })
+    .max(2048, 'scope too long'),
+  id: z
+    .string()
+    .min(1, 'id is required')
+    .max(512, 'id too long')
+    .transform((val) => val.trim()),
+  iarc_rating_id: z
+    .string()
+    .max(512, 'iarc_rating_id too long')
+    .optional()
+    .default(''),
+  prefer_related_applications: z.boolean(),
+  related_applications: z.array(RelatedApplicationSchema),
+  share_target: ShareTargetSchema,
+  shortcuts: z.array(ManifestShortcutSchema),
+  icons: z.array(ManifestIconSchema),
+  screenshots: z.array(ManifestScreenshotSchema),
+  handle_links: z.enum(['preferred', 'not-preferred']),
+  launch_handler: LaunchHandlerSchema,
+  edge_side_panel: EdgeSidePanelSchema,
+});
+
+// ---------------------------------------------------------------------------
+// 4. Input Sanitization Utility
+// ---------------------------------------------------------------------------
+
+/**
+ * Strip XSS‑prone characters from string values to prevent injection.
+ * @param value – The string to sanitize.
+ * @returns Sanitized string.
+ */
+function sanitizeString(value: string): string {
+  // Remove script tags, event handlers, data URIs, etc.
+  return value
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove <script> blocks
+    .replace(/<[^>]*>/g, '') // Remove remaining HTML tags
+    .replace(/[<>"'`]/g, '') // Remove angle brackets, quotes
+    .replace(/&#?\w+;/g, '') // Remove HTML entities
+    .trim();
+}
+
+/**
+ * Recursively sanitize all string fields in an unknown object.
+ * @param obj – The input object.
+ * @returns Sanitized copy.
+ */
+function sanitizeManifest(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'string') {
+      result[key] = sanitizeString(value);
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      result[key] = sanitizeManifest(value as Record<string, unknown>);
+    } else if (Array.isArray(value)) {
+      result[key] = value.map((item) => {
+        if (typeof item === 'object' && item !== null) {
+          return sanitizeManifest(item as Record<string, unknown>);
+        }
+        return typeof item === 'string' ? sanitizeString(item) : item;
+      });
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// 5. Validation Function with Error Handling and Logging
+// ---------------------------------------------------------------------------
+
+/**
+ * Validates an input object as a Web App Manifest.
+ * Performs schema validation, sanitization, and returns a typed result.
+ *
+ * @param input – Raw object to validate.
+ * @returns A result containing either the validated manifest or validation errors.
+ *
+ * @example
+ *
