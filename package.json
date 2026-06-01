@@ -7,10 +7,13 @@
   "scripts": {
     "api:start": "ts-node api/governance-events/index.ts",
     "stream:start": "ts-node api/governance-stream/index.ts",
+    "dashboard:compliance:dev": "vite --host 127.0.0.1 --config dashboard/compliance-status/vite.config.ts",
+    "dashboard:compliance:build": "vite build --config dashboard/compliance-status/vite.config.ts",
     "build": "tsc --noEmit",
     "test:api": "node --test -r ts-node/register tests/api/governance-api.test.ts",
     "test:stream": "node --test -r ts-node/register tests/api/governance-stream.test.ts",
     "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
+    "test:dashboard:compliance": "node --test -r ts-node/register tests/dashboard/compliance-status.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
   },
@@ -24,10 +27,16 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^6.0.2",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^8.0.16"
   }
 }
