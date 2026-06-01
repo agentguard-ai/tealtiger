@@ -8,16 +8,15 @@
     "build": "tsc --noEmit && vite build",
     "test": "tsx src/security-events.test.ts"
   },
-  "dependencies": {
-    "@vitejs/plugin-react": "^5.1.1",
-    "vite": "^7.2.7",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.2.7"
   }
 }

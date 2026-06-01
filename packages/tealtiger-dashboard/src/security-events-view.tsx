@@ -46,6 +46,7 @@ export function SecurityEventsView(): ReactElement {
     [eventStates],
   );
   const filteredEvents = useMemo(
+    // Pinned to match test fixture in security-events.test.ts; swap to Date.now() when wiring to a real backend.
     () => filterSecurityEvents(eventsWithState, filters, Date.parse('2026-05-30T15:00:00.000Z')),
     [eventsWithState, filters],
   );
