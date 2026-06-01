@@ -362,6 +362,14 @@ Built with ❤️ by the TealTiger team and [contributors](./CONTRIBUTORS.md).
 
 ---
 
+## 👥 Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=agentguard-ai/tealtiger)](https://github.com/agentguard-ai/tealtiger/graphs/contributors)
+
+Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) guide!
+
+---
+
 <div align="center">
 
 **⭐ Star this repo if you believe AI agents need governance, not just guardrails.**
