@@ -12,7 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { List, type ListImperativeAPI } from 'react-window';
+import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 
 import {
   decisionLabel,
@@ -38,7 +38,7 @@ const EMPTY_FILTERS: EventFilters = {
 };
 
 export default function App(): JSX.Element {
-  const listRef = useRef<ListImperativeAPI>(null);
+  const listRef = useRef<FixedSizeList<RowData> | null>(null);
   const pausedRef = useRef(false);
   const incomingBufferRef = useRef<FeedEvent[]>([]);
   const flushFrameRef = useRef<number | null>(null);
@@ -79,7 +79,7 @@ export default function App(): JSX.Element {
     setEvents((current) => trimEvents([...newestFirst, ...current], MAX_EVENTS));
     if (autoFollow) {
       requestAnimationFrame(() => {
-        listRef.current?.scrollToRow({ index: 0, align: 'start', behavior: 'auto' });
+        listRef.current?.scrollToItem(0, 'start');
       });
     }
   }, [autoFollow]);
@@ -130,13 +130,13 @@ export default function App(): JSX.Element {
     setPaused(false);
     setAutoFollow(true);
     requestAnimationFrame(() => {
-      listRef.current?.scrollToRow({ index: 0, align: 'start', behavior: 'smooth' });
+      listRef.current?.scrollToItem(0, 'start');
     });
   }, []);
 
   const jumpToLatest = useCallback(() => {
     setAutoFollow(true);
-    listRef.current?.scrollToRow({ index: 0, align: 'start', behavior: 'smooth' });
+    listRef.current?.scrollToItem(0, 'start');
   }, []);
 
   const reconnect = useCallback((event: React.FormEvent<HTMLFormElement>) => {
@@ -275,16 +275,18 @@ export default function App(): JSX.Element {
 
           <div className="list-frame">
             {filteredEvents.length > 0 ? (
-              <List
-                listRef={listRef}
-                rowComponent={EventRow}
-                rowCount={filteredEvents.length}
-                rowHeight={78}
-                rowProps={rowProps}
+              <FixedSizeList
+                ref={listRef}
+                itemCount={filteredEvents.length}
+                itemSize={78}
+                itemData={rowProps}
                 overscanCount={24}
-                onRowsRendered={({ startIndex }) => setAutoFollow(startIndex <= 2)}
-                style={{ height: '100%', width: '100%' }}
-              />
+                onItemsRendered={({ visibleStartIndex }) => setAutoFollow(visibleStartIndex <= 2)}
+                height="100%"
+                width="100%"
+              >
+                {EventRow}
+              </FixedSizeList>
             ) : (
               <div className="empty-state">No events match the current filters.</div>
             )}
@@ -297,25 +299,18 @@ export default function App(): JSX.Element {
   );
 }
 
-function EventRow({
-  ariaAttributes,
-  index,
-  style,
-  events,
-  selectedId,
-  onSelect,
-}: {
-  ariaAttributes: {
-    'aria-posinset': number;
-    'aria-setsize': number;
-    role: 'listitem';
-  };
-  index: number;
-  style: CSSProperties;
+interface RowData {
   events: FeedEvent[];
   selectedId: string | null;
   onSelect: (id: string) => void;
-}): JSX.Element | null {
+}
+
+function EventRow({
+  index,
+  style,
+  data,
+}: ListChildComponentProps<RowData>): JSX.Element | null {
+  const { events, selectedId, onSelect } = data;
   const event = events[index];
   if (!event) {
     return null;
@@ -324,7 +319,7 @@ function EventRow({
   const isSelected = event.id === selectedId;
 
   return (
-    <div className="event-row-shell" style={style} {...ariaAttributes}>
+    <div className="event-row-shell" style={style as CSSProperties}>
       <button
         className={`event-row decision-${event.decision.toLowerCase().replace('_', '-')}${isSelected ? ' selected' : ''}`}
         type="button"

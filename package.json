@@ -22,10 +22,6 @@
     "@libsql/client": "^0.17.3",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.5",
-    "lucide-react": "^1.17.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "react-window": "^2.2.7",
     "ws": "^8.18.3",
     "zod": "^4.4.3"
   },
@@ -37,6 +33,10 @@
     "@vitejs/plugin-react": "^6.0.2",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-window": "^1.8.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vite": "^8.0.14"
