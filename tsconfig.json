@@ -8,5 +8,10 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts", "api/**/*.ts", "tests/**/*.ts"]
+  "include": [
+    "scripts/**/*.ts",
+    "api/**/*.ts",
+    "tests/**/*.ts",
+    "dashboard/governance-feed/mock-stream.ts"
+  ]
 }
