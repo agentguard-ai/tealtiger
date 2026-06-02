@@ -106,6 +106,8 @@ docker-compose*.yml
 
 # Internal source (monorepo backend — not for public SDK repo)
 src/
+!dashboard/governance-feed/src/
+!dashboard/governance-feed/src/**
 
 # Postman collections
 postman/

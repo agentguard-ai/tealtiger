@@ -15,6 +15,7 @@ Open source. TypeScript + Python. Works with any provider.
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?logo=discord&logoColor=white)](https://discord.gg/X2ePf8QAj)
 [![GitHub stars](https://img.shields.io/github/stars/agentguard-ai/tealtiger?style=social)](https://github.com/agentguard-ai/tealtiger)
 [![Governed by TealTiger](./assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/agentguard-ai/tealtiger/badge)](https://securityscorecards.dev/viewer/?uri=github.com/agentguard-ai/tealtiger)
 
 <br>
 
@@ -350,6 +351,19 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
+## 🔒 Security
+
+TealTiger is committed to responsible open-source security practices.
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/agentguard-ai/tealtiger/badge)](https://securityscorecards.dev/viewer/?uri=github.com/agentguard-ai/tealtiger)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10824/badge)](https://www.bestpractices.dev/projects/10824)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen?logo=dependabot)](https://github.com/agentguard-ai/tealtiger/security/dependabot)
+[![CodeQL](https://github.com/agentguard-ai/tealtiger/actions/workflows/codeql.yml/badge.svg)](https://github.com/agentguard-ai/tealtiger/actions/workflows/codeql.yml)
+
+For vulnerability reports, see our [Security Policy](./SECURITY.md).
+
+---
+
 ## 📄 License
 
 TealTiger is [Apache 2.0 licensed](./LICENSE).
@@ -359,6 +373,14 @@ TealTiger is [Apache 2.0 licensed](./LICENSE).
 ## 🙏 Acknowledgments
 
 Built with ❤️ by the TealTiger team and [contributors](./CONTRIBUTORS.md).
+
+---
+
+## 👥 Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=agentguard-ai/tealtiger)](https://github.com/agentguard-ai/tealtiger/graphs/contributors)
+
+Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) guide!
 
 ---
 
