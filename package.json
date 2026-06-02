@@ -7,6 +7,8 @@
   "scripts": {
     "api:start": "ts-node api/governance-events/index.ts",
     "stream:start": "ts-node api/governance-stream/index.ts",
+    "dashboard:cost:dev": "vite --host 127.0.0.1 --config dashboard/cost-analytics/vite.config.ts",
+    "dashboard:cost:build": "vite build --config dashboard/cost-analytics/vite.config.ts",
     "dashboard:compliance:dev": "vite --host 127.0.0.1 --config dashboard/compliance-status/vite.config.ts",
     "dashboard:compliance:build": "vite build --config dashboard/compliance-status/vite.config.ts",
     "dashboard:dev": "vite --host 127.0.0.1 --config dashboard/governance-feed/vite.config.ts",
@@ -45,6 +47,7 @@
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "recharts": "^3.8.1",
     "react-window": "^1.8.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
