@@ -1,0 +1,121 @@
+# TealTiger Policy Pack — Slack MCP Server
+#
+# Classifies every Slack MCP tool by risk level and enforces deny-by-default
+# rules for high-impact operations.
+#
+# Risk levels:
+#   READ        — no side effects, safe to call freely
+#   MUTATING    — changes state but is reversible (edit, react, invite)
+#   DESTRUCTIVE — irreversible or workspace-wide impact (delete, kick, archive)
+#
+# To use this pack in your policy:
+#   tealtiger policy apply policy-packs/slack.yaml --agent <agent-id>
+
+name: slack
+version: "1.0.0"
+description: "Policy pack for the Slack MCP server. Classifies all ~20 standard Slack tools by risk and enforces deny rules for destructive and broadcast operations."
+
+tools:
+  # READ — no side effects
+  - name: list_channels
+    risk: READ
+
+  - name: get_channel_info
+    risk: READ
+
+  - name: get_channel_members
+    risk: READ
+
+  - name: list_users
+    risk: READ
+
+  - name: get_user_info
+    risk: READ
+
+  - name: get_user_profile
+    risk: READ
+
+  - name: search_messages
+    risk: READ
+
+  - name: get_message_history
+    risk: READ
+
+  - name: get_thread_replies
+    risk: READ
+
+  # MUTATING — changes state, generally reversible
+  - name: post_message
+    risk: MUTATING
+
+  - name: reply_in_thread
+    risk: MUTATING
+
+  - name: update_message
+    risk: MUTATING
+
+  - name: add_reaction
+    risk: MUTATING
+
+  - name: remove_reaction
+    risk: MUTATING
+
+  - name: set_channel_topic
+    risk: MUTATING
+
+  - name: set_channel_purpose
+    risk: MUTATING
+
+  - name: invite_to_channel
+    risk: MUTATING
+
+  - name: create_channel
+    risk: MUTATING
+
+  # DESTRUCTIVE — irreversible or high blast-radius
+  - name: delete_message
+    risk: DESTRUCTIVE
+
+  - name: archive_channel
+    risk: DESTRUCTIVE
+
+  - name: delete_channel
+    risk: DESTRUCTIVE
+
+  - name: remove_user_from_workspace
+    risk: DESTRUCTIVE
+
+rules:
+  # Permanently deleting a channel destroys all message history and cannot be undone.
+  # Agents must never do this autonomously — require explicit human approval.
+  - tool: delete_channel
+    action: DENY
+    reason: "Channel deletion is permanent and destroys all message history. Requires explicit admin approval."
+
+  # Removing a user from the workspace revokes their access across all channels and apps.
+  # This is a high-impact identity operation that must always be human-approved.
+  - tool: remove_user_from_workspace
+    action: DENY
+    reason: "Workspace removal revokes all access and cannot be self-reversed by the affected user. Always requires human approval."
+
+  # Posting to broadcast channels (#general, #announcements) reaches the entire workspace.
+  # Agents must not mass-message the org; use targeted channels instead.
+  - tool: post_message
+    action: DENY
+    channels:
+      - "#general"
+      - "#announcements"
+      - "#company-wide"
+    reason: "Posting to broadcast channels affects the entire workspace. Agents must use targeted channels."
+
+  # Archiving a channel makes it read-only and removes it from active navigation for all members.
+  # Accidental archival disrupts ongoing work and should require deliberate human action.
+  - tool: archive_channel
+    action: DENY
+    reason: "Archiving a channel is disruptive to all members and should not be done autonomously."
+
+  # Deleting individual messages removes audit trail and may destroy important context.
+  # Prefer update_message for corrections; deletion requires justification.
+  - tool: delete_message
+    action: DENY
+    reason: "Message deletion removes audit trail. Use update_message for corrections, or obtain explicit approval before deleting."
