@@ -481,5 +481,6 @@ function dateValue(value: unknown): string | null {
   if (value === null || value === undefined) {
     return null;
   }
-  return new Date(numberValue(value)).toISOString();
+  const ts = numberValue(value);
+  return Number.isNaN(ts) ? null : new Date(ts).toISOString();
 }

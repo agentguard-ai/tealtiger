@@ -59,8 +59,12 @@ export class FileWriteAheadLog implements WriteAheadLog {
         if (!line.trim()) {
           continue;
         }
-        const event = JSON.parse(line) as NormalizedGovernanceEvent;
-        this.records.set(event.correlationId, event);
+        try {
+          const event = JSON.parse(line) as NormalizedGovernanceEvent;
+          this.records.set(event.correlationId, event);
+        } catch {
+          // Skip corrupted lines rather than aborting the entire recovery
+        }
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
