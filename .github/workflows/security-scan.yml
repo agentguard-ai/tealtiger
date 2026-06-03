@@ -1,0 +1,123 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly full scan — Sunday 02:00 UTC
+    - cron: '0 2 * * 0'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # npm audit — block PRs with high/critical dependency vulnerabilities
+  # ---------------------------------------------------------------------------
+  npm-audit:
+    name: npm audit (hub)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies (fail on high/critical)
+        run: npm audit --audit-level=high
+
+  # ---------------------------------------------------------------------------
+  # CodeQL — static analysis for injection patterns and unsafe code
+  # ---------------------------------------------------------------------------
+  codeql:
+    name: CodeQL analysis
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'
+          upload: true
+
+  # ---------------------------------------------------------------------------
+  # Secret scanning — block commits that contain leaked credentials
+  # Uses trufflesecurity/trufflehog, the same scanner GitHub Advanced Security
+  # runs internally, so the results are comparable.
+  # ---------------------------------------------------------------------------
+  secret-scan:
+    name: Secret scan (TruffleHog)
+    runs-on: ubuntu-latest
+    # Only meaningful on PRs — trufflehog scans the diff, not the full history
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --only-verified
+
+  # ---------------------------------------------------------------------------
+  # License check — ensure no GPL/AGPL deps sneak into this Apache 2.0 project
+  # ---------------------------------------------------------------------------
+  license-check:
+    name: License compatibility check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install license-checker
+        run: npm install -g license-checker
+
+      - name: Check for incompatible licenses
+        # Fail if any dep uses GPL, AGPL, or LGPL (incompatible with Apache 2.0)
+        run: |
+          license-checker --production --failOn "GPL;AGPL;LGPL" --summary
