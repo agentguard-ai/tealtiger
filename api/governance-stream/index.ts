@@ -15,13 +15,19 @@ export type {
 
 if (require.main === module) {
   const port = Number(process.env.PORT ?? 8787);
-  const host = process.env.HOST ?? '127.0.0.1';
+  const host = process.env.HOST ?? '0.0.0.0';
   const server = createGovernanceStreamServer();
 
   server.start(port, host)
     .then(({ wsUrl, httpUrl }) => {
       console.log(`Governance event WebSocket listening at ${wsUrl}/ws/events`);
       console.log(`SSE fallback listening at ${httpUrl}/sse/events`);
+
+      const shutdown = (): void => {
+        server.stop().then(() => process.exit(0)).catch(() => process.exit(1));
+      };
+      process.once('SIGTERM', shutdown);
+      process.once('SIGINT', shutdown);
     })
     .catch((error) => {
       console.error(error);
