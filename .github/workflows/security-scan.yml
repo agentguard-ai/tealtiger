@@ -55,16 +55,16 @@ jobs:
         uses: actions/checkout@v6.0.2
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@2a00a6e621b3efd9d09658ee2b02c1bb4668b985 # v3.36.1
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@2a00a6e621b3efd9d09658ee2b02c1bb4668b985 # v3.36.1
 
       - name: Perform CodeQL analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@2a00a6e621b3efd9d09658ee2b02c1bb4668b985 # v3.36.1
         with:
           category: '/language:${{ matrix.language }}'
           upload: true
@@ -87,7 +87,7 @@ jobs:
           fetch-depth: 0
 
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@main
+        uses: trufflesecurity/trufflehog@5a0f877b8afbe5ed69b5f13536eed05d259872ff # main @ 2026-06-03
         with:
           path: ./
           base: ${{ github.event.pull_request.base.sha }}

@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v6.0.2
 
       - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           fail-on-severity: high
           # Block GPL / AGPL / LGPL — incompatible with Apache 2.0
