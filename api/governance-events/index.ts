@@ -11,6 +11,12 @@ async function main(): Promise<void> {
   });
 
   await app.listen({ port, host });
+
+  const shutdown = (): void => {
+    app.close().then(() => process.exit(0)).catch(() => process.exit(1));
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
 }
 
 main().catch((error) => {
