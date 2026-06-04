@@ -1,0 +1,113 @@
+name: Test & Type Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # TypeScript type check + unit tests (hub repo)
+  # ---------------------------------------------------------------------------
+  typescript:
+    name: TypeScript (hub)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run build
+
+      - name: API tests
+        run: npm run test:api
+
+      - name: Stream tests
+        run: npm run test:stream
+
+      - name: Policy validator tests
+        run: npm run test:policy-validator
+
+  # ---------------------------------------------------------------------------
+  # ESLint with security plugin (hub repo)
+  # ---------------------------------------------------------------------------
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint with security plugin
+        run: >
+          npx eslint@8.57.0
+          --parser @typescript-eslint/parser
+          --plugin security
+          --plugin @typescript-eslint
+          --rule '{"security/detect-object-injection": "warn", "security/detect-non-literal-fs-filename": "warn"}'
+          --ext .ts
+          api/ dashboard/ scripts/ tests/ examples/ --max-warnings=0 || true
+
+  # ---------------------------------------------------------------------------
+  # Python package — type check + lint (tealtiger-python)
+  # ---------------------------------------------------------------------------
+  python:
+    name: Python (tealtiger-python)
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.changed_files, 'packages/tealtiger-python')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: pip install --require-hashes -r .github/ci-requirements.txt
+
+      - name: Ruff lint (Python)
+        working-directory: packages/tealtiger-python
+        run: |
+          if [ -n "$(find . -name '*.py' 2>/dev/null)" ]; then
+            ruff check .
+          else
+            echo "No Python source files found — skipping lint"
+          fi
+
+      - name: mypy type check
+        working-directory: packages/tealtiger-python
+        run: |
+          if [ -n "$(find . -name '*.py' 2>/dev/null)" ]; then
+            mypy . --ignore-missing-imports
+          else
+            echo "No Python source files found — skipping type check"
+          fi

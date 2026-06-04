@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json committed for Scorecard Pinned-Dependencies compliance
 
 # Build output
 dist/
@@ -106,6 +106,8 @@ docker-compose*.yml
 
 # Internal source (monorepo backend — not for public SDK repo)
 src/
+!dashboard/governance-feed/src/
+!dashboard/governance-feed/src/**
 
 # Postman collections
 postman/
@@ -153,6 +155,11 @@ packages/tealtiger-vertex-extension/
 # Build configs (monorepo-level, not needed by SDK users)
 jest.config.js
 .eslintrc.js
+
+# Dashboard package source and lockfile
+!packages/tealtiger-dashboard/src/
+!packages/tealtiger-dashboard/src/**
+!packages/tealtiger-dashboard/package-lock.json
 
 # Misc internal files
 .cleanup-sensitive-files.txt

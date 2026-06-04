@@ -68,6 +68,9 @@ export class GovernanceEventStream {
       return [];
     }
     const sequence = parseCursor(cursor);
+    if (sequence === null) {
+      return [];
+    }
     return this.history.filter((event) => event.sequence > sequence && matchesFilter(event, filter));
   }
 
@@ -89,12 +92,15 @@ export class GovernanceEventStream {
   }
 }
 
-function parseCursor(cursor: string | undefined): number {
+function parseCursor(cursor: string | undefined): number | null {
   if (!cursor) {
-    return 0;
+    return null;
   }
   const parsed = Number(cursor);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return null;
+  }
+  return Math.floor(parsed);
 }
 
 function normalizeTimestamp(value: string | number | Date): string {
