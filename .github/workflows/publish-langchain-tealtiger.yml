@@ -1,0 +1,177 @@
+# Publish langchain-tealtiger to PyPI
+# Triggered on tag push matching: langchain-tealtiger-v*
+# Or manually via workflow_dispatch.
+#
+# Uses the same PYPI_TOKEN secret as the main v1.3 launch workflow.
+
+name: Publish langchain-tealtiger
+
+on:
+  push:
+    tags:
+      - 'langchain-tealtiger-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 0.1.0)'
+        required: true
+        type: string
+        default: '0.1.0'
+
+concurrency:
+  group: langchain-tealtiger-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: packages/langchain-tealtiger/pyproject.toml
+
+      - name: Install dependencies
+        working-directory: packages/langchain-tealtiger
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run tests
+        working-directory: packages/langchain-tealtiger
+        run: |
+          pytest tests/ -v --tb=short
+          echo "✅ All tests passed"
+
+      - name: Verify version matches tag
+        if: github.event_name == 'push'
+        working-directory: packages/langchain-tealtiger
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/langchain-tealtiger-v}"
+          PKG_VERSION=$(grep '^version' pyproject.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "✅ Version match: $PKG_VERSION"
+
+  publish:
+    name: Publish to PyPI
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6.0.2
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install build tools
+        run: python -m pip install build twine
+
+      - name: Build package
+        working-directory: packages/langchain-tealtiger
+        run: python -m build
+
+      - name: Verify package
+        working-directory: packages/langchain-tealtiger
+        run: |
+          twine check dist/*
+          echo "✅ Package verification passed"
+          ls -la dist/
+
+      - name: Publish to PyPI
+        working-directory: packages/langchain-tealtiger
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          twine upload dist/* 2>&1 || {
+            EXIT_CODE=$?
+            VERSION=$(grep '^version' pyproject.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
+            if pip index versions langchain-tealtiger 2>/dev/null | grep -q "$VERSION"; then
+              echo "✅ langchain-tealtiger==$VERSION already published to PyPI — skipping"
+              exit 0
+            fi
+            exit $EXIT_CODE
+          }
+
+      - name: Post-publish verification
+        run: |
+          sleep 10
+          pip install langchain-tealtiger --dry-run 2>&1 || echo "⚠️ Package not yet indexed (may take a few minutes)"
+          echo "✅ Publish complete"
+
+  release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Create Release
+        uses: actions/github-script@v9.0.0
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const version = tag.replace('langchain-tealtiger-v', '');
+            const body = `## langchain-tealtiger v${version}
+
+            Deterministic governance middleware for LangChain agents.
+
+            ### Install
+            \`\`\`bash
+            pip install langchain-tealtiger==${version}
+            \`\`\`
+
+            ### Quick Start
+            \`\`\`python
+            from langchain.agents import create_agent
+            from langchain_tealtiger import TealTigerMiddleware
+
+            agent = create_agent(
+                model="claude-sonnet-4-6",
+                tools=[...],
+                middleware=[
+                    TealTigerMiddleware(
+                        policies=[
+                            {"type": "tool_allowlist", "tools": ["search", "calculator"]},
+                            {"type": "cost_limit", "max_per_session": 5.00},
+                        ],
+                        freeze_tools=["rm_rf", "drop_database"],
+                    )
+                ],
+            )
+            \`\`\`
+
+            ### Links
+            - [PyPI](https://pypi.org/project/langchain-tealtiger/${version}/)
+            - [Documentation](https://docs.tealtiger.ai/integrations/langchain)
+            - [Changelog](https://github.com/agentguard-ai/tealtiger/blob/main/packages/langchain-tealtiger/CHANGELOG.md)
+            `;
+
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `langchain-tealtiger v${version}`,
+              body,
+              draft: false,
+              prerelease: false,
+            });
+            console.log(`✅ GitHub Release created for langchain-tealtiger v${version}`);
