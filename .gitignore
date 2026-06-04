@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json committed for Scorecard Pinned-Dependencies compliance
 
 # Build output
 dist/
