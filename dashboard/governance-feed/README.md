@@ -4,6 +4,20 @@ React dashboard for monitoring TealTiger governance events from the WebSocket st
 
 ## Run locally
 
+Launch the local dashboard and WebSocket stream from the TealTiger CLI:
+
+```sh
+npx tealtiger dashboard
+```
+
+The command serves the dashboard on `http://localhost:3000`, reads the local event store from `~/.tealtiger/events.db`, and exposes `ws://localhost:3000/ws/events`. Use `--port`, `--db`, or `--no-open` to customize the launcher:
+
+```sh
+npx tealtiger dashboard --port 3100 --db ./events.db --no-open
+```
+
+## Run the standalone demo stream
+
 Start a local stream that publishes demo governance decisions:
 
 ```sh

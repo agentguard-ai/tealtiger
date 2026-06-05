@@ -11,7 +11,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactElement } from 'react';
 import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 
 import {
@@ -37,7 +37,7 @@ const EMPTY_FILTERS: EventFilters = {
   search: '',
 };
 
-export default function App(): JSX.Element {
+export default function App(): ReactElement {
   const listRef = useRef<FixedSizeList<RowData> | null>(null);
   const pausedRef = useRef(false);
   const incomingBufferRef = useRef<FeedEvent[]>([]);
@@ -309,7 +309,7 @@ function EventRow({
   index,
   style,
   data,
-}: ListChildComponentProps<RowData>): JSX.Element | null {
+}: ListChildComponentProps<RowData>): ReactElement | null {
   const { events, selectedId, onSelect } = data;
   const event = events[index];
   if (!event) {
@@ -341,7 +341,7 @@ function EventRow({
   );
 }
 
-function ReceiptPanel({ event }: { event: FeedEvent | null }): JSX.Element {
+function ReceiptPanel({ event }: { event: FeedEvent | null }): ReactElement {
   return (
     <aside className="receipt-panel" aria-label="TEEC receipt JSON">
       <div className="receipt-header">
@@ -381,7 +381,7 @@ function ReceiptPanel({ event }: { event: FeedEvent | null }): JSX.Element {
   );
 }
 
-function StatusLine({ state, url }: { state: StreamState; url: string }): JSX.Element {
+function StatusLine({ state, url }: { state: StreamState; url: string }): ReactElement {
   const connected = state.status === 'connected';
   const Icon = connected ? Wifi : WifiOff;
   const label = state.status === 'connected'
@@ -400,7 +400,7 @@ function StatusLine({ state, url }: { state: StreamState; url: string }): JSX.El
   );
 }
 
-function Metric({ icon, label, value }: { icon: JSX.Element; label: string; value: string }): JSX.Element {
+function Metric({ icon, label, value }: { icon: ReactElement; label: string; value: string }): ReactElement {
   return (
     <div className="metric">
       {icon}
