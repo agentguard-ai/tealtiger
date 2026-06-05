@@ -15,7 +15,8 @@ functions.
 
 - `idx_events_timestamp` supports global event timelines.
 - `idx_events_agent_timestamp` supports per-agent dashboards and drilldowns.
-- `idx_events_decision_timestamp` supports allow, deny, warn, monitor, and error
+- `idx_events_decision_timestamp` supports API-contract decisions such as
+  `ALLOW`, `DENY`, `REVISE`, and `REQUIRE_APPROVAL`, plus operational decision
   breakdowns by time.
 - `idx_events_tool_timestamp` and `idx_events_tool_name_timestamp` support
   tool-level review and incident response. `tool` is retained for the existing

@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS governance_events (
   framework TEXT,
   receipt_json TEXT NOT NULL,
   metadata_json TEXT NOT NULL DEFAULT '{}',
-  CHECK (decision IN ('allow', 'deny', 'warn', 'monitor', 'error', 'ALLOW', 'DENY', 'WARN', 'MONITOR', 'ERROR')),
+  CHECK (decision IN ('allow', 'deny', 'warn', 'monitor', 'error', 'ALLOW', 'DENY', 'REVISE', 'REQUIRE_APPROVAL', 'WARN', 'MONITOR', 'ERROR')),
   CHECK (cost_usd >= 0),
   FOREIGN KEY (agent_id) REFERENCES agents(id)
 );
