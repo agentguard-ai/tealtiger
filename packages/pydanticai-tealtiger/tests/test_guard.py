@@ -4,21 +4,15 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from pydanticai_tealtiger import (
-    AuditEntry,
-    GovernanceAction,
     GovernanceDenyError,
-    GovernanceMode,
-    PIIFinding,
     TealTigerGuard,
-    ToolSummary,
 )
-
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
 
@@ -255,7 +249,7 @@ class TestPIIDetection:
 class TestPolicyMode:
     """Tests for policy mode with TealEngine."""
 
-    def _make_engine(self, decision: Dict[str, Any]) -> MagicMock:
+    def _make_engine(self, decision: dict[str, Any]) -> MagicMock:
         """Create a mock TealEngine that returns a given decision."""
         engine = MagicMock()
         engine.evaluate.return_value = decision
@@ -591,6 +585,24 @@ class TestAuditTrail:
         guard.post_call(tool_name="search", result="result")
 
         assert len(guard.audit_trail) == 3
+
+    def test_export_audit_trail_writes_jsonl(self, tmp_path: Any) -> None:
+        """Audit trail export writes one JSON object per line."""
+        guard = TealTigerGuard()
+        first = guard.evaluate(tool="search", args={"query": "first"})
+        second = guard.post_call(tool_name="search", result="result")
+        export_path = tmp_path / "audit.jsonl"
+
+        count = guard.export_audit_trail(str(export_path))
+
+        lines = export_path.read_text(encoding="utf-8").splitlines()
+        exported = [json.loads(line) for line in lines]
+
+        assert count == 2
+        assert len(lines) == 2
+        assert exported == [entry.to_dict() for entry in guard.audit_trail]
+        assert exported[0]["correlation_id"] == first["correlation_id"]
+        assert exported[1]["correlation_id"] == second["correlation_id"]
 
     def test_audit_entry_fields(self) -> None:
         """Audit entry contains all required fields."""
