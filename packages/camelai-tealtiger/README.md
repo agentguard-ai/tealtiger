@@ -230,7 +230,7 @@ Every evaluation produces a structured audit entry:
 
 Built-in pattern detection for:
 - Email addresses
-- US phone numbers
+- US, UK, EU, and India phone numbers
 - Social Security Numbers (SSN)
 - Credit card numbers
 - IP addresses

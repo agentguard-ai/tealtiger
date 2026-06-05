@@ -156,6 +156,24 @@ class TestPIIDetection:
         assert len(pii) >= 1
         assert any(p["type"] == "phone_us" for p in pii)
 
+    @pytest.mark.parametrize(
+        ("number", "pii_type"),
+        [
+            ("+44 20 7946 0958", "phone_uk"),
+            ("+49 30 12345678", "phone_eu"),
+            ("+33 1 23 45 67 89", "phone_eu"),
+            ("+91 98765 43210", "phone_in"),
+        ],
+    )
+    def test_detects_international_phone(self, number: str, pii_type: str) -> None:
+        """Detects UK, EU, and India phone numbers in tool args."""
+        guard = TealTigerGuard()
+        decision = guard.evaluate(tool="call", args={"number": number})
+
+        pii = decision["pii_detected"]
+        assert len(pii) >= 1
+        assert any(p["type"] == pii_type for p in pii)
+
     def test_detects_ip_address(self) -> None:
         """Detects IP addresses in tool args."""
         guard = TealTigerGuard()

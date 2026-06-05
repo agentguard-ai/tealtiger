@@ -146,6 +146,24 @@ class TestPIIDetection:
         assert len(pii) >= 1
         assert any(p["type"] == "phone_us" for p in pii)
 
+    @pytest.mark.parametrize(
+        ("step_content", "pii_type"),
+        [
+            ("London office: +44 20 7946 0958", "phone_uk"),
+            ("Berlin office: +49 30 12345678", "phone_eu"),
+            ("Paris office: +33 1 23 45 67 89", "phone_eu"),
+            ("Mumbai office: +91 98765 43210", "phone_in"),
+        ],
+    )
+    def test_detects_international_phone(self, step_content: str, pii_type: str) -> None:
+        """Detects UK, EU, and India phone numbers in step content."""
+        hook = TealTigerAgentHook()
+        decision = hook.pre_step(agent_id="agent-1", step_content=step_content)
+
+        pii = decision["pii_detected"]
+        assert len(pii) >= 1
+        assert any(p["type"] == pii_type for p in pii)
+
     def test_detects_ip_address(self) -> None:
         """Detects IP addresses in step content."""
         hook = TealTigerAgentHook()
