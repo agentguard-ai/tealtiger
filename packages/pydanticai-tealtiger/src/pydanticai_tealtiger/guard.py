@@ -14,19 +14,14 @@ import time
 import uuid
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-
+from typing import Any
 
 # ─── PII Detection Patterns ─────────────────────────────────────────────────
 
-_PII_PATTERNS: Dict[str, re.Pattern[str]] = {
+_PII_PATTERNS: dict[str, re.Pattern[str]] = {
     "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
-    "phone_us": re.compile(
-        r"\b(?:\+1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b"
-    ),
-    "phone_uk": re.compile(
-        r"(?<!\w)\+44[-.\s]?(?:\d{2,4}[-.\s]?)?\d{3,4}[-.\s]?\d{3,4}\b"
-    ),
+    "phone_us": re.compile(r"\b(?:\+1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b"),
+    "phone_uk": re.compile(r"(?<!\w)\+44[-.\s]?(?:\d{2,4}[-.\s]?)?\d{3,4}[-.\s]?\d{3,4}\b"),
     "phone_eu": re.compile(
         r"(?<!\w)(?:\+49[-.\s]?\d{2,4}[-.\s]?\d{5,8}|\+33[-.\s]?\d(?:[-.\s]?\d{2}){4})\b"
     ),
@@ -108,13 +103,13 @@ class AuditEntry:
     reason: str
     """Human-readable reason for the decision."""
 
-    reason_codes: List[str]
+    reason_codes: list[str]
     """Machine-readable reason codes."""
 
     risk_score: int
     """Risk score (0-100)."""
 
-    pii_detected: List[Dict[str, Any]]
+    pii_detected: list[dict[str, Any]]
     """List of PII findings."""
 
     cost_tracked: float
@@ -126,13 +121,13 @@ class AuditEntry:
     evaluation_time_ms: float
     """Time taken for governance evaluation in milliseconds."""
 
-    teec: Dict[str, Any] = field(default_factory=dict)
+    teec: dict[str, Any] = field(default_factory=dict)
     """TEEC namespace fields (teec.pydanticai)."""
 
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     """Additional metadata."""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return asdict(self)
 
@@ -148,17 +143,27 @@ class ToolSummary:
     pii_findings_count: int = 0
 
 
+@dataclass
+class ToolBaseline:
+    """Behavioral baseline entry for a tool."""
+
+    tool_name: str
+    avg_cost_per_call: float
+    total_calls: int
+    total_cost: float
+    pii_frequency: float
+    denied_frequency: float
+
+
 # ─── Exceptions ──────────────────────────────────────────────────────────────
 
 
 class GovernanceDenyError(Exception):
     """Raised when a governance policy denies the request in ENFORCE mode."""
 
-    def __init__(self, decision: Dict[str, Any]) -> None:
+    def __init__(self, decision: dict[str, Any]) -> None:
         self.decision = decision
-        super().__init__(
-            f"Governance DENY: {decision.get('reason', 'Policy violation')}"
-        )
+        super().__init__(f"Governance DENY: {decision.get('reason', 'Policy violation')}")
 
 
 # ─── TealTigerGuard ─────────────────────────────────────────────────────────
@@ -198,12 +203,12 @@ class TealTigerGuard:
 
     def __init__(
         self,
-        engine: Optional[Any] = None,
+        engine: Any | None = None,
         mode: str = "OBSERVE",
         cost_per_1k_tokens: float = 0.002,
-        session_id: Optional[str] = None,
-        tool_allowlist: Optional[List[str]] = None,
-        budget_limit: Optional[float] = None,
+        session_id: str | None = None,
+        tool_allowlist: list[str] | None = None,
+        budget_limit: float | None = None,
     ) -> None:
         """Initialize the governance guard.
 
@@ -224,19 +229,18 @@ class TealTigerGuard:
         self._mode = GovernanceMode(mode)
         self._cost_per_1k_tokens = cost_per_1k_tokens
         self._session_id = session_id or str(uuid.uuid4())
-        self._tool_allowlist: Optional[Set[str]] = (
-            set(tool_allowlist) if tool_allowlist else None
-        )
+        self._tool_allowlist: set[str] | None = set(tool_allowlist) if tool_allowlist else None
         self._budget_limit = budget_limit
 
         # Session state
         self._cumulative_cost: float = 0.0
         self._call_count: int = 0
-        self._audit_trail: List[AuditEntry] = []
-        self._tool_costs: Dict[str, float] = {}
-        self._tool_calls: Dict[str, int] = {}
-        self._tool_denied: Dict[str, int] = {}
-        self._tool_pii: Dict[str, int] = {}
+        self._audit_trail: list[AuditEntry] = []
+        self._tool_attempts: dict[str, int] = {}
+        self._tool_costs: dict[str, float] = {}
+        self._tool_calls: dict[str, int] = {}
+        self._tool_denied: dict[str, int] = {}
+        self._tool_pii: dict[str, int] = {}
         self._frozen: bool = False
 
     # ─── evaluate (pre_call) ─────────────────────────────────────────────
@@ -244,9 +248,9 @@ class TealTigerGuard:
     def evaluate(
         self,
         tool: str,
-        args: Optional[Dict[str, Any]] = None,
-        agent_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        args: dict[str, Any] | None = None,
+        agent_id: str | None = None,
+    ) -> dict[str, Any]:
         """Evaluate governance before a tool execution.
 
         This is the primary method to call inside Pydantic AI tool functions.
@@ -268,6 +272,7 @@ class TealTigerGuard:
         self._call_count += 1
 
         effective_agent_id = agent_id or "default"
+        self._tool_attempts[tool] = self._tool_attempts.get(tool, 0) + 1
 
         # ── Frozen check (kill switch) ───────────────────────────────────
         if self._frozen:
@@ -300,7 +305,7 @@ class TealTigerGuard:
             )
 
         # ── PII Detection in args ───────────────────────────────────────
-        pii_findings: List[PIIFinding] = []
+        pii_findings: list[PIIFinding] = []
         args_text = ""
         if args:
             args_text = " ".join(str(v) for v in args.values())
@@ -318,7 +323,7 @@ class TealTigerGuard:
         # ── Policy Evaluation ────────────────────────────────────────────
         action = GovernanceAction.ALLOW
         reason = "Allowed: zero-config observe mode"
-        reason_codes: List[str] = ["OBSERVE_PASSTHROUGH"]
+        reason_codes: list[str] = ["OBSERVE_PASSTHROUGH"]
         risk_score = 0
 
         if self._engine is not None:
@@ -389,8 +394,8 @@ class TealTigerGuard:
     def pre_call(
         self,
         tool_name: str,
-        args: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        args: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Alias for evaluate() with a more intuitive name.
 
         Args:
@@ -411,8 +416,8 @@ class TealTigerGuard:
         self,
         tool_name: str,
         result: Any,
-        token_usage: Optional[Dict[str, int]] = None,
-    ) -> Dict[str, Any]:
+        token_usage: dict[str, int] | None = None,
+    ) -> dict[str, Any]:
         """Record cost after a tool execution completes.
 
         Args:
@@ -433,8 +438,7 @@ class TealTigerGuard:
         if token_usage:
             total_tokens = token_usage.get(
                 "total_tokens",
-                token_usage.get("prompt_tokens", 0)
-                + token_usage.get("completion_tokens", 0),
+                token_usage.get("prompt_tokens", 0) + token_usage.get("completion_tokens", 0),
             )
             actual_cost = (total_tokens / 1000) * self._cost_per_1k_tokens
         else:
@@ -450,9 +454,7 @@ class TealTigerGuard:
         result_str = str(result) if result is not None else ""
         pii_findings = self._detect_pii(result_str)
         if pii_findings:
-            self._tool_pii[tool_name] = (
-                self._tool_pii.get(tool_name, 0) + len(pii_findings)
-            )
+            self._tool_pii[tool_name] = self._tool_pii.get(tool_name, 0) + len(pii_findings)
 
         # ── Build Audit Entry ────────────────────────────────────────────
         evaluation_time_ms = (time.perf_counter() - start_time) * 1000
@@ -508,18 +510,18 @@ class TealTigerGuard:
     # ─── Properties ──────────────────────────────────────────────────────
 
     @property
-    def audit_trail(self) -> List[AuditEntry]:
+    def audit_trail(self) -> list[AuditEntry]:
         """Access the full audit trail of governance decisions."""
         return list(self._audit_trail)
 
     @property
-    def summary(self) -> Dict[str, ToolSummary]:
+    def summary(self) -> dict[str, ToolSummary]:
         """Get cost/call summary per tool.
 
         Returns:
             Dictionary mapping tool_name to ToolSummary.
         """
-        result: Dict[str, ToolSummary] = {}
+        result: dict[str, ToolSummary] = {}
         all_tools = set(self._tool_costs.keys()) | set(self._tool_calls.keys())
 
         for tool_name in all_tools:
@@ -543,6 +545,39 @@ class TealTigerGuard:
         """Get the session identifier."""
         return self._session_id
 
+    # ─── Baseline ────────────────────────────────────────────────────────
+
+    def get_baseline(self) -> dict[str, ToolBaseline]:
+        """Get a summary of observed tool behavior as a baseline.
+
+        Returns:
+            Dictionary mapping tool_name to baseline behavior summary.
+        """
+        result: dict[str, ToolBaseline] = {}
+        all_tools = (
+            set(self._tool_attempts.keys())
+            | set(self._tool_costs.keys())
+            | set(self._tool_pii.keys())
+            | set(self._tool_denied.keys())
+        )
+
+        for tool_name in all_tools:
+            calls = self._tool_attempts.get(tool_name, 0)
+            cost = self._tool_costs.get(tool_name, 0.0)
+            pii_count = self._tool_pii.get(tool_name, 0)
+            denied_count = self._tool_denied.get(tool_name, 0)
+
+            result[tool_name] = ToolBaseline(
+                tool_name=tool_name,
+                avg_cost_per_call=cost / calls if calls > 0 else 0.0,
+                total_calls=calls,
+                total_cost=cost,
+                pii_frequency=pii_count / calls if calls > 0 else 0.0,
+                denied_frequency=denied_count / calls if calls > 0 else 0.0,
+            )
+
+        return result
+
     # ─── Internal: Deny helpers ──────────────────────────────────────────
 
     def _deny_frozen(
@@ -552,7 +587,7 @@ class TealTigerGuard:
         tool: str,
         agent_id: str,
         start_time: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Handle deny for frozen guard."""
         evaluation_time_ms = (time.perf_counter() - start_time) * 1000
         teec = self._build_teec(tool_name=tool, call_id=call_id)
@@ -592,7 +627,7 @@ class TealTigerGuard:
         tool: str,
         agent_id: str,
         start_time: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Handle deny for tool not in allowlist."""
         evaluation_time_ms = (time.perf_counter() - start_time) * 1000
         teec = self._build_teec(tool_name=tool, call_id=call_id)
@@ -635,7 +670,7 @@ class TealTigerGuard:
         tool: str,
         agent_id: str,
         start_time: float,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Handle deny for budget limit exceeded."""
         evaluation_time_ms = (time.perf_counter() - start_time) * 1000
         teec = self._build_teec(tool_name=tool, call_id=call_id)
@@ -649,8 +684,7 @@ class TealTigerGuard:
             tool_name=tool,
             agent_id=agent_id,
             reason=(
-                f"Budget limit exceeded: "
-                f"${self._cumulative_cost:.4f}/${self._budget_limit:.4f}"
+                f"Budget limit exceeded: ${self._cumulative_cost:.4f}/${self._budget_limit:.4f}"
             ),
             reason_codes=["BUDGET_LIMIT_EXCEEDED"],
             risk_score=85,
@@ -678,15 +712,15 @@ class TealTigerGuard:
 
     def _build_teec(
         self,
-        tool_name: Optional[str] = None,
-        call_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        tool_name: str | None = None,
+        call_id: str | None = None,
+    ) -> dict[str, Any]:
         """Build TEEC namespace fields for teec.pydanticai.
 
         Returns:
             Dictionary with TEEC fields.
         """
-        teec: Dict[str, Any] = {
+        teec: dict[str, Any] = {
             "namespace": "teec.pydanticai",
             "session_id": self._session_id,
             "call_id": call_id or str(uuid.uuid4()),
@@ -697,7 +731,7 @@ class TealTigerGuard:
 
         return teec
 
-    def _detect_pii(self, text: str) -> List[PIIFinding]:
+    def _detect_pii(self, text: str) -> list[PIIFinding]:
         """Detect PII patterns in input text.
 
         Args:
@@ -706,7 +740,7 @@ class TealTigerGuard:
         Returns:
             List of PII findings with redacted values.
         """
-        findings: List[PIIFinding] = []
+        findings: list[PIIFinding] = []
 
         for pii_type, pattern in _PII_PATTERNS.items():
             for match in pattern.finditer(text):
@@ -732,8 +766,8 @@ class TealTigerGuard:
         self,
         agent_id: str,
         tool_name: str,
-        tool_args: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        tool_args: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Evaluate content against TealEngine policies.
 
         Args:
@@ -781,10 +815,7 @@ class TealTigerGuard:
             # In MONITOR/OBSERVE, allow through despite error
             return {
                 "action": "ALLOW",
-                "reason": (
-                    f"Engine evaluation failed "
-                    f"(fail-open in {self._mode.value}): {e}"
-                ),
+                "reason": (f"Engine evaluation failed (fail-open in {self._mode.value}): {e}"),
                 "reason_codes": ["ENGINE_ERROR", "FAIL_OPEN"],
                 "risk_score": 50,
             }
