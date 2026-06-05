@@ -25,6 +25,13 @@ _PII_PATTERNS: Dict[str, re.Pattern[str]] = {
     "phone_us": re.compile(
         r"\b(?:\+1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b"
     ),
+    "phone_uk": re.compile(
+        r"(?<!\w)\+44[-.\s]?(?:\d{2,4}[-.\s]?)?\d{3,4}[-.\s]?\d{3,4}\b"
+    ),
+    "phone_eu": re.compile(
+        r"(?<!\w)(?:\+49[-.\s]?\d{2,4}[-.\s]?\d{5,8}|\+33[-.\s]?\d(?:[-.\s]?\d{2}){4})\b"
+    ),
+    "phone_in": re.compile(r"(?<!\w)\+91[-.\s]?[6-9]\d{4}[-.\s]?\d{5}\b"),
     "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     "credit_card": re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b"),
     "ip_address": re.compile(

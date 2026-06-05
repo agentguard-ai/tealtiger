@@ -149,6 +149,33 @@ class TestPIIDetection:
         assert len(pii) >= 1
         assert any(p["type"] == "credit_card" for p in pii)
 
+    def test_detects_phone(self) -> None:
+        """Detects US phone numbers in input."""
+        gov = TealTigerGovernanceComponent()
+        result = gov.run(text="Call me at (555) 123-4567")
+
+        pii = result["decision"]["pii_detected"]
+        assert len(pii) >= 1
+        assert any(p["type"] == "phone_us" for p in pii)
+
+    @pytest.mark.parametrize(
+        ("text", "pii_type"),
+        [
+            ("London office: +44 20 7946 0958", "phone_uk"),
+            ("Berlin office: +49 30 12345678", "phone_eu"),
+            ("Paris office: +33 1 23 45 67 89", "phone_eu"),
+            ("Mumbai office: +91 98765 43210", "phone_in"),
+        ],
+    )
+    def test_detects_international_phone(self, text: str, pii_type: str) -> None:
+        """Detects UK, EU, and India phone numbers in input."""
+        gov = TealTigerGovernanceComponent()
+        result = gov.run(text=text)
+
+        pii = result["decision"]["pii_detected"]
+        assert len(pii) >= 1
+        assert any(p["type"] == pii_type for p in pii)
+
     def test_detects_multiple_pii(self) -> None:
         """Detects multiple PII types in a single input."""
         gov = TealTigerGovernanceComponent()
