@@ -191,6 +191,7 @@ response = client.chat.completions.create(
 - [Security Guardrails](#️-security-guardrails)
 - [Cost Governance](#-cost-governance)
 - [Provider Setup](#-7-llm-providers)
+- [FAQ](./docs/faq.md)
 - [Cross-SDK Feature Parity Matrix](./docs/cross-sdk-feature-parity-matrix.md)
 - [Error Code Reference](./docs/error-code-reference.md)
 - [Troubleshooting](./docs/troubleshooting.md)
