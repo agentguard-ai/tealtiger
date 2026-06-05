@@ -193,6 +193,7 @@ response = client.chat.completions.create(
 - [Provider Setup](#-7-llm-providers)
 - [FAQ](./docs/faq.md)
 - [Cross-SDK Feature Parity Matrix](./docs/cross-sdk-feature-parity-matrix.md)
+- [Governance Event Store Indexes](./docs/governance-event-store-indexes.md)
 - [Error Code Reference](./docs/error-code-reference.md)
 - [Troubleshooting](./docs/troubleshooting.md)
 - [Contributing Guide](./CONTRIBUTING.md)
