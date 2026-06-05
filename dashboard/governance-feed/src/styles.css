@@ -322,6 +322,104 @@ h1 {
   padding: 3px 8px;
 }
 
+.latency-panel {
+  margin: 12px 14px;
+  border: 1px solid #123238;
+  border-radius: 8px;
+  padding: 14px;
+  color: #d7efe3;
+  background: #071014;
+}
+
+.latency-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.latency-panel-header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #8ecfc2;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.latency-panel-header h2 {
+  margin-top: 4px;
+  color: #ecfff8;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.latency-panel-header strong {
+  flex: 0 0 auto;
+  border: 1px solid #1b454a;
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #b9f4e4;
+  background: rgba(17, 74, 78, 0.62);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.latency-empty {
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  border: 1px dashed #1d444a;
+  border-radius: 8px;
+  color: #7da59f;
+  background: rgba(7, 16, 20, 0.64);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.latency-bars {
+  display: grid;
+  gap: 9px;
+}
+
+.latency-row {
+  display: grid;
+  grid-template-columns: 64px minmax(80px, 1fr) 44px;
+  align-items: center;
+  gap: 10px;
+}
+
+.latency-label,
+.latency-row strong {
+  color: #b9cfc9;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.latency-row strong {
+  justify-self: end;
+  color: #e7fff7;
+}
+
+.latency-track {
+  height: 12px;
+  overflow: hidden;
+  border: 1px solid #123238;
+  border-radius: 999px;
+  background: #0b1d22;
+}
+
+.latency-bar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #14b8a6, #7dd3fc);
+  box-shadow: 0 0 18px rgba(20, 184, 166, 0.25);
+}
+
 .list-frame {
   flex: 1;
   min-height: 390px;
@@ -598,5 +696,26 @@ h1 {
 
   .receipt-facts {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .latency-panel {
+    margin: 10px;
+    padding: 12px;
+  }
+
+  .latency-panel-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .latency-panel-header strong {
+    align-self: flex-start;
+  }
+
+  .latency-row {
+    grid-template-columns: 58px minmax(0, 1fr) 38px;
+    gap: 8px;
   }
 }
