@@ -523,6 +523,42 @@ class TestKillSwitch:
         guard = TealTigerGuard()
         guard.unfreeze()  # Should not raise
 
+    def test_reset_clears_session_state(self) -> None:
+        """Reset clears cost, audit trail, call count, and per-tool summaries."""
+        guard = TealTigerGuard(cost_per_1k_tokens=0.01, mode="MONITOR")
+        guard.evaluate(tool="search", args={"query": "A" * 4000})
+        guard.post_call(
+            tool_name="search",
+            result="B" * 4000,
+            token_usage={"total_tokens": 1000},
+        )
+
+        assert guard.cumulative_cost > 0
+        assert len(guard.audit_trail) == 2
+        assert guard.summary["search"].call_count == 1
+
+        guard.reset()
+
+        assert guard.cumulative_cost == 0.0
+        assert guard.audit_trail == []
+        assert guard.summary == {}
+
+        decision = guard.evaluate(tool="search", args={"query": "after reset"})
+        assert decision["metadata"]["call_count"] == 1
+
+    def test_reset_clears_frozen_state(self) -> None:
+        """Reset also unfreezes the guard."""
+        guard = TealTigerGuard(mode="ENFORCE")
+        guard.freeze()
+
+        with pytest.raises(GovernanceDenyError):
+            guard.evaluate(tool="search", args={"query": "blocked"})
+
+        guard.reset()
+
+        decision = guard.evaluate(tool="search", args={"query": "allowed"})
+        assert decision["action"] == "ALLOW"
+
 
 # ─── Cost Tracking Tests ────────────────────────────────────────────────────
 
@@ -586,6 +622,24 @@ class TestAuditTrail:
         guard.post_call(tool_name="search", result="result")
 
         assert len(guard.audit_trail) == 3
+
+    def test_export_audit_trail_writes_jsonl(self, tmp_path: Any) -> None:
+        """Audit trail export writes one JSON object per line."""
+        guard = TealTigerGuard()
+        first = guard.evaluate(tool="search", args={"query": "first"})
+        second = guard.post_call(tool_name="search", result="result")
+        export_path = tmp_path / "audit.jsonl"
+
+        count = guard.export_audit_trail(str(export_path))
+
+        lines = export_path.read_text(encoding="utf-8").splitlines()
+        exported = [json.loads(line) for line in lines]
+
+        assert count == 2
+        assert len(lines) == 2
+        assert exported == [entry.to_dict() for entry in guard.audit_trail]
+        assert exported[0]["correlation_id"] == first["correlation_id"]
+        assert exported[1]["correlation_id"] == second["correlation_id"]
 
     def test_audit_entry_fields(self) -> None:
         """Audit entry contains all required fields."""

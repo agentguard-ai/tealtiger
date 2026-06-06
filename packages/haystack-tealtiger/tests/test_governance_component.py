@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict
+import json
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,13 +12,8 @@ from haystack_integrations.components.connectors.tealtiger import (
     TealTigerGovernanceComponent,
 )
 from haystack_integrations.components.connectors.tealtiger.governance_component import (
-    AuditEntry,
-    GovernanceAction,
     GovernanceDenyError,
-    GovernanceMode,
-    PIIFinding,
 )
-
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
 
@@ -102,6 +98,24 @@ class TestZeroConfigMode:
 
         assert len(gov.audit_trail) == 3
         assert gov.audit_trail[0].correlation_id != gov.audit_trail[1].correlation_id
+
+    def test_export_audit_trail_writes_jsonl(self, tmp_path: Any) -> None:
+        """Audit trail export writes one JSON object per line."""
+        gov = TealTigerGovernanceComponent()
+        first = gov.run(text="First")["decision"]
+        second = gov.run(text="Second")["decision"]
+        export_path = tmp_path / "audit.jsonl"
+
+        count = gov.export_audit_trail(str(export_path))
+
+        lines = export_path.read_text(encoding="utf-8").splitlines()
+        exported = [json.loads(line) for line in lines]
+
+        assert count == 2
+        assert len(lines) == 2
+        assert exported == [entry.to_dict() for entry in gov.audit_trail]
+        assert exported[0]["correlation_id"] == first["correlation_id"]
+        assert exported[1]["correlation_id"] == second["correlation_id"]
 
     def test_reset_clears_state(self) -> None:
         """Reset clears cost, audit trail, and evaluation count."""
@@ -233,7 +247,7 @@ class TestPIIDetection:
 class TestPolicyMode:
     """Tests for policy mode with TealEngine."""
 
-    def _make_engine(self, decision: Dict[str, Any]) -> MagicMock:
+    def _make_engine(self, decision: dict[str, Any]) -> MagicMock:
         """Create a mock TealEngine that returns a given decision."""
         engine = MagicMock()
         engine.evaluate.return_value = decision

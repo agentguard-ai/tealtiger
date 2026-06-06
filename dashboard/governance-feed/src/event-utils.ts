@@ -1,6 +1,19 @@
 import type { Decision, EventFilters, FeedEvent, StreamMessage } from './types';
 
 const DECISIONS: Decision[] = ['ALLOW', 'DENY', 'REVISE', 'REQUIRE_APPROVAL'];
+export const LATENCY_BUCKETS = [
+  { id: '0-1', label: '0-1ms', min: 0, max: 1 },
+  { id: '1-2', label: '1-2ms', min: 1, max: 2 },
+  { id: '2-5', label: '2-5ms', min: 2, max: 5 },
+  { id: '5-10', label: '5-10ms', min: 5, max: 10 },
+  { id: '10+', label: '10ms+', min: 10, max: Number.POSITIVE_INFINITY },
+] as const;
+
+export interface LatencyBucketCount {
+  id: typeof LATENCY_BUCKETS[number]['id'];
+  label: typeof LATENCY_BUCKETS[number]['label'];
+  count: number;
+}
 
 export function normalizeEvent(message: StreamMessage): FeedEvent | null {
   if (message.type !== 'governance_event') {
@@ -87,6 +100,27 @@ export function formatTime(timestamp: string): string {
 
 export function formatLatency(latencyMs: number): string {
   return `${latencyMs.toFixed(latencyMs >= 10 ? 0 : 1)}ms`;
+}
+
+export function calculateLatencyBuckets(events: FeedEvent[]): LatencyBucketCount[] {
+  const counts = new Map<string, number>(
+    LATENCY_BUCKETS.map((bucket) => [bucket.id, 0]),
+  );
+
+  for (const event of events) {
+    const bucket = LATENCY_BUCKETS.find(({ min, max }) => (
+      event.latencyMs >= min && event.latencyMs < max
+    ));
+    if (bucket) {
+      counts.set(bucket.id, (counts.get(bucket.id) ?? 0) + 1);
+    }
+  }
+
+  return LATENCY_BUCKETS.map((bucket) => ({
+    id: bucket.id,
+    label: bucket.label,
+    count: counts.get(bucket.id) ?? 0,
+  }));
 }
 
 export function decisionLabel(decision: Decision): string {
