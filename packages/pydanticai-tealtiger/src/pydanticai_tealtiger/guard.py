@@ -144,6 +144,18 @@ class ToolSummary:
     pii_findings_count: int = 0
 
 
+@dataclass
+class ToolBaseline:
+    """Behavioral baseline entry for a tool."""
+
+    tool_name: str
+    avg_cost_per_call: float
+    total_calls: int
+    total_cost: float
+    pii_frequency: float
+    denied_frequency: float
+
+
 # ─── Exceptions ──────────────────────────────────────────────────────────────
 
 
@@ -225,6 +237,7 @@ class TealTigerGuard:
         self._cumulative_cost: float = 0.0
         self._call_count: int = 0
         self._audit_trail: list[AuditEntry] = []
+        self._tool_attempts: dict[str, int] = {}
         self._tool_costs: dict[str, float] = {}
         self._tool_calls: dict[str, int] = {}
         self._tool_denied: dict[str, int] = {}
@@ -260,6 +273,7 @@ class TealTigerGuard:
         self._call_count += 1
 
         effective_agent_id = agent_id or "default"
+        self._tool_attempts[tool] = self._tool_attempts.get(tool, 0) + 1
 
         # ── Frozen check (kill switch) ───────────────────────────────────
         if self._frozen:
@@ -549,6 +563,39 @@ class TealTigerGuard:
     def session_id(self) -> str:
         """Get the session identifier."""
         return self._session_id
+
+    # ─── Baseline ────────────────────────────────────────────────────────
+
+    def get_baseline(self) -> dict[str, ToolBaseline]:
+        """Get a summary of observed tool behavior as a baseline.
+
+        Returns:
+            Dictionary mapping tool_name to baseline behavior summary.
+        """
+        result: dict[str, ToolBaseline] = {}
+        all_tools = (
+            set(self._tool_attempts.keys())
+            | set(self._tool_costs.keys())
+            | set(self._tool_pii.keys())
+            | set(self._tool_denied.keys())
+        )
+
+        for tool_name in all_tools:
+            calls = self._tool_attempts.get(tool_name, 0)
+            cost = self._tool_costs.get(tool_name, 0.0)
+            pii_count = self._tool_pii.get(tool_name, 0)
+            denied_count = self._tool_denied.get(tool_name, 0)
+
+            result[tool_name] = ToolBaseline(
+                tool_name=tool_name,
+                avg_cost_per_call=cost / calls if calls > 0 else 0.0,
+                total_calls=calls,
+                total_cost=cost,
+                pii_frequency=pii_count / calls if calls > 0 else 0.0,
+                denied_frequency=denied_count / calls if calls > 0 else 0.0,
+            )
+
+        return result
 
     # ─── Internal: Deny helpers ──────────────────────────────────────────
 

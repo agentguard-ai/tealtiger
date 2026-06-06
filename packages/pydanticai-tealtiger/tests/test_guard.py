@@ -12,6 +12,7 @@ import pytest
 from pydanticai_tealtiger import (
     GovernanceDenyError,
     TealTigerGuard,
+    ToolBaseline,
 )
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
@@ -705,6 +706,62 @@ class TestAuditTrail:
 
         ts = decision["timestamp_ms"]
         assert before <= ts <= after
+
+
+# ─── Baseline Tests ──────────────────────────────────────────────────────────
+
+
+class TestBaseline:
+    """Tests for behavioral baseline generation."""
+
+    def test_baseline_empty_on_no_data(self) -> None:
+        """Baseline is empty when no calls have been recorded."""
+        guard = TealTigerGuard()
+        baseline = guard.get_baseline()
+
+        assert baseline == {}
+
+    def test_baseline_tracks_single_tool(self) -> None:
+        """Baseline includes aggregate behavior for one observed tool."""
+        guard = TealTigerGuard(cost_per_1k_tokens=0.01)
+        guard.evaluate(tool="search", args={"query": "Email: test@example.com"})
+        guard.evaluate(tool="search", args={"query": "clean text"})
+
+        baseline = guard.get_baseline()
+        entry = baseline["search"]
+
+        assert isinstance(entry, ToolBaseline)
+        assert entry.tool_name == "search"
+        assert entry.total_calls == 2
+        assert entry.total_cost > 0
+        assert entry.avg_cost_per_call > 0
+        assert entry.pii_frequency == 0.5
+        assert entry.denied_frequency == 0.0
+
+    def test_baseline_tracks_multiple_tools(self) -> None:
+        """Baseline separates behavior by tool name."""
+        guard = TealTigerGuard()
+        guard.evaluate(tool="search", args={"query": "first"})
+        guard.evaluate(tool="search", args={"query": "second"})
+        guard.evaluate(tool="compute", args={"value": "42"})
+
+        baseline = guard.get_baseline()
+
+        assert set(baseline.keys()) == {"search", "compute"}
+        assert baseline["search"].total_calls == 2
+        assert baseline["compute"].total_calls == 1
+
+    def test_baseline_tracks_denied_frequency(self) -> None:
+        """Baseline counts early-denied tool attempts."""
+        guard = TealTigerGuard(tool_allowlist=["search"], mode="MONITOR")
+        guard.evaluate(tool="search", args={"query": "allowed"})
+        guard.evaluate(tool="delete", args={"target": "blocked"})
+
+        baseline = guard.get_baseline()
+
+        assert baseline["delete"].total_calls == 1
+        assert baseline["delete"].total_cost == 0.0
+        assert baseline["delete"].denied_frequency == 1.0
 
 
 # ─── Correlation ID Tests ────────────────────────────────────────────────────
