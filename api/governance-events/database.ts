@@ -41,6 +41,7 @@ export async function initializeSchema(client: Client): Promise<void> {
       agent_name TEXT,
       decision TEXT NOT NULL,
       tool TEXT,
+      tool_name TEXT,
       provider TEXT,
       model TEXT,
       cost_usd REAL NOT NULL DEFAULT 0,
@@ -56,6 +57,7 @@ export async function initializeSchema(client: Client): Promise<void> {
   await client.execute('CREATE INDEX IF NOT EXISTS idx_events_agent ON governance_events(agent_id)');
   await client.execute('CREATE INDEX IF NOT EXISTS idx_events_decision ON governance_events(decision)');
   await client.execute('CREATE INDEX IF NOT EXISTS idx_events_tool ON governance_events(tool)');
+  await client.execute('CREATE INDEX IF NOT EXISTS idx_events_tool_name ON governance_events(tool_name)');
   await client.execute('CREATE INDEX IF NOT EXISTS idx_events_severity ON governance_events(severity)');
 }
 
