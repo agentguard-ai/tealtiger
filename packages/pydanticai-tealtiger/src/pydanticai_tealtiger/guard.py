@@ -501,6 +501,16 @@ class TealTigerGuard:
                 f.write(json.dumps(entry.to_dict()) + "\n")
 
         return len(self._audit_trail)
+    def reset(self) -> None:
+        """Reset session state, including cost, audit trail, call count, and freeze state."""
+        self._cumulative_cost = 0.0
+        self._call_count = 0
+        self._audit_trail = []
+        self._tool_costs = {}
+        self._tool_calls = {}
+        self._tool_denied = {}
+        self._tool_pii = {}
+        self._frozen = False
 
     # ─── Properties ──────────────────────────────────────────────────────
 

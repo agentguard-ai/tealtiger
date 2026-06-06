@@ -12,6 +12,7 @@
     "test:api": "node --test -r ts-node/register tests/api/governance-api.test.ts",
     "test:stream": "node --test -r ts-node/register tests/api/governance-stream.test.ts",
     "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
+    "test:dashboard-feed": "node --test -r ts-node/register tests/dashboard/governance-feed-latency.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
   },
