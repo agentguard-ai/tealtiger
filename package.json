@@ -8,6 +8,7 @@
     "api:start": "ts-node api/governance-events/index.ts",
     "stream:start": "ts-node api/governance-stream/index.ts",
     "build": "tsc --noEmit",
+    "test:schema": "node --test -r ts-node/register tests/api/governance-event-store-schema.test.ts",
     "test:api": "node --test -r ts-node/register tests/api/governance-api.test.ts",
     "test:stream": "node --test -r ts-node/register tests/api/governance-stream.test.ts",
     "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
