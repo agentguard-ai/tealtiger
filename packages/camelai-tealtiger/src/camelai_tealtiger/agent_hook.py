@@ -10,24 +10,20 @@ No LLM in the governance path. Typical evaluation: <2ms.
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import time
 import uuid
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
-
+from typing import Any
 
 # ─── PII Detection Patterns ─────────────────────────────────────────────────
 
-_PII_PATTERNS: Dict[str, re.Pattern[str]] = {
+_PII_PATTERNS: dict[str, re.Pattern[str]] = {
     "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
-    "phone_us": re.compile(
-        r"\b(?:\+1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b"
-    ),
-    "phone_uk": re.compile(
-        r"(?<!\w)\+44[-.\s]?(?:\d{2,4}[-.\s]?)?\d{3,4}[-.\s]?\d{3,4}\b"
-    ),
+    "phone_us": re.compile(r"\b(?:\+1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b"),
+    "phone_uk": re.compile(r"(?<!\w)\+44[-.\s]?(?:\d{2,4}[-.\s]?)?\d{3,4}[-.\s]?\d{3,4}\b"),
     "phone_eu": re.compile(
         r"(?<!\w)(?:\+49[-.\s]?\d{2,4}[-.\s]?\d{5,8}|\+33[-.\s]?\d(?:[-.\s]?\d{2}){4})\b"
     ),
@@ -106,13 +102,13 @@ class AuditEntry:
     reason: str
     """Human-readable reason for the decision."""
 
-    reason_codes: List[str]
+    reason_codes: list[str]
     """Machine-readable reason codes."""
 
     risk_score: int
     """Risk score (0-100)."""
 
-    pii_detected: List[Dict[str, Any]]
+    pii_detected: list[dict[str, Any]]
     """List of PII findings."""
 
     cost_tracked: float
@@ -124,13 +120,13 @@ class AuditEntry:
     evaluation_time_ms: float
     """Time taken for governance evaluation in milliseconds."""
 
-    teec: Dict[str, Any] = field(default_factory=dict)
+    teec: dict[str, Any] = field(default_factory=dict)
     """TEEC namespace fields (teec.camelai)."""
 
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     """Additional metadata."""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return asdict(self)
 
@@ -155,8 +151,8 @@ class BaselineEntry:
     total_steps: int
     total_cost: float
     pii_frequency: float
-    common_tools: List[str]
-    typical_risk_scores: List[int]
+    common_tools: list[str]
+    typical_risk_scores: list[int]
 
 
 # ─── Exceptions ──────────────────────────────────────────────────────────────
@@ -165,11 +161,9 @@ class BaselineEntry:
 class GovernanceDenyError(Exception):
     """Raised when a governance policy denies the request in ENFORCE mode."""
 
-    def __init__(self, decision: Dict[str, Any]) -> None:
+    def __init__(self, decision: dict[str, Any]) -> None:
         self.decision = decision
-        super().__init__(
-            f"Governance DENY: {decision.get('reason', 'Policy violation')}"
-        )
+        super().__init__(f"Governance DENY: {decision.get('reason', 'Policy violation')}")
 
 
 # ─── Agent Hook ──────────────────────────────────────────────────────────────
@@ -208,13 +202,13 @@ class TealTigerAgentHook:
 
     def __init__(
         self,
-        engine: Optional[Any] = None,
+        engine: Any | None = None,
         mode: str = "OBSERVE",
         cost_per_1k_tokens: float = 0.002,
-        session_id: Optional[str] = None,
-        society_id: Optional[str] = None,
-        task_prompt: Optional[str] = None,
-        role_allowlist: Optional[List[str]] = None,
+        session_id: str | None = None,
+        society_id: str | None = None,
+        task_prompt: str | None = None,
+        role_allowlist: list[str] | None = None,
     ) -> None:
         """Initialize the governance hook.
 
@@ -239,34 +233,32 @@ class TealTigerAgentHook:
         self._task_prompt_hash = (
             hashlib.sha256(task_prompt.encode()).hexdigest() if task_prompt else None
         )
-        self._role_allowlist: Optional[Set[str]] = (
-            set(role_allowlist) if role_allowlist else None
-        )
+        self._role_allowlist: set[str] | None = set(role_allowlist) if role_allowlist else None
 
         # Session state
         self._cumulative_cost: float = 0.0
         self._step_count: int = 0
-        self._audit_trail: List[AuditEntry] = []
-        self._agent_costs: Dict[str, float] = {}
-        self._agent_steps: Dict[str, int] = {}
-        self._agent_denied: Dict[str, int] = {}
-        self._agent_pii: Dict[str, int] = {}
-        self._agent_roles: Dict[str, str] = {}
-        self._agent_tools: Dict[str, List[str]] = {}
-        self._agent_risk_scores: Dict[str, List[int]] = {}
-        self._frozen_agents: Set[str] = set()
+        self._audit_trail: list[AuditEntry] = []
+        self._agent_costs: dict[str, float] = {}
+        self._agent_steps: dict[str, int] = {}
+        self._agent_denied: dict[str, int] = {}
+        self._agent_pii: dict[str, int] = {}
+        self._agent_roles: dict[str, str] = {}
+        self._agent_tools: dict[str, list[str]] = {}
+        self._agent_risk_scores: dict[str, list[int]] = {}
+        self._frozen_agents: set[str] = set()
 
     # ─── Pre-Step Hook ───────────────────────────────────────────────────
 
-    def pre_step(
+    def pre_step(  # noqa: C901
         self,
         agent_id: str,
         step_content: str,
-        tool_name: Optional[str] = None,
-        tool_args: Optional[Dict[str, Any]] = None,
-        agent_role: Optional[str] = None,
-        role_type: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        tool_name: str | None = None,
+        tool_args: dict[str, Any] | None = None,
+        agent_role: str | None = None,
+        role_type: str | None = None,
+    ) -> dict[str, Any]:
         """Evaluate governance before an agent step.
 
         Args:
@@ -304,13 +296,11 @@ class TealTigerAgentHook:
             reason = f"Agent {agent_id} is frozen (kill switch active)"
             reason_codes = ["AGENT_FROZEN", "KILL_SWITCH"]
             risk_score = 100
-            pii_findings: List[PIIFinding] = []
+            pii_findings: list[PIIFinding] = []
             estimated_cost = 0.0
 
             evaluation_time_ms = (time.perf_counter() - start_time) * 1000
-            teec = self._build_teec(
-                agent_role=agent_role, role_type=role_type, step_id=step_id
-            )
+            teec = self._build_teec(agent_role=agent_role, role_type=role_type, step_id=step_id)
 
             audit_entry = AuditEntry(
                 correlation_id=correlation_id,
@@ -347,17 +337,12 @@ class TealTigerAgentHook:
         if self._role_allowlist is not None and agent_role is not None:
             if agent_role not in self._role_allowlist:
                 action = GovernanceAction.DENY
-                reason = (
-                    f"Role '{agent_role}' not in allowlist: "
-                    f"{sorted(self._role_allowlist)}"
-                )
+                reason = f"Role '{agent_role}' not in allowlist: {sorted(self._role_allowlist)}"
                 reason_codes = ["ROLE_NOT_ALLOWED"]
                 risk_score = 90
 
                 evaluation_time_ms = (time.perf_counter() - start_time) * 1000
-                teec = self._build_teec(
-                    agent_role=agent_role, role_type=role_type, step_id=step_id
-                )
+                teec = self._build_teec(agent_role=agent_role, role_type=role_type, step_id=step_id)
 
                 audit_entry = AuditEntry(
                     correlation_id=correlation_id,
@@ -382,9 +367,7 @@ class TealTigerAgentHook:
                     },
                 )
                 self._audit_trail.append(audit_entry)
-                self._agent_denied[agent_id] = (
-                    self._agent_denied.get(agent_id, 0) + 1
-                )
+                self._agent_denied[agent_id] = self._agent_denied.get(agent_id, 0) + 1
 
                 decision_dict = audit_entry.to_dict()
 
@@ -396,23 +379,19 @@ class TealTigerAgentHook:
         # ── PII Detection ────────────────────────────────────────────────
         pii_findings = self._detect_pii(step_content)
         if pii_findings:
-            self._agent_pii[agent_id] = (
-                self._agent_pii.get(agent_id, 0) + len(pii_findings)
-            )
+            self._agent_pii[agent_id] = self._agent_pii.get(agent_id, 0) + len(pii_findings)
 
         # ── Cost Tracking ────────────────────────────────────────────────
         estimated_tokens = max(len(step_content) / 4, 1)
         estimated_cost = (estimated_tokens / 1000) * self._cost_per_1k_tokens
         self._cumulative_cost += estimated_cost
-        self._agent_costs[agent_id] = (
-            self._agent_costs.get(agent_id, 0) + estimated_cost
-        )
+        self._agent_costs[agent_id] = self._agent_costs.get(agent_id, 0) + estimated_cost
         self._agent_steps[agent_id] = self._agent_steps.get(agent_id, 0) + 1
 
         # ── Policy Evaluation ────────────────────────────────────────────
         action = GovernanceAction.ALLOW
         reason = "Allowed: zero-config observe mode"
-        reason_codes: List[str] = ["OBSERVE_PASSTHROUGH"]
+        reason_codes: list[str] = ["OBSERVE_PASSTHROUGH"]
         risk_score = 0
 
         if self._engine is not None:
@@ -442,9 +421,7 @@ class TealTigerAgentHook:
 
         # ── Build Audit Entry ────────────────────────────────────────────
         evaluation_time_ms = (time.perf_counter() - start_time) * 1000
-        teec = self._build_teec(
-            agent_role=agent_role, role_type=role_type, step_id=step_id
-        )
+        teec = self._build_teec(agent_role=agent_role, role_type=role_type, step_id=step_id)
 
         audit_entry = AuditEntry(
             correlation_id=correlation_id,
@@ -483,9 +460,7 @@ class TealTigerAgentHook:
         decision_dict = audit_entry.to_dict()
 
         if action == GovernanceAction.DENY:
-            self._agent_denied[agent_id] = (
-                self._agent_denied.get(agent_id, 0) + 1
-            )
+            self._agent_denied[agent_id] = self._agent_denied.get(agent_id, 0) + 1
             if self._mode == GovernanceMode.ENFORCE:
                 raise GovernanceDenyError(decision_dict)
 
@@ -497,10 +472,10 @@ class TealTigerAgentHook:
         self,
         agent_id: str,
         step_result: str,
-        token_usage: Optional[Dict[str, int]] = None,
-        agent_role: Optional[str] = None,
-        role_type: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        token_usage: dict[str, int] | None = None,
+        agent_role: str | None = None,
+        role_type: str | None = None,
+    ) -> dict[str, Any]:
         """Track cost and audit after an agent step completes.
 
         Args:
@@ -523,35 +498,26 @@ class TealTigerAgentHook:
         if token_usage:
             total_tokens = token_usage.get(
                 "total_tokens",
-                token_usage.get("prompt_tokens", 0)
-                + token_usage.get("completion_tokens", 0),
+                token_usage.get("prompt_tokens", 0) + token_usage.get("completion_tokens", 0),
             )
             actual_cost = (total_tokens / 1000) * self._cost_per_1k_tokens
             self._cumulative_cost += actual_cost
-            self._agent_costs[agent_id] = (
-                self._agent_costs.get(agent_id, 0) + actual_cost
-            )
+            self._agent_costs[agent_id] = self._agent_costs.get(agent_id, 0) + actual_cost
         else:
             # Estimate from result text length
             estimated_tokens = max(len(step_result) / 4, 1)
             actual_cost = (estimated_tokens / 1000) * self._cost_per_1k_tokens
             self._cumulative_cost += actual_cost
-            self._agent_costs[agent_id] = (
-                self._agent_costs.get(agent_id, 0) + actual_cost
-            )
+            self._agent_costs[agent_id] = self._agent_costs.get(agent_id, 0) + actual_cost
 
         # ── PII Detection in output ──────────────────────────────────────
         pii_findings = self._detect_pii(step_result)
         if pii_findings:
-            self._agent_pii[agent_id] = (
-                self._agent_pii.get(agent_id, 0) + len(pii_findings)
-            )
+            self._agent_pii[agent_id] = self._agent_pii.get(agent_id, 0) + len(pii_findings)
 
         # ── Build Audit Entry ────────────────────────────────────────────
         evaluation_time_ms = (time.perf_counter() - start_time) * 1000
-        teec = self._build_teec(
-            agent_role=agent_role, role_type=role_type, step_id=step_id
-        )
+        teec = self._build_teec(agent_role=agent_role, role_type=role_type, step_id=step_id)
 
         risk_score = 0
         if pii_findings:
@@ -607,21 +573,29 @@ class TealTigerAgentHook:
         """
         self._frozen_agents.discard(agent_id)
 
+    def export_audit_trail(self, path: str) -> int:
+        """Export audit trail as JSONL and return the number of entries written."""
+        with open(path, "w", encoding="utf-8") as f:
+            for entry in self._audit_trail:
+                f.write(json.dumps(entry.to_dict()) + "\n")
+
+        return len(self._audit_trail)
+
     # ─── Properties ──────────────────────────────────────────────────────
 
     @property
-    def audit_trail(self) -> List[AuditEntry]:
+    def audit_trail(self) -> list[AuditEntry]:
         """Access the full audit trail of governance decisions."""
         return list(self._audit_trail)
 
     @property
-    def summary(self) -> Dict[str, AgentSummary]:
+    def summary(self) -> dict[str, AgentSummary]:
         """Get cost/step summary per agent.
 
         Returns:
             Dictionary mapping agent_id to AgentSummary.
         """
-        result: Dict[str, AgentSummary] = {}
+        result: dict[str, AgentSummary] = {}
         all_agents = set(self._agent_costs.keys()) | set(self._agent_steps.keys())
 
         for agent_id in all_agents:
@@ -647,13 +621,13 @@ class TealTigerAgentHook:
 
     # ─── Baseline ────────────────────────────────────────────────────────
 
-    def get_baseline(self) -> Dict[str, BaselineEntry]:
+    def get_baseline(self) -> dict[str, BaselineEntry]:
         """Get a summary of observed behavior as a baseline.
 
         Returns:
             Dictionary mapping agent_id to baseline behavior summary.
         """
-        result: Dict[str, BaselineEntry] = {}
+        result: dict[str, BaselineEntry] = {}
 
         for agent_id in set(self._agent_steps.keys()):
             steps = self._agent_steps.get(agent_id, 0)
@@ -663,12 +637,10 @@ class TealTigerAgentHook:
             risk_scores = self._agent_risk_scores.get(agent_id, [])
 
             # Deduplicate tools and find most common
-            tool_counts: Dict[str, int] = {}
+            tool_counts: dict[str, int] = {}
             for tool in tools:
                 tool_counts[tool] = tool_counts.get(tool, 0) + 1
-            common_tools = sorted(tool_counts.keys(), key=lambda t: -tool_counts[t])[
-                :5
-            ]
+            common_tools = sorted(tool_counts.keys(), key=lambda t: -tool_counts[t])[:5]
 
             result[agent_id] = BaselineEntry(
                 agent_id=agent_id,
@@ -686,16 +658,16 @@ class TealTigerAgentHook:
 
     def _build_teec(
         self,
-        agent_role: Optional[str] = None,
-        role_type: Optional[str] = None,
-        step_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        agent_role: str | None = None,
+        role_type: str | None = None,
+        step_id: str | None = None,
+    ) -> dict[str, Any]:
         """Build TEEC namespace fields for teec.camelai.
 
         Returns:
             Dictionary with TEEC fields.
         """
-        teec: Dict[str, Any] = {
+        teec: dict[str, Any] = {
             "namespace": "teec.camelai",
             "session_id": self._session_id,
             "step_id": step_id or str(uuid.uuid4()),
@@ -715,7 +687,7 @@ class TealTigerAgentHook:
 
         return teec
 
-    def _detect_pii(self, text: str) -> List[PIIFinding]:
+    def _detect_pii(self, text: str) -> list[PIIFinding]:
         """Detect PII patterns in input text.
 
         Args:
@@ -724,7 +696,7 @@ class TealTigerAgentHook:
         Returns:
             List of PII findings with redacted values.
         """
-        findings: List[PIIFinding] = []
+        findings: list[PIIFinding] = []
 
         for pii_type, pattern in _PII_PATTERNS.items():
             for match in pattern.finditer(text):
@@ -750,10 +722,10 @@ class TealTigerAgentHook:
         self,
         agent_id: str,
         content: str,
-        tool_name: Optional[str] = None,
-        tool_args: Optional[Dict[str, Any]] = None,
+        tool_name: str | None = None,
+        tool_args: dict[str, Any] | None = None,
         phase: str = "pre_step",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Evaluate content against TealEngine policies.
 
         Args:
@@ -806,10 +778,7 @@ class TealTigerAgentHook:
             # In MONITOR/OBSERVE, allow through despite error
             return {
                 "action": "ALLOW",
-                "reason": (
-                    f"Engine evaluation failed "
-                    f"(fail-open in {self._mode.value}): {e}"
-                ),
+                "reason": (f"Engine evaluation failed (fail-open in {self._mode.value}): {e}"),
                 "reason_codes": ["ENGINE_ERROR", "FAIL_OPEN"],
                 "risk_score": 50,
             }
