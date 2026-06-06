@@ -9,6 +9,7 @@ No LLM in the governance path. Typical evaluation: <2ms.
 
 from __future__ import annotations
 
+import json
 import re
 import time
 import uuid
@@ -493,6 +494,13 @@ class TealTigerGuard:
         """Unfreeze a previously frozen guard."""
         self._frozen = False
 
+    def export_audit_trail(self, path: str) -> int:
+        """Export audit trail as JSONL and return the number of entries written."""
+        with open(path, "w", encoding="utf-8") as f:
+            for entry in self._audit_trail:
+                f.write(json.dumps(entry.to_dict()) + "\n")
+
+        return len(self._audit_trail)
     def reset(self) -> None:
         """Reset session state, including cost, audit trail, call count, and freeze state."""
         self._cumulative_cost = 0.0

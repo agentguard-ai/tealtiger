@@ -4,22 +4,15 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from camelai_tealtiger import (
-    AgentSummary,
-    AuditEntry,
-    BaselineEntry,
-    GovernanceAction,
     GovernanceDenyError,
-    GovernanceMode,
-    PIIFinding,
     TealTigerAgentHook,
 )
-
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
 
@@ -116,9 +109,7 @@ class TestPIIDetection:
     def test_detects_ssn(self) -> None:
         """Detects SSN patterns in step content."""
         hook = TealTigerAgentHook()
-        decision = hook.pre_step(
-            agent_id="agent-1", step_content="My SSN is 123-45-6789"
-        )
+        decision = hook.pre_step(agent_id="agent-1", step_content="My SSN is 123-45-6789")
 
         pii = decision["pii_detected"]
         assert len(pii) >= 1
@@ -127,9 +118,7 @@ class TestPIIDetection:
     def test_detects_credit_card(self) -> None:
         """Detects credit card numbers in step content."""
         hook = TealTigerAgentHook()
-        decision = hook.pre_step(
-            agent_id="agent-1", step_content="Card: 4111-1111-1111-1111"
-        )
+        decision = hook.pre_step(agent_id="agent-1", step_content="Card: 4111-1111-1111-1111")
 
         pii = decision["pii_detected"]
         assert len(pii) >= 1
@@ -138,9 +127,7 @@ class TestPIIDetection:
     def test_detects_phone(self) -> None:
         """Detects US phone numbers in step content."""
         hook = TealTigerAgentHook()
-        decision = hook.pre_step(
-            agent_id="agent-1", step_content="Call me at (555) 123-4567"
-        )
+        decision = hook.pre_step(agent_id="agent-1", step_content="Call me at (555) 123-4567")
 
         pii = decision["pii_detected"]
         assert len(pii) >= 1
@@ -167,9 +154,7 @@ class TestPIIDetection:
     def test_detects_ip_address(self) -> None:
         """Detects IP addresses in step content."""
         hook = TealTigerAgentHook()
-        decision = hook.pre_step(
-            agent_id="agent-1", step_content="Server at 192.168.1.100"
-        )
+        decision = hook.pre_step(agent_id="agent-1", step_content="Server at 192.168.1.100")
 
         pii = decision["pii_detected"]
         assert len(pii) >= 1
@@ -191,9 +176,7 @@ class TestPIIDetection:
     def test_pii_still_allows_in_observe_mode(self) -> None:
         """PII detection does not block in observe mode."""
         hook = TealTigerAgentHook()
-        decision = hook.pre_step(
-            agent_id="agent-1", step_content="My SSN is 123-45-6789"
-        )
+        decision = hook.pre_step(agent_id="agent-1", step_content="My SSN is 123-45-6789")
 
         assert decision["action"] == "ALLOW"
         assert "PII_DETECTED" in decision["reason_codes"]
@@ -213,9 +196,7 @@ class TestPIIDetection:
     def test_no_pii_zero_risk(self) -> None:
         """Clean text has zero risk score."""
         hook = TealTigerAgentHook()
-        decision = hook.pre_step(
-            agent_id="agent-1", step_content="Hello, how are you today?"
-        )
+        decision = hook.pre_step(agent_id="agent-1", step_content="Hello, how are you today?")
 
         assert decision["risk_score"] == 0
         assert len(decision["pii_detected"]) == 0
@@ -223,9 +204,7 @@ class TestPIIDetection:
     def test_pii_redaction_format(self) -> None:
         """PII findings include properly redacted values."""
         hook = TealTigerAgentHook()
-        decision = hook.pre_step(
-            agent_id="agent-1", step_content="Email: test@example.com"
-        )
+        decision = hook.pre_step(agent_id="agent-1", step_content="Email: test@example.com")
 
         pii = decision["pii_detected"]
         assert len(pii) >= 1
@@ -241,7 +220,7 @@ class TestPIIDetection:
 class TestPolicyMode:
     """Tests for policy mode with TealEngine."""
 
-    def _make_engine(self, decision: Dict[str, Any]) -> MagicMock:
+    def _make_engine(self, decision: dict[str, Any]) -> MagicMock:
         """Create a mock TealEngine that returns a given decision."""
         engine = MagicMock()
         engine.evaluate.return_value = decision
@@ -474,6 +453,24 @@ class TestAuditTrail:
         hook.post_step(agent_id="agent-1", step_result="Result")
 
         assert len(hook.audit_trail) == 3
+
+    def test_export_audit_trail_writes_jsonl(self, tmp_path: Any) -> None:
+        """Audit trail export writes one JSON object per line."""
+        hook = TealTigerAgentHook()
+        first = hook.pre_step(agent_id="agent-1", step_content="First")
+        second = hook.post_step(agent_id="agent-1", step_result="Result")
+        export_path = tmp_path / "audit.jsonl"
+
+        count = hook.export_audit_trail(str(export_path))
+
+        lines = export_path.read_text(encoding="utf-8").splitlines()
+        exported = [json.loads(line) for line in lines]
+
+        assert count == 2
+        assert len(lines) == 2
+        assert exported == [entry.to_dict() for entry in hook.audit_trail]
+        assert exported[0]["correlation_id"] == first["correlation_id"]
+        assert exported[1]["correlation_id"] == second["correlation_id"]
 
     def test_audit_entry_fields(self) -> None:
         """Audit entry contains all required fields."""
@@ -763,15 +760,9 @@ class TestBaseline:
     def test_baseline_tracks_tools(self) -> None:
         """Baseline includes common tools used."""
         hook = TealTigerAgentHook()
-        hook.pre_step(
-            agent_id="agent-1", step_content="Search", tool_name="web_search"
-        )
-        hook.pre_step(
-            agent_id="agent-1", step_content="Search again", tool_name="web_search"
-        )
-        hook.pre_step(
-            agent_id="agent-1", step_content="Calculate", tool_name="calculator"
-        )
+        hook.pre_step(agent_id="agent-1", step_content="Search", tool_name="web_search")
+        hook.pre_step(agent_id="agent-1", step_content="Search again", tool_name="web_search")
+        hook.pre_step(agent_id="agent-1", step_content="Calculate", tool_name="calculator")
 
         baseline = hook.get_baseline()
         assert "web_search" in baseline["agent-1"].common_tools
@@ -779,9 +770,7 @@ class TestBaseline:
     def test_baseline_pii_frequency(self) -> None:
         """Baseline tracks PII detection frequency."""
         hook = TealTigerAgentHook()
-        hook.pre_step(
-            agent_id="agent-1", step_content="Email: test@example.com"
-        )
+        hook.pre_step(agent_id="agent-1", step_content="Email: test@example.com")
         hook.pre_step(agent_id="agent-1", step_content="Clean text")
 
         baseline = hook.get_baseline()
