@@ -8,7 +8,7 @@ TealTiger governance middleware for the [Vercel AI SDK](https://ai-sdk.dev/) —
 ## Quick Start
 
 ```bash
-npm install tealtiger-ai-sdk ai tealtiger-sdk
+npm install tealtiger-ai-sdk ai @ai-sdk/openai tealtiger-sdk@npm:tealtiger
 ```
 
 ```typescript
@@ -162,6 +162,12 @@ npm run build     # produces dist/index.mjs + dist/index.js + .d.ts files
 npm run test      # vitest (430+ tests including property-based)
 npm run typecheck # tsc --noEmit
 ```
+
+## Examples
+
+- [Next.js App Router chat](./examples/nextjs-app-router/) — wraps a Vercel AI
+  SDK model with `tealtigerMiddleware()` and displays governance metadata in a
+  `useChat` client.
 
 ## License
 
