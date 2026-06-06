@@ -4,21 +4,15 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from pydanticai_tealtiger import (
-    AuditEntry,
-    GovernanceAction,
     GovernanceDenyError,
-    GovernanceMode,
-    PIIFinding,
     TealTigerGuard,
-    ToolSummary,
 )
-
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
 
@@ -255,7 +249,7 @@ class TestPIIDetection:
 class TestPolicyMode:
     """Tests for policy mode with TealEngine."""
 
-    def _make_engine(self, decision: Dict[str, Any]) -> MagicMock:
+    def _make_engine(self, decision: dict[str, Any]) -> MagicMock:
         """Create a mock TealEngine that returns a given decision."""
         engine = MagicMock()
         engine.evaluate.return_value = decision
@@ -527,6 +521,42 @@ class TestKillSwitch:
         """Unfreezing a non-frozen guard does not error."""
         guard = TealTigerGuard()
         guard.unfreeze()  # Should not raise
+
+    def test_reset_clears_session_state(self) -> None:
+        """Reset clears cost, audit trail, call count, and per-tool summaries."""
+        guard = TealTigerGuard(cost_per_1k_tokens=0.01, mode="MONITOR")
+        guard.evaluate(tool="search", args={"query": "A" * 4000})
+        guard.post_call(
+            tool_name="search",
+            result="B" * 4000,
+            token_usage={"total_tokens": 1000},
+        )
+
+        assert guard.cumulative_cost > 0
+        assert len(guard.audit_trail) == 2
+        assert guard.summary["search"].call_count == 1
+
+        guard.reset()
+
+        assert guard.cumulative_cost == 0.0
+        assert guard.audit_trail == []
+        assert guard.summary == {}
+
+        decision = guard.evaluate(tool="search", args={"query": "after reset"})
+        assert decision["metadata"]["call_count"] == 1
+
+    def test_reset_clears_frozen_state(self) -> None:
+        """Reset also unfreezes the guard."""
+        guard = TealTigerGuard(mode="ENFORCE")
+        guard.freeze()
+
+        with pytest.raises(GovernanceDenyError):
+            guard.evaluate(tool="search", args={"query": "blocked"})
+
+        guard.reset()
+
+        decision = guard.evaluate(tool="search", args={"query": "allowed"})
+        assert decision["action"] == "ALLOW"
 
 
 # ─── Cost Tracking Tests ────────────────────────────────────────────────────
