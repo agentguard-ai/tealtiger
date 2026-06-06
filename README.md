@@ -192,6 +192,7 @@ response = client.chat.completions.create(
 - [Cost Governance](#-cost-governance)
 - [Provider Setup](#-7-llm-providers)
 - [FAQ](./docs/faq.md)
+- [Why TealTiger?](./docs/why-tealtiger.md)
 - [Cross-SDK Feature Parity Matrix](./docs/cross-sdk-feature-parity-matrix.md)
 - [Error Code Reference](./docs/error-code-reference.md)
 - [Troubleshooting](./docs/troubleshooting.md)
