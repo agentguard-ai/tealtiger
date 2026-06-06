@@ -8,12 +8,25 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
 
 # Add src to path so we can import without full package resolution
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from langchain_tealtiger._types import GovernanceAction, GovernanceMode
+import langchain_tealtiger._engine as engine_module
 from langchain_tealtiger._engine import GovernanceBridge
+from langchain_tealtiger._types import GovernanceAction, GovernanceMode
+
+_TRACE_ID = 0x1234567890ABCDEF1234567890ABCDEF
+_TRACE_ID_HEX = "1234567890abcdef1234567890abcdef"
+
+
+def _fake_trace_module(trace_id: int) -> SimpleNamespace:
+    context = SimpleNamespace(trace_id=trace_id)
+    span = SimpleNamespace(get_span_context=lambda: context)
+    return SimpleNamespace(get_current_span=lambda: span)
 
 
 class TestGovernanceBridgeAllowlist:
@@ -154,6 +167,38 @@ class TestGovernanceBridgeEvidence:
 
         assert engine.evidence[0].evaluation_time_ms >= 0
         assert engine.evidence[0].evaluation_time_ms < 50  # Should be <5ms
+
+    def test_trace_id_none_without_opentelemetry(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        original_import_module = engine_module.importlib.import_module
+
+        def raise_import_error(name: str) -> object:
+            if name == "opentelemetry.trace":
+                raise ImportError(name)
+            return original_import_module(name)
+
+        monkeypatch.setattr(engine_module.importlib, "import_module", raise_import_error)
+
+        engine = GovernanceBridge(policies=[], mode=GovernanceMode.ENFORCE)
+        decision = engine.evaluate("search", {})
+
+        assert decision.trace_id is None
+
+    def test_trace_id_from_current_opentelemetry_span(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(
+            engine_module.importlib,
+            "import_module",
+            lambda _name: _fake_trace_module(_TRACE_ID),
+        )
+
+        engine = GovernanceBridge(policies=[], mode=GovernanceMode.ENFORCE)
+        decision = engine.evaluate("search", {})
+
+        assert decision.trace_id == _TRACE_ID_HEX
+        assert engine.evidence[-1].trace_id == _TRACE_ID_HEX
 
     def test_session_reset_clears_evidence(self) -> None:
         engine = GovernanceBridge(policies=[], mode=GovernanceMode.ENFORCE)

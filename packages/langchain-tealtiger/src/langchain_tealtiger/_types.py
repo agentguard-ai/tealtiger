@@ -98,6 +98,9 @@ class GovernanceDecision:
     correlation_id: str = ""
     """Correlation ID for tracing."""
 
+    trace_id: str | None = None
+    """Current OpenTelemetry trace ID when available."""
+
     evaluation_time_ms: float = 0.0
     """Time taken for evaluation in milliseconds."""
 
