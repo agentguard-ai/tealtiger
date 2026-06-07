@@ -340,6 +340,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - MCP governance: tool validation, per-identity grants, argument-level policies
 - Tool poisoning & rug pull defense
 - Runaway loop detection & per-trace token budgets
+- TEEC v2.1 Execution Receipts (cryptographic evidence)
+- EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
 - REVISE decision route (4th action)
 - TEEC v2.1 Execution Receipts (cryptographic evidence)
 - EU AI Act, NIST AI RMF, ISO 42001, MITRE ATLAS compliance mappings
@@ -357,6 +359,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 **Future:** v2.0.0 — SaaS Security Platform (2028)
 - Full SaaS control plane (CSPM/CWPP model for AI agents)
 - CISO executive console with governance health scoring
+- TealTiger Operator & Agent for Kubernetes
+- Shadow AI detection (discover ungoverned agents)
+- Remote kill switch from SaaS console
+- CloudEvents, OpenTelemetry, Backstage plugin
+
+> All features maintain: in-process <5ms, zero-config entry, no LLM in governance path, offline-capable.
 - TealTiger Operator & Agent for Kubernetes (DaemonSet/sidecar)
 - Shadow AI detection (discover ungoverned agents)
 - Remote kill switch from SaaS console
