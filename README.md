@@ -31,6 +31,33 @@ Open source. TypeScript + Python. Works with any provider.
 
 ---
 
+## ⚡ 60-second quickstart
+
+Install: `npm install tealtiger` or `pip install tealtiger`, then wrap one existing OpenAI call:
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+const client = new TealOpenAI({ apiKey: process.env.OPENAI_API_KEY, guardrails: { promptInjection: true } });
+const res = await client.chat.completions.create({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'Hello!' }] });
+console.log(res.security?.decision ?? 'ALLOW');
+```
+
+```python
+import os
+from tealtiger import TealOpenAI
+client = TealOpenAI(api_key=os.environ["OPENAI_API_KEY"], guardrails={"prompt_injection": True})
+print(client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Hello!"}]).security.decision)
+```
+
+```text
+ALLOW
+Governance receipt emitted; cost and guardrails tracked.
+```
+
+Next: [full Quick Start](#-quick-start) and [examples](./examples).
+
+---
+
 ## What is TealTiger?
 
 TealTiger is an open-source SDK that provides **deterministic governance** for AI agents. It enforces security policies, tracks costs, and produces structured evidence — all at runtime, with no infrastructure required.
