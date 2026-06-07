@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   Activity,
   ArrowDownToLine,
   Braces,
@@ -15,10 +16,12 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 
 import {
+  calculateLatencyBuckets,
   decisionLabel,
   eventMatchesFilters,
   formatLatency,
   formatTime,
+  type LatencyBucketCount,
   uniqueValues,
 } from './event-utils';
 import { useGovernanceSocket } from './useGovernanceSocket';
@@ -39,6 +42,7 @@ const EMPTY_FILTERS: EventFilters = {
 
 export default function App(): ReactElement {
   const listRef = useRef<FixedSizeList<RowData> | null>(null);
+  const listFrameRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
   const incomingBufferRef = useRef<FeedEvent[]>([]);
   const flushFrameRef = useRef<number | null>(null);
@@ -49,6 +53,7 @@ export default function App(): ReactElement {
   const [paused, setPaused] = useState(false);
   const [autoFollow, setAutoFollow] = useState(true);
   const [eventsPerSecond, setEventsPerSecond] = useState(0);
+  const [listHeight, setListHeight] = useState(390);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filters, setFilters] = useState<EventFilters>(EMPTY_FILTERS);
   const [draftUrl, setDraftUrl] = useState(DEFAULT_WS_URL);
@@ -57,6 +62,27 @@ export default function App(): ReactElement {
   useEffect(() => {
     pausedRef.current = paused;
   }, [paused]);
+
+  useEffect(() => {
+    const frame = listFrameRef.current;
+    if (!frame) {
+      return undefined;
+    }
+
+    const updateListHeight = (): void => {
+      setListHeight(Math.max(240, Math.floor(frame.getBoundingClientRect().height)));
+    };
+
+    updateListHeight();
+    const observer = new ResizeObserver(updateListHeight);
+    observer.observe(frame);
+    window.addEventListener('resize', updateListHeight);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateListHeight);
+    };
+  }, []);
 
   const flushIncoming = useCallback(() => {
     flushFrameRef.current = null;
@@ -102,6 +128,13 @@ export default function App(): ReactElement {
   const filteredEvents = useMemo(
     () => events.filter((event) => eventMatchesFilters(event, filters)),
     [events, filters],
+  );
+  const latencyEvents = useMemo(() => (
+    pendingEvents.length > 0 ? [...pendingEvents, ...events] : events
+  ), [events, pendingEvents]);
+  const latencyBuckets = useMemo(
+    () => calculateLatencyBuckets(latencyEvents),
+    [latencyEvents],
   );
 
   const agentOptions = useMemo(() => uniqueValues(events, 'agent'), [events]);
@@ -273,7 +306,9 @@ export default function App(): ReactElement {
             {paused && <span className="paused-chip">Paused: {pendingEvents.length.toLocaleString()} unread</span>}
           </div>
 
-          <div className="list-frame">
+          <LatencyHistogramPanel buckets={latencyBuckets} total={latencyEvents.length} />
+
+          <div className="list-frame" ref={listFrameRef}>
             {filteredEvents.length > 0 ? (
               <FixedSizeList
                 ref={listRef}
@@ -282,7 +317,7 @@ export default function App(): ReactElement {
                 itemData={rowProps}
                 overscanCount={24}
                 onItemsRendered={({ visibleStartIndex }) => setAutoFollow(visibleStartIndex <= 2)}
-                height="100%"
+                height={listHeight}
                 width="100%"
               >
                 {EventRow}
@@ -407,6 +442,54 @@ function Metric({ icon, label, value }: { icon: ReactElement; label: string; val
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  );
+}
+
+function LatencyHistogramPanel({
+  buckets,
+  total,
+}: {
+  buckets: LatencyBucketCount[];
+  total: number;
+}): ReactElement {
+  const maxCount = Math.max(...buckets.map((bucket) => bucket.count), 0);
+
+  return (
+    <section className="latency-panel" aria-labelledby="latency-title">
+      <div className="latency-panel-header">
+        <div>
+          <span><BarChart3 size={16} /> Latency distribution</span>
+          <h2 id="latency-title">Decision latency</h2>
+        </div>
+        <strong>{total.toLocaleString()} events</strong>
+      </div>
+
+      {total === 0 ? (
+        <div className="latency-empty">No latency data yet</div>
+      ) : (
+        <div className="latency-bars" role="list" aria-label="Latency histogram">
+          {buckets.map((bucket) => {
+            const width = bucket.count > 0 && maxCount > 0
+              ? `${Math.max((bucket.count / maxCount) * 100, 4)}%`
+              : '0%';
+
+            return (
+              <div className="latency-row" role="listitem" key={bucket.id}>
+                <span className="latency-label">{bucket.label}</span>
+                <div
+                  className="latency-track"
+                  role="img"
+                  aria-label={`${bucket.label}: ${bucket.count.toLocaleString()} events`}
+                >
+                  <span className="latency-bar" style={{ width }} />
+                </div>
+                <strong>{bucket.count.toLocaleString()}</strong>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 

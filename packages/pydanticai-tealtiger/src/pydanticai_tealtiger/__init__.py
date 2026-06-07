@@ -30,6 +30,7 @@ from pydanticai_tealtiger.guard import (
     GovernanceMode,
     PIIFinding,
     TealTigerGuard,
+    ToolBaseline,
     ToolSummary,
 )
 
@@ -41,4 +42,5 @@ __all__ = [
     "AuditEntry",
     "PIIFinding",
     "ToolSummary",
+    "ToolBaseline",
 ]

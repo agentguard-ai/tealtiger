@@ -4,21 +4,16 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from pydanticai_tealtiger import (
-    AuditEntry,
-    GovernanceAction,
     GovernanceDenyError,
-    GovernanceMode,
-    PIIFinding,
     TealTigerGuard,
-    ToolSummary,
+    ToolBaseline,
 )
-
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
 
@@ -255,7 +250,7 @@ class TestPIIDetection:
 class TestPolicyMode:
     """Tests for policy mode with TealEngine."""
 
-    def _make_engine(self, decision: Dict[str, Any]) -> MagicMock:
+    def _make_engine(self, decision: dict[str, Any]) -> MagicMock:
         """Create a mock TealEngine that returns a given decision."""
         engine = MagicMock()
         engine.evaluate.return_value = decision
@@ -528,6 +523,42 @@ class TestKillSwitch:
         guard = TealTigerGuard()
         guard.unfreeze()  # Should not raise
 
+    def test_reset_clears_session_state(self) -> None:
+        """Reset clears cost, audit trail, call count, and per-tool summaries."""
+        guard = TealTigerGuard(cost_per_1k_tokens=0.01, mode="MONITOR")
+        guard.evaluate(tool="search", args={"query": "A" * 4000})
+        guard.post_call(
+            tool_name="search",
+            result="B" * 4000,
+            token_usage={"total_tokens": 1000},
+        )
+
+        assert guard.cumulative_cost > 0
+        assert len(guard.audit_trail) == 2
+        assert guard.summary["search"].call_count == 1
+
+        guard.reset()
+
+        assert guard.cumulative_cost == 0.0
+        assert guard.audit_trail == []
+        assert guard.summary == {}
+
+        decision = guard.evaluate(tool="search", args={"query": "after reset"})
+        assert decision["metadata"]["call_count"] == 1
+
+    def test_reset_clears_frozen_state(self) -> None:
+        """Reset also unfreezes the guard."""
+        guard = TealTigerGuard(mode="ENFORCE")
+        guard.freeze()
+
+        with pytest.raises(GovernanceDenyError):
+            guard.evaluate(tool="search", args={"query": "blocked"})
+
+        guard.reset()
+
+        decision = guard.evaluate(tool="search", args={"query": "allowed"})
+        assert decision["action"] == "ALLOW"
+
 
 # ─── Cost Tracking Tests ────────────────────────────────────────────────────
 
@@ -591,6 +622,24 @@ class TestAuditTrail:
         guard.post_call(tool_name="search", result="result")
 
         assert len(guard.audit_trail) == 3
+
+    def test_export_audit_trail_writes_jsonl(self, tmp_path: Any) -> None:
+        """Audit trail export writes one JSON object per line."""
+        guard = TealTigerGuard()
+        first = guard.evaluate(tool="search", args={"query": "first"})
+        second = guard.post_call(tool_name="search", result="result")
+        export_path = tmp_path / "audit.jsonl"
+
+        count = guard.export_audit_trail(str(export_path))
+
+        lines = export_path.read_text(encoding="utf-8").splitlines()
+        exported = [json.loads(line) for line in lines]
+
+        assert count == 2
+        assert len(lines) == 2
+        assert exported == [entry.to_dict() for entry in guard.audit_trail]
+        assert exported[0]["correlation_id"] == first["correlation_id"]
+        assert exported[1]["correlation_id"] == second["correlation_id"]
 
     def test_audit_entry_fields(self) -> None:
         """Audit entry contains all required fields."""
@@ -657,6 +706,62 @@ class TestAuditTrail:
 
         ts = decision["timestamp_ms"]
         assert before <= ts <= after
+
+
+# ─── Baseline Tests ──────────────────────────────────────────────────────────
+
+
+class TestBaseline:
+    """Tests for behavioral baseline generation."""
+
+    def test_baseline_empty_on_no_data(self) -> None:
+        """Baseline is empty when no calls have been recorded."""
+        guard = TealTigerGuard()
+        baseline = guard.get_baseline()
+
+        assert baseline == {}
+
+    def test_baseline_tracks_single_tool(self) -> None:
+        """Baseline includes aggregate behavior for one observed tool."""
+        guard = TealTigerGuard(cost_per_1k_tokens=0.01)
+        guard.evaluate(tool="search", args={"query": "Email: test@example.com"})
+        guard.evaluate(tool="search", args={"query": "clean text"})
+
+        baseline = guard.get_baseline()
+        entry = baseline["search"]
+
+        assert isinstance(entry, ToolBaseline)
+        assert entry.tool_name == "search"
+        assert entry.total_calls == 2
+        assert entry.total_cost > 0
+        assert entry.avg_cost_per_call > 0
+        assert entry.pii_frequency == 0.5
+        assert entry.denied_frequency == 0.0
+
+    def test_baseline_tracks_multiple_tools(self) -> None:
+        """Baseline separates behavior by tool name."""
+        guard = TealTigerGuard()
+        guard.evaluate(tool="search", args={"query": "first"})
+        guard.evaluate(tool="search", args={"query": "second"})
+        guard.evaluate(tool="compute", args={"value": "42"})
+
+        baseline = guard.get_baseline()
+
+        assert set(baseline.keys()) == {"search", "compute"}
+        assert baseline["search"].total_calls == 2
+        assert baseline["compute"].total_calls == 1
+
+    def test_baseline_tracks_denied_frequency(self) -> None:
+        """Baseline counts early-denied tool attempts."""
+        guard = TealTigerGuard(tool_allowlist=["search"], mode="MONITOR")
+        guard.evaluate(tool="search", args={"query": "allowed"})
+        guard.evaluate(tool="delete", args={"target": "blocked"})
+
+        baseline = guard.get_baseline()
+
+        assert baseline["delete"].total_calls == 1
+        assert baseline["delete"].total_cost == 0.0
+        assert baseline["delete"].denied_frequency == 1.0
 
 
 # ─── Correlation ID Tests ────────────────────────────────────────────────────
