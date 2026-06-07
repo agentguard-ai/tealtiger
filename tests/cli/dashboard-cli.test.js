@@ -1,6 +1,8 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { existsSync, mkdtempSync, rmSync } = require('node:fs');
+const { tmpdir } = require('node:os');
 const { join, resolve } = require('node:path');
 const test = require('node:test');
 
@@ -8,6 +10,7 @@ const {
   DEFAULT_DB_PATH,
   DEFAULT_PORT,
   CliError,
+  openEventStore,
   parseDashboardArgs,
   parsePort,
   resolveDatabasePath,
@@ -63,6 +66,26 @@ test('database path resolution accepts file urls and custom relative paths', () 
   const resolved = resolveDatabasePath('./local-events.db', '/tmp/ignored');
   assert.equal(resolved.url, `file:${resolve('./local-events.db')}`);
   assert.equal(resolved.displayPath, resolve('./local-events.db'));
+});
+
+test('event store opens a missing database and initializes the schema', async (t) => {
+  const directory = mkdtempSync(join(tmpdir(), 'tealtiger-dashboard-db-'));
+  const databasePath = join(directory, 'nested', 'events.db');
+  const { client } = await openEventStore(`file:${databasePath}`);
+
+  t.after(() => {
+    client.close();
+    rmSync(directory, { recursive: true, force: true });
+  });
+
+  const tables = await client.execute(`
+    SELECT name
+    FROM sqlite_master
+    WHERE type = 'table' AND name = 'governance_events'
+  `);
+
+  assert.equal(tables.rows.length, 1);
+  assert.equal(existsSync(databasePath), true);
 });
 
 test('event store rows become dashboard stream receipts', () => {

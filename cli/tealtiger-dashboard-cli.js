@@ -373,9 +373,23 @@ class EventStorePoller {
 }
 
 async function openEventStore(databaseUrl) {
+  ensureDatabaseDirectory(databaseUrl);
   const client = createClient({ url: databaseUrl });
   await initializeEventStore(client);
   return { client };
+}
+
+function ensureDatabaseDirectory(databaseUrl) {
+  if (!databaseUrl.startsWith('file:') || databaseUrl === 'file::memory:') {
+    return;
+  }
+
+  const filePath = databaseUrl.replace(/^file:/, '');
+  if (!filePath || filePath.startsWith(':')) {
+    return;
+  }
+
+  mkdirSync(dirname(filePath), { recursive: true });
 }
 
 async function initializeEventStore(client) {
@@ -717,6 +731,7 @@ module.exports = {
   EventStorePoller,
   createDashboardServer,
   main,
+  openEventStore,
   parseDashboardArgs,
   parsePort,
   resolveDatabasePath,
