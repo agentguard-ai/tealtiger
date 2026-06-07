@@ -17,6 +17,8 @@ Thank you to everyone who has contributed to TealTiger! 🐯
 - **[@Jah-yee](https://github.com/Jah-yee)** — Add contributor avatar grid section to README with auto-updating contrib.rocks integration — PR #191
 - **[@someshnagalla](https://github.com/someshnagalla)** — Add OpenSSF Scorecard GitHub Action and security badges to README — PR #203
 - **[@stark256-spec](https://github.com/stark256-spec)** — Slack MCP server policy pack (22 tools, 5 deny rules) — PR #215; WAL corruption recovery, invalid replay cursor fix, dateValue NaN crash fix — PR #216; Linux/Docker host binding (0.0.0.0) and graceful SIGTERM/SIGINT shutdown — PR #217
+- **[@wondr-wclabs](https://github.com/wondr-wclabs)** — PydanticAI adapter: guard reset, export audit trail, tool baselines, OTel trace IDs — PRs #249, #250, #251, #253; Next.js App Router AI SDK example — PR #252
+- **[@wondr-wclabs](https://github.com/wondr-wclabs)** — PydanticAI guard reset method — PR #249; Audit trail JSONL export (all 3 Python adapters) — PR #250; PydanticAI tool baselines — PR #251; Next.js App Router AI SDK example — PR #252; OpenTelemetry trace ID integration (all 4 Python adapters) — PR #253
 
 ## Core Team
 
