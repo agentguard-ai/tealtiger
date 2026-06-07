@@ -342,6 +342,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - Runaway loop detection & per-trace token budgets
 - TEEC v2.1 Execution Receipts (cryptographic evidence)
 - EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
+- REVISE decision route (4th action)
+- TEEC v2.1 Execution Receipts (cryptographic evidence)
+- EU AI Act, NIST AI RMF, ISO 42001, MITRE ATLAS compliance mappings
 
 **Planned:** v1.5.0 — Enterprise Platform (Q2-Q3 2027)
 - Multi-tenancy with complete data isolation
@@ -350,6 +353,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - SIEM export (Splunk, Elastic, Sentinel, Datadog)
 - Policy staging, dry-run mode, canary deployments
 - Scheduled compliance reports & executive dashboard
+- High availability, data retention, disaster recovery
+- SBOM generation (CycloneDX, every release)
 
 **Future:** v2.0.0 — SaaS Security Platform (2028)
 - Full SaaS control plane (CSPM/CWPP model for AI agents)
@@ -360,6 +365,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - CloudEvents, OpenTelemetry, Backstage plugin
 
 > All features maintain: in-process <5ms, zero-config entry, no LLM in governance path, offline-capable.
+- TealTiger Operator & Agent for Kubernetes (DaemonSet/sidecar)
+- Shadow AI detection (discover ungoverned agents)
+- Remote kill switch from SaaS console
+- CloudEvents, OpenTelemetry deep integration, Backstage plugin
+- Feature flag policy canary, Temporal.io workflows, OPA/Rego bridge
+
+> All features maintain: in-process <5ms evaluation, zero-config entry, no LLM in governance path, offline-capable. The platform layer is always optional — the SDK works standalone.
 
 ---
 
