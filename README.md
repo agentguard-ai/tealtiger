@@ -332,12 +332,34 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - 12 LLM providers + 3 platform adapters (Bedrock, AgentCore, Azure)
 - Full Python SDK parity
 
-**Next:** v1.4.0 — Zero-Config Adoption
-- `observe()` mode — 1-line integration, instant visibility
-- Progressive disclosure: observe → suggest → enforce
-- Auto-baseline behavioral detection
-- Framework adapters (LangChain, CrewAI, AutoGen, LlamaIndex)
-- Developer experience overhaul
+**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (Q1 2027)
+- `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
+- Local CLI dashboard (`npx tealtiger dashboard`)
+- Progressive disclosure: observe → suggest → enforce → govern
+- 8 framework adapters: LangChain, LangGraph, CrewAI, AG2/AutoGen, LlamaIndex, CAMEL-AI, Haystack, Vercel AI SDK
+- MCP governance: tool validation, per-identity grants, argument-level policies
+- Tool poisoning & rug pull defense
+- Runaway loop detection & per-trace token budgets
+- TEEC v2.1 Execution Receipts (cryptographic evidence)
+- EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
+
+**Planned:** v1.5.0 — Enterprise Platform (Q2-Q3 2027)
+- Multi-tenancy with complete data isolation
+- RBAC (Owner, Admin, Policy Author, Viewer, Auditor)
+- SSO via SAML 2.0 / OIDC (Okta, Azure AD, Google)
+- SIEM export (Splunk, Elastic, Sentinel, Datadog)
+- Policy staging, dry-run mode, canary deployments
+- Scheduled compliance reports & executive dashboard
+
+**Future:** v2.0.0 — SaaS Security Platform (2028)
+- Full SaaS control plane (CSPM/CWPP model for AI agents)
+- CISO executive console with governance health scoring
+- TealTiger Operator & Agent for Kubernetes
+- Shadow AI detection (discover ungoverned agents)
+- Remote kill switch from SaaS console
+- CloudEvents, OpenTelemetry, Backstage plugin
+
+> All features maintain: in-process <5ms, zero-config entry, no LLM in governance path, offline-capable.
 
 ---
 
