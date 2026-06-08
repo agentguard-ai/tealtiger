@@ -210,6 +210,16 @@ response = client.chat.completions.create(
 | TypeScript | [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod) | [npm](https://www.npmjs.com/package/tealtiger) | `npm install tealtiger` |
 | Python | [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod) | [PyPI](https://pypi.org/project/tealtiger/) | `pip install tealtiger` |
 
+### 🔌 Framework Adapters
+
+| Framework | Package | Install |
+|-----------|---------|---------|
+| LangChain | [langchain-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/langchain-tealtiger) | `pip install langchain-tealtiger` |
+| Vercel AI SDK | [tealtiger-ai-sdk](https://github.com/agentguard-ai/tealtiger/tree/main/packages/tealtiger-ai-sdk) | `npm install tealtiger-ai-sdk` |
+| PydanticAI | [pydanticai-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/pydanticai-tealtiger) | `pip install pydanticai-tealtiger` |
+| Haystack | [haystack-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/haystack-tealtiger) | `pip install haystack-tealtiger` |
+| CAMEL-AI | [camelai-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/camelai-tealtiger) | `pip install camelai-tealtiger` |
+
 ---
 
 ## 📚 Documentation
