@@ -31,6 +31,33 @@ Open source. TypeScript + Python. Works with any provider.
 
 ---
 
+## ⚡ 60-second quickstart
+
+Install: `npm install tealtiger` or `pip install tealtiger`, then wrap one existing OpenAI call:
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+const client = new TealOpenAI({ apiKey: process.env.OPENAI_API_KEY, guardrails: { promptInjection: true } });
+const res = await client.chat.completions.create({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'Hello!' }] });
+console.log(res.security?.decision ?? 'ALLOW');
+```
+
+```python
+import os
+from tealtiger import TealOpenAI
+client = TealOpenAI(api_key=os.environ["OPENAI_API_KEY"], guardrails={"prompt_injection": True})
+print(client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Hello!"}]).security.decision)
+```
+
+```text
+ALLOW
+Governance receipt emitted; cost and guardrails tracked.
+```
+
+Next: [full Quick Start](#-quick-start) and [examples](./examples).
+
+---
+
 ## What is TealTiger?
 
 TealTiger is an open-source SDK that provides **deterministic governance** for AI agents. It enforces security policies, tracks costs, and produces structured evidence — all at runtime, with no infrastructure required.
@@ -342,7 +369,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - 12 LLM providers + 3 platform adapters (Bedrock, AgentCore, Azure)
 - Full Python SDK parity
 
-**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (June 2026)
+**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (Q1 2027)
 - `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
 - Local CLI dashboard (`npx tealtiger dashboard`)
 - Progressive disclosure: observe → suggest → enforce → govern
@@ -352,16 +379,21 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - Runaway loop detection & per-trace token budgets
 - TEEC v2.1 Execution Receipts (cryptographic evidence)
 - EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
+- REVISE decision route (4th action)
+- TEEC v2.1 Execution Receipts (cryptographic evidence)
+- EU AI Act, NIST AI RMF, ISO 42001, MITRE ATLAS compliance mappings
 
-**Planned:** v1.5.0 — Enterprise Platform (Q3 2026)
+**Planned:** v1.5.0 — Enterprise Platform (Q2-Q3 2027)
 - Multi-tenancy with complete data isolation
 - RBAC (Owner, Admin, Policy Author, Viewer, Auditor)
 - SSO via SAML 2.0 / OIDC (Okta, Azure AD, Google)
 - SIEM export (Splunk, Elastic, Sentinel, Datadog)
 - Policy staging, dry-run mode, canary deployments
 - Scheduled compliance reports & executive dashboard
+- High availability, data retention, disaster recovery
+- SBOM generation (CycloneDX, every release)
 
-**Future:** v2.0.0 — SaaS Security Platform (Q1 2027)
+**Future:** v2.0.0 — SaaS Security Platform (2028)
 - Full SaaS control plane (CSPM/CWPP model for AI agents)
 - CISO executive console with governance health scoring
 - TealTiger Operator & Agent for Kubernetes
@@ -370,6 +402,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - CloudEvents, OpenTelemetry, Backstage plugin
 
 > All features maintain: in-process <5ms, zero-config entry, no LLM in governance path, offline-capable.
+- TealTiger Operator & Agent for Kubernetes (DaemonSet/sidecar)
+- Shadow AI detection (discover ungoverned agents)
+- Remote kill switch from SaaS console
+- CloudEvents, OpenTelemetry deep integration, Backstage plugin
+- Feature flag policy canary, Temporal.io workflows, OPA/Rego bridge
+
+> All features maintain: in-process <5ms evaluation, zero-config entry, no LLM in governance path, offline-capable. The platform layer is always optional — the SDK works standalone.
 
 ---
 
