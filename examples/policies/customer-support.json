@@ -1,0 +1,68 @@
+{
+  "$schema": "../../schemas/tealtiger-policy.schema.json",
+  "tools": {
+    "chat": {
+      "allowed": true,
+      "rateLimit": {
+        "max": 100,
+        "window": "1h"
+      }
+    },
+    "search_docs": {
+      "allowed": true,
+      "maxRows": 10,
+      "rateLimit": {
+        "max": 30,
+        "window": "1m"
+      }
+    },
+    "delete_record": {
+      "allowed": false
+    },
+    "export_customer_data": {
+      "allowed": false
+    }
+  },
+  "identity": {
+    "agentId": "customer-support-agent",
+    "role": "customer-support",
+    "permissions": [
+      "chat:customer",
+      "search:docs"
+    ],
+    "forbidden": [
+      "delete:*",
+      "export:*"
+    ]
+  },
+  "content": {
+    "pii": {
+      "enabled": true,
+      "blockedTypes": [
+        "ssn",
+        "credit_card",
+        "phone",
+        "address"
+      ],
+      "redactInLogs": true
+    },
+    "moderation": {
+      "enabled": true,
+      "threshold": 0.85,
+      "categories": [
+        "hate",
+        "violence",
+        "self-harm"
+      ]
+    }
+  },
+  "memory": {
+    "maxSize": 50000,
+    "validateInputs": true,
+    "sanitizeBeforeStorage": true,
+    "blockedPatterns": [
+      "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+      "\\b\\d{13,19}\\b"
+    ]
+  }
+}

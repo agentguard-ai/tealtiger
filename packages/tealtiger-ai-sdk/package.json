@@ -1,0 +1,93 @@
+{
+  "name": "tealtiger-ai-sdk",
+  "version": "0.1.0",
+  "description": "TealTiger governance middleware for the Vercel AI SDK — deterministic policy evaluation, guardrails, cost tracking, and audit logging for LLM calls",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "ai",
+    "vercel-ai-sdk",
+    "middleware",
+    "governance",
+    "security",
+    "guardrails",
+    "policy",
+    "tealtiger",
+    "llm",
+    "audit",
+    "cost-tracking",
+    "circuit-breaker",
+    "pii-detection",
+    "prompt-injection"
+  ],
+  "author": "TealTiger Team",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agentguard-ai/tealtiger-typescript.git",
+    "directory": "packages/tealtiger-ai-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/agentguard-ai/tealtiger-typescript/issues"
+  },
+  "homepage": "https://tealtiger.ai",
+  "peerDependencies": {
+    "ai": ">=3.0.0",
+    "tealtiger-sdk": ">=1.2.0"
+  },
+  "peerDependenciesMeta": {
+    "ai": {
+      "optional": false
+    },
+    "tealtiger-sdk": {
+      "optional": false
+    }
+  },
+  "devDependencies": {
+    "@ai-sdk/provider": "^1.0.0",
+    "@types/node": "^20.0.0",
+    "ai": "^5.0.52",
+    "fast-check": "^4.5.3",
+    "rimraf": "^5.0.0",
+    "tealtiger-sdk": "file:../tealtiger-sdk",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

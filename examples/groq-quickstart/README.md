@@ -23,6 +23,9 @@ Set your Groq API key:
 export GROQ_API_KEY=your-groq-api-key
 ```
 
+Copy `.env.example` in this directory if you prefer loading environment
+variables from a file, and replace only the placeholder value.
+
 Run the quickstart from the TealTiger repository root:
 
 ```bash

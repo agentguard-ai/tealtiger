@@ -14,10 +14,47 @@ Open source. TypeScript + Python. Works with any provider.
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?logo=discord&logoColor=white)](https://discord.gg/X2ePf8QAj)
 [![GitHub stars](https://img.shields.io/github/stars/agentguard-ai/tealtiger?style=social)](https://github.com/agentguard-ai/tealtiger)
+[![Governed by TealTiger](./assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/agentguard-ai/tealtiger/badge)](https://securityscorecards.dev/viewer/?uri=github.com/agentguard-ai/tealtiger)
+
+<br>
+
+<a href="https://www.nvidia.com/en-us/startups/">
+  <img src=".github/logo/nvidia-inception-badge.svg" alt="NVIDIA Inception Program" width="250">
+</a>
+
+<br>
 
 [Website](https://tealtiger.co.in) · [Documentation](#documentation) · [Examples](#examples) · [Discord](https://discord.gg/X2ePf8QAj) · [Contributing](#-build-with-us)
 
 </div>
+
+---
+
+## ⚡ 60-second quickstart
+
+Install: `npm install tealtiger` or `pip install tealtiger`, then wrap one existing OpenAI call:
+
+```typescript
+import { TealOpenAI } from 'tealtiger';
+const client = new TealOpenAI({ apiKey: process.env.OPENAI_API_KEY, guardrails: { promptInjection: true } });
+const res = await client.chat.completions.create({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: 'Hello!' }] });
+console.log(res.security?.decision ?? 'ALLOW');
+```
+
+```python
+import os
+from tealtiger import TealOpenAI
+client = TealOpenAI(api_key=os.environ["OPENAI_API_KEY"], guardrails={"prompt_injection": True})
+print(client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Hello!"}]).security.decision)
+```
+
+```text
+ALLOW
+Governance receipt emitted; cost and guardrails tracked.
+```
+
+Next: [full Quick Start](#-quick-start) and [examples](./examples).
 
 ---
 
@@ -173,6 +210,16 @@ response = client.chat.completions.create(
 | TypeScript | [tealtiger-typescript-prod](https://github.com/agentguard-ai/tealtiger-typescript-prod) | [npm](https://www.npmjs.com/package/tealtiger) | `npm install tealtiger` |
 | Python | [tealtiger-python-prod](https://github.com/agentguard-ai/tealtiger-python-prod) | [PyPI](https://pypi.org/project/tealtiger/) | `pip install tealtiger` |
 
+### 🔌 Framework Adapters
+
+| Framework | Package | Install |
+|-----------|---------|---------|
+| LangChain | [langchain-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/langchain-tealtiger) | `pip install langchain-tealtiger` |
+| Vercel AI SDK | [tealtiger-ai-sdk](https://github.com/agentguard-ai/tealtiger/tree/main/packages/tealtiger-ai-sdk) | `npm install tealtiger-ai-sdk` |
+| PydanticAI | [pydanticai-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/pydanticai-tealtiger) | `pip install pydanticai-tealtiger` |
+| Haystack | [haystack-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/haystack-tealtiger) | `pip install haystack-tealtiger` |
+| CAMEL-AI | [camelai-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/camelai-tealtiger) | `pip install camelai-tealtiger` |
+
 ---
 
 ## 📚 Documentation
@@ -181,12 +228,50 @@ response = client.chat.completions.create(
 - [Security Guardrails](#️-security-guardrails)
 - [Cost Governance](#-cost-governance)
 - [Provider Setup](#-7-llm-providers)
+- [FAQ](./docs/faq.md)
+- [Why TealTiger?](./docs/why-tealtiger.md)
 - [Cross-SDK Feature Parity Matrix](./docs/cross-sdk-feature-parity-matrix.md)
+- [Governance Event Store Indexes](./docs/governance-event-store-indexes.md)
 - [Error Code Reference](./docs/error-code-reference.md)
+- [Troubleshooting](./docs/troubleshooting.md)
 - [Contributing Guide](./CONTRIBUTING.md)
 - [Security Policy](./SECURITY.md)
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 - [Roadmap](./ROADMAP.md)
+
+### Badge
+
+Use the TealTiger badge to show that a project is governed by deterministic
+agent security and cost policies.
+
+Light badge:
+
+```md
+[![Governed by TealTiger](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/assets/badges/governed-by-tealtiger.svg)](https://github.com/agentguard-ai/tealtiger)
+```
+
+Dark badge:
+
+```md
+[![Governed by TealTiger](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/assets/badges/governed-by-tealtiger-dark.svg)](https://github.com/agentguard-ai/tealtiger)
+```
+### Python Hugging Face TGI Quickstart
+
+Use `examples/python/huggingface_tgi_quickstart.py` to try the guarded
+Hugging Face Text Generation Inference provider from the Python SDK.
+
+```bash
+export HF_API_TOKEN="your-hugging-face-token"
+export HF_TGI_ENDPOINT="https://your-endpoint.endpoints.huggingface.cloud"
+export HF_TGI_MODEL="meta-llama/Meta-Llama-3.1-8B-Instruct"
+
+python examples/python/huggingface_tgi_quickstart.py
+```
+
+The example enables guardrail and cost-tracking configuration, sends one sample
+chat request, then prints the response, token usage, estimated cost, provider,
+and correlation ID. Use placeholder values in docs and `.env.example` files;
+never commit a real `HF_API_TOKEN`.
 
 ### TealEngine Policy Schema
 
@@ -284,12 +369,34 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - 12 LLM providers + 3 platform adapters (Bedrock, AgentCore, Azure)
 - Full Python SDK parity
 
-**Next:** v1.4.0 — Zero-Config Adoption
-- `observe()` mode — 1-line integration, instant visibility
-- Progressive disclosure: observe → suggest → enforce
-- Auto-baseline behavioral detection
-- Framework adapters (LangChain, CrewAI, AutoGen, LlamaIndex)
-- Developer experience overhaul
+**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (June 2026)
+- `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
+- Local CLI dashboard (`npx tealtiger dashboard`)
+- Progressive disclosure: observe → suggest → enforce → govern
+- 8 framework adapters: LangChain, LangGraph, CrewAI, AG2/AutoGen, LlamaIndex, CAMEL-AI, Haystack, Vercel AI SDK
+- MCP governance: tool validation, per-identity grants, argument-level policies
+- Tool poisoning & rug pull defense
+- Runaway loop detection & per-trace token budgets
+- TEEC v2.1 Execution Receipts (cryptographic evidence)
+- EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
+
+**Planned:** v1.5.0 — Enterprise Platform (Q3 2026)
+- Multi-tenancy with complete data isolation
+- RBAC (Owner, Admin, Policy Author, Viewer, Auditor)
+- SSO via SAML 2.0 / OIDC (Okta, Azure AD, Google)
+- SIEM export (Splunk, Elastic, Sentinel, Datadog)
+- Policy staging, dry-run mode, canary deployments
+- Scheduled compliance reports & executive dashboard
+
+**Future:** v2.0.0 — SaaS Security Platform (Q1 2027)
+- Full SaaS control plane (CSPM/CWPP model for AI agents)
+- CISO executive console with governance health scoring
+- TealTiger Operator & Agent for Kubernetes
+- Shadow AI detection (discover ungoverned agents)
+- Remote kill switch from SaaS console
+- CloudEvents, OpenTelemetry, Backstage plugin
+
+> All features maintain: in-process <5ms, zero-config entry, no LLM in governance path, offline-capable.
 
 ---
 
@@ -306,6 +413,19 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
+## 🔒 Security
+
+TealTiger is committed to responsible open-source security practices.
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/agentguard-ai/tealtiger/badge)](https://securityscorecards.dev/viewer/?uri=github.com/agentguard-ai/tealtiger)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10824/badge)](https://www.bestpractices.dev/projects/10824)
+[![Dependabot](https://img.shields.io/badge/Dependabot-enabled-brightgreen?logo=dependabot)](https://github.com/agentguard-ai/tealtiger/security/dependabot)
+[![CodeQL](https://github.com/agentguard-ai/tealtiger/actions/workflows/codeql.yml/badge.svg)](https://github.com/agentguard-ai/tealtiger/actions/workflows/codeql.yml)
+
+For vulnerability reports, see our [Security Policy](./SECURITY.md).
+
+---
+
 ## 📄 License
 
 TealTiger is [Apache 2.0 licensed](./LICENSE).
@@ -315,6 +435,14 @@ TealTiger is [Apache 2.0 licensed](./LICENSE).
 ## 🙏 Acknowledgments
 
 Built with ❤️ by the TealTiger team and [contributors](./CONTRIBUTORS.md).
+
+---
+
+## 👥 Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=agentguard-ai/tealtiger)](https://github.com/agentguard-ai/tealtiger/graphs/contributors)
+
+Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) guide!
 
 ---
 

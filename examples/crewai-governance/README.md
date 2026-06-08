@@ -55,5 +55,8 @@ export TEALTIGER_API_KEY="your-tealtiger-api-key"
 python examples/crewai-governance/main.py
 ```
 
+Copy `.env.example` in this directory if you prefer loading sidecar environment
+variables from a file, and replace only the placeholder values.
+
 The same CrewAI tools will call `TealTiger.execute_tool_sync()`, but the policy
 decision will come from the configured SSA instead of the local demo evaluator.

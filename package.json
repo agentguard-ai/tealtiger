@@ -1,18 +1,56 @@
 {
-  "name": "tealtiger-hub",
+  "name": "tealtiger",
   "private": true,
   "version": "0.0.0",
   "type": "commonjs",
   "description": "Hub repository utilities for TealTiger documentation, schemas, examples, and integrations.",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "tealtiger": "./bin/tealtiger.js"
+  },
   "scripts": {
+    "postinstall": "node scripts/postinstall.js",
+    "api:start": "ts-node api/governance-events/index.ts",
+    "stream:start": "ts-node api/governance-stream/index.ts",
+    "build": "tsc --noEmit",
+    "dashboard": "node bin/tealtiger.js dashboard",
+    "dashboard:build": "tsc --noEmit -p dashboard/governance-feed/tsconfig.json && vite build --config dashboard/governance-feed/vite.config.ts",
+    "dashboard:dev": "vite --config dashboard/governance-feed/vite.config.ts --host 127.0.0.1",
+    "dashboard:mock-stream": "ts-node dashboard/governance-feed/mock-stream.ts",
+    "test:schema": "node --test -r ts-node/register tests/api/governance-event-store-schema.test.ts",
+    "test:api": "node --test -r ts-node/register tests/api/governance-api.test.ts",
+    "test:stream": "node --test -r ts-node/register tests/api/governance-stream.test.ts",
+    "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
+    "test:dashboard-cli": "node --test tests/cli/dashboard-cli.test.js",
+    "test:dashboard-feed": "node --test -r ts-node/register tests/dashboard/governance-feed-latency.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
   },
+  "dependencies": {
+    "@fastify/swagger": "^9.7.0",
+    "@libsql/client": "^0.17.3",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.8.5",
+    "ws": "^8.18.3",
+    "zod": "^4.4.3"
+  },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "@types/react-window": "^1.8.8",
+    "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^5.2.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-window": "^1.8.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.5"
   }
 }

@@ -1,0 +1,31 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # GitHub's dependency-review-action compares the dependency graph before and
+  # after the PR and blocks merge when it finds newly introduced packages with
+  # known high/critical CVEs or licenses incompatible with this project.
+  # ---------------------------------------------------------------------------
+  dependency-review:
+    name: Review dependency changes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          # Block GPL / AGPL / LGPL — incompatible with Apache 2.0
+          deny-licenses: GPL-2.0, GPL-3.0, AGPL-3.0, LGPL-2.0, LGPL-2.1, LGPL-3.0
+          comment-summary-in-pr: always
