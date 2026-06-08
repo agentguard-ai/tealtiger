@@ -369,7 +369,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - 12 LLM providers + 3 platform adapters (Bedrock, AgentCore, Azure)
 - Full Python SDK parity
 
-**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (Q1 2027)
+**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (June 2026)
 - `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
 - Local CLI dashboard (`npx tealtiger dashboard`)
 - Progressive disclosure: observe → suggest → enforce → govern
@@ -379,21 +379,16 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - Runaway loop detection & per-trace token budgets
 - TEEC v2.1 Execution Receipts (cryptographic evidence)
 - EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
-- REVISE decision route (4th action)
-- TEEC v2.1 Execution Receipts (cryptographic evidence)
-- EU AI Act, NIST AI RMF, ISO 42001, MITRE ATLAS compliance mappings
 
-**Planned:** v1.5.0 — Enterprise Platform (Q2-Q3 2027)
+**Planned:** v1.5.0 — Enterprise Platform (Q3 2026)
 - Multi-tenancy with complete data isolation
 - RBAC (Owner, Admin, Policy Author, Viewer, Auditor)
 - SSO via SAML 2.0 / OIDC (Okta, Azure AD, Google)
 - SIEM export (Splunk, Elastic, Sentinel, Datadog)
 - Policy staging, dry-run mode, canary deployments
 - Scheduled compliance reports & executive dashboard
-- High availability, data retention, disaster recovery
-- SBOM generation (CycloneDX, every release)
 
-**Future:** v2.0.0 — SaaS Security Platform (2028)
+**Future:** v2.0.0 — SaaS Security Platform (Q1 2027)
 - Full SaaS control plane (CSPM/CWPP model for AI agents)
 - CISO executive console with governance health scoring
 - TealTiger Operator & Agent for Kubernetes
@@ -402,13 +397,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - CloudEvents, OpenTelemetry, Backstage plugin
 
 > All features maintain: in-process <5ms, zero-config entry, no LLM in governance path, offline-capable.
-- TealTiger Operator & Agent for Kubernetes (DaemonSet/sidecar)
-- Shadow AI detection (discover ungoverned agents)
-- Remote kill switch from SaaS console
-- CloudEvents, OpenTelemetry deep integration, Backstage plugin
-- Feature flag policy canary, Temporal.io workflows, OPA/Rego bridge
-
-> All features maintain: in-process <5ms evaluation, zero-config entry, no LLM in governance path, offline-capable. The platform layer is always optional — the SDK works standalone.
 
 ---
 
