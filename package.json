@@ -11,6 +11,7 @@
     "tealtiger": "./bin/tealtiger.js"
   },
   "scripts": {
+    "postinstall": "node scripts/postinstall.js",
     "api:start": "ts-node api/governance-events/index.ts",
     "stream:start": "ts-node api/governance-stream/index.ts",
     "build": "tsc --noEmit",
