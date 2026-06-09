@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         Thanks for suggesting a feature! Please provide as much detail as possible.
+        Please check the [governance and contribution rules](https://github.com/agentguard-ai/tealtiger/blob/main/GOVERNANCE.md#issue-etiquette) before submitting.
 
   - type: dropdown
     id: sdk
@@ -21,16 +22,19 @@ body:
       required: true
 
   - type: dropdown
-    id: feature-type
+    id: component
     attributes:
-      label: Feature Type
+      label: Which component?
+      description: Select the TealTiger component this request targets.
       options:
-        - New Guardrail
-        - Cost Tracking Enhancement
-        - New AI Provider Support
-        - API Enhancement
-        - Documentation
-        - Developer Experience
+        - TealEngine
+        - TealGuard
+        - Cost
+        - Policy Packs
+        - SDK
+        - Integrations
+        - Dashboard
+        - CLI
         - Other
     validations:
       required: true
