@@ -1,0 +1,106 @@
+# TealTiger Policy Pack - Postgres MCP Server
+#
+# Blocks destructive SQL patterns passed to execute_sql and requires approval
+# for permission and role-management operations.
+#
+# To use this pack in your policy:
+#   tealtiger policy apply policy-packs/postgres-mcp/policy.yaml --agent <agent-id>
+
+name: postgres-mcp
+version: "1.0.0"
+description: "Policy pack for the Postgres MCP server. Classifies Postgres MCP tools and blocks destructive SQL patterns before execution."
+
+tools:
+  # READ - metadata inspection and query planning
+  - name: list_tables
+    risk: READ
+
+  - name: list_schemas
+    risk: READ
+
+  - name: describe_table
+    risk: READ
+
+  - name: get_table_schema
+    risk: READ
+
+  - name: list_columns
+    risk: READ
+
+  - name: list_indexes
+    risk: READ
+
+  - name: list_constraints
+    risk: READ
+
+  - name: explain_query
+    risk: READ
+
+  # DESTRUCTIVE - arbitrary SQL can mutate, delete, or reconfigure the database
+  - name: execute_sql
+    risk: DESTRUCTIVE
+
+rules:
+  # DROP statements can remove tables, schemas, databases, views, indexes, or functions.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\bDROP\\s+(TABLE|DATABASE|SCHEMA|VIEW|MATERIALIZED\\s+VIEW|INDEX|FUNCTION|PROCEDURE|TRIGGER)\\b"
+    action: DENY
+    reason: "Destructive SQL blocked by governance policy"
+
+  # TRUNCATE removes all rows from a table and is often irreversible in practice.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\bTRUNCATE\\b"
+    action: DENY
+    reason: "TRUNCATE removes table data and is blocked by governance policy"
+
+  # DELETE FROM can remove production data. Teams can narrow this rule if they allow scoped deletes.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\bDELETE\\s+FROM\\b"
+    action: DENY
+    reason: "DELETE FROM is blocked to prevent data loss"
+
+  # ALTER TABLE ... DROP removes columns or constraints and can break applications.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\bALTER\\s+TABLE\\b.*\\bDROP\\b"
+    action: DENY
+    reason: "ALTER TABLE DROP operations are blocked by governance policy"
+
+  # ALTER SYSTEM changes Postgres server configuration.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\bALTER\\s+SYSTEM\\b"
+    action: DENY
+    reason: "Postgres system configuration changes are blocked"
+
+  # COPY ... PROGRAM can execute an OS command from the database server context.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\bCOPY\\b.*\\bPROGRAM\\b"
+    action: DENY
+    reason: "COPY PROGRAM can execute server-side commands and is blocked"
+
+  # Unsafe extension creation can expand database capabilities beyond approved controls.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\bCREATE\\s+EXTENSION\\b"
+    action: DENY
+    reason: "CREATE EXTENSION is blocked unless explicitly approved outside this policy"
+
+  # Permission and role changes are not always destructive, but they change blast radius.
+  - tool: execute_sql
+    when:
+      args.query:
+        pattern: "(?i)\\b(GRANT|REVOKE|CREATE\\s+ROLE|ALTER\\s+ROLE|DROP\\s+ROLE|CREATE\\s+USER|ALTER\\s+USER|DROP\\s+USER)\\b"
+    action: REQUIRE_APPROVAL
+    reason: "Permission changes require human approval"
