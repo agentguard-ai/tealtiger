@@ -224,6 +224,7 @@ response = client.chat.completions.create(
 
 ## 📚 Documentation
 
+- [Why your AI agent needs a budget — cost governance for LLM apps](./docs/blog/cost-governance-for-llm-apps.md)
 - [Quick Start Guide](#-quick-start)
 - [Security Guardrails](#️-security-guardrails)
 - [Cost Governance](#-cost-governance)
