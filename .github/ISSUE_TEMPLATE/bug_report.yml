@@ -7,13 +7,14 @@ body:
     attributes:
       value: |
         Thanks for taking the time to report a bug! Please fill out the information below to help us resolve the issue.
+        Before opening this issue, please read [GOVERNANCE.md](https://github.com/agentguard-ai/tealtiger/blob/main/GOVERNANCE.md).
 
   - type: dropdown
     id: sdk
     attributes:
       label: Which SDK are you using?
       options:
-        - TypeScript/JavaScript
+        - TypeScript
         - Python
         - Both
     validations:
