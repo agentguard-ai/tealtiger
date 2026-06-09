@@ -6,6 +6,7 @@ GovernanceRequest/DecisionV13 types.
 
 from __future__ import annotations
 
+import importlib
 import time
 import uuid
 from typing import Any, Dict, List, Optional, Set
@@ -14,7 +15,6 @@ from langchain_tealtiger._types import (
     GovernanceAction,
     GovernanceDecision,
     GovernanceMode,
-    PolicyConfig,
     SessionSummary,
 )
 
@@ -107,6 +107,7 @@ class GovernanceBridge:
                 reason_codes=["FREEZE_RULE"],
                 risk_score=100,
                 correlation_id=correlation_id,
+                trace_id=_get_current_trace_id(),
                 triggered_policies=["freeze"],
             )
             decision.evaluation_time_ms = (time.perf_counter() - start) * 1000
@@ -125,6 +126,7 @@ class GovernanceBridge:
                     reason_codes=["TOOL_NOT_ALLOWED"],
                     risk_score=80,
                     correlation_id=correlation_id,
+                    trace_id=_get_current_trace_id(),
                     triggered_policies=triggered,
                 )
                 decision.evaluation_time_ms = (time.perf_counter() - start) * 1000
@@ -143,6 +145,7 @@ class GovernanceBridge:
                     reason_codes=["TOOL_BLOCKED"],
                     risk_score=80,
                     correlation_id=correlation_id,
+                    trace_id=_get_current_trace_id(),
                     triggered_policies=triggered,
                 )
                 decision.evaluation_time_ms = (time.perf_counter() - start) * 1000
@@ -161,6 +164,7 @@ class GovernanceBridge:
                     reason_codes=["RATE_LIMIT_EXCEEDED"],
                     risk_score=70,
                     correlation_id=correlation_id,
+                    trace_id=_get_current_trace_id(),
                     triggered_policies=triggered,
                 )
                 decision.evaluation_time_ms = (time.perf_counter() - start) * 1000
@@ -182,6 +186,7 @@ class GovernanceBridge:
                     reason_codes=["COST_LIMIT_EXCEEDED"],
                     risk_score=60,
                     correlation_id=correlation_id,
+                    trace_id=_get_current_trace_id(),
                     triggered_policies=triggered,
                 )
                 decision.evaluation_time_ms = (time.perf_counter() - start) * 1000
@@ -197,6 +202,7 @@ class GovernanceBridge:
             reason_codes=["POLICY_COMPLIANT"],
             risk_score=0,
             correlation_id=correlation_id,
+            trace_id=_get_current_trace_id(),
             triggered_policies=triggered,
         )
         decision.evaluation_time_ms = (time.perf_counter() - start) * 1000
@@ -234,3 +240,23 @@ class GovernanceBridge:
     def _record(self, decision: GovernanceDecision) -> None:
         """Record a decision in the evidence trail."""
         self._evidence.append(decision)
+
+
+def _get_current_trace_id() -> str | None:
+    """Return the current OpenTelemetry trace ID, if the optional API is present."""
+    try:
+        trace = importlib.import_module("opentelemetry.trace")
+    except ImportError:
+        return None
+
+    try:
+        span = trace.get_current_span()
+        context = span.get_span_context()
+        trace_id = int(getattr(context, "trace_id", 0))
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+    if trace_id == 0:
+        return None
+
+    return format(trace_id, "032x")

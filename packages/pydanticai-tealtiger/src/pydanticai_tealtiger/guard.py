@@ -9,6 +9,7 @@ No LLM in the governance path. Typical evaluation: <2ms.
 
 from __future__ import annotations
 
+import importlib
 import json
 import re
 import time
@@ -121,6 +122,9 @@ class AuditEntry:
 
     evaluation_time_ms: float
     """Time taken for governance evaluation in milliseconds."""
+
+    trace_id: str | None = None
+    """Current OpenTelemetry trace ID, if available."""
 
     teec: dict[str, Any] = field(default_factory=dict)
     """TEEC namespace fields (teec.pydanticai)."""
@@ -372,6 +376,7 @@ class TealTigerGuard:
             cost_tracked=estimated_cost,
             cumulative_cost=self._cumulative_cost,
             evaluation_time_ms=evaluation_time_ms,
+            trace_id=_get_current_trace_id(),
             teec=teec,
             metadata={
                 "call_count": self._call_count,
@@ -488,6 +493,7 @@ class TealTigerGuard:
             cost_tracked=actual_cost,
             cumulative_cost=self._cumulative_cost,
             evaluation_time_ms=evaluation_time_ms,
+            trace_id=_get_current_trace_id(),
             teec=teec,
             metadata={
                 "token_usage": token_usage,
@@ -626,6 +632,7 @@ class TealTigerGuard:
             cost_tracked=0.0,
             cumulative_cost=self._cumulative_cost,
             evaluation_time_ms=evaluation_time_ms,
+            trace_id=_get_current_trace_id(),
             teec=teec,
             metadata={"call_count": self._call_count},
         )
@@ -666,6 +673,7 @@ class TealTigerGuard:
             cost_tracked=0.0,
             cumulative_cost=self._cumulative_cost,
             evaluation_time_ms=evaluation_time_ms,
+            trace_id=_get_current_trace_id(),
             teec=teec,
             metadata={
                 "call_count": self._call_count,
@@ -711,6 +719,7 @@ class TealTigerGuard:
             cost_tracked=0.0,
             cumulative_cost=self._cumulative_cost,
             evaluation_time_ms=evaluation_time_ms,
+            trace_id=_get_current_trace_id(),
             teec=teec,
             metadata={
                 "call_count": self._call_count,
@@ -838,3 +847,23 @@ class TealTigerGuard:
                 "reason_codes": ["ENGINE_ERROR", "FAIL_OPEN"],
                 "risk_score": 50,
             }
+
+
+def _get_current_trace_id() -> str | None:
+    """Return the current OpenTelemetry trace ID, if the optional API is present."""
+    try:
+        trace = importlib.import_module("opentelemetry.trace")
+    except ImportError:
+        return None
+
+    try:
+        span = trace.get_current_span()
+        context = span.get_span_context()
+        trace_id = int(getattr(context, "trace_id", 0))
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+    if trace_id == 0:
+        return None
+
+    return format(trace_id, "032x")
