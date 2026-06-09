@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -11,9 +12,22 @@ import pytest
 from haystack_integrations.components.connectors.tealtiger import (
     TealTigerGovernanceComponent,
 )
+from haystack_integrations.components.connectors.tealtiger import (
+    governance_component as governance_module,
+)
 from haystack_integrations.components.connectors.tealtiger.governance_component import (
     GovernanceDenyError,
 )
+
+_TRACE_ID = 0x1234567890ABCDEF1234567890ABCDEF
+_TRACE_ID_HEX = "1234567890abcdef1234567890abcdef"
+
+
+def _fake_trace_module(trace_id: int) -> SimpleNamespace:
+    context = SimpleNamespace(trace_id=trace_id)
+    span = SimpleNamespace(get_span_context=lambda: context)
+    return SimpleNamespace(get_current_span=lambda: span)
+
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
 
@@ -98,6 +112,41 @@ class TestZeroConfigMode:
 
         assert len(gov.audit_trail) == 3
         assert gov.audit_trail[0].correlation_id != gov.audit_trail[1].correlation_id
+
+    def test_trace_id_none_without_opentelemetry(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """OpenTelemetry remains optional for audit entries."""
+        governance_importlib: Any = vars(governance_module)["importlib"]
+        original_import_module = governance_importlib.import_module
+
+        def raise_import_error(name: str) -> object:
+            if name == "opentelemetry.trace":
+                raise ImportError(name)
+            return original_import_module(name)
+
+        monkeypatch.setattr(governance_importlib, "import_module", raise_import_error)
+        gov = TealTigerGovernanceComponent()
+
+        result = gov.run(text="Audit test")
+
+        assert result["decision"]["trace_id"] is None
+
+    def test_trace_id_from_current_opentelemetry_span(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Current OpenTelemetry spans are reflected in audit entries."""
+        governance_importlib: Any = vars(governance_module)["importlib"]
+        monkeypatch.setattr(
+            governance_importlib,
+            "import_module",
+            lambda _name: _fake_trace_module(_TRACE_ID),
+        )
+        gov = TealTigerGovernanceComponent()
+
+        result = gov.run(text="Audit test")
+
+        assert result["decision"]["trace_id"] == _TRACE_ID_HEX
+        assert gov.audit_trail[-1].trace_id == _TRACE_ID_HEX
 
     def test_export_audit_trail_writes_jsonl(self, tmp_path: Any) -> None:
         """Audit trail export writes one JSON object per line."""

@@ -9,6 +9,7 @@ No LLM in the governance path. Typical evaluation: <2ms.
 
 from __future__ import annotations
 
+import importlib
 import json
 import re
 import time
@@ -121,6 +122,9 @@ class AuditEntry:
 
     evaluation_time_ms: float
     """Time taken for governance evaluation in milliseconds."""
+
+    trace_id: Optional[str] = None
+    """Current OpenTelemetry trace ID, if available."""
 
     metadata: Dict[str, Any] = field(default_factory=dict)
     """Additional metadata."""
@@ -276,6 +280,7 @@ class TealTigerGovernanceComponent:
             cost_tracked=estimated_cost,
             cumulative_cost=self._cumulative_cost,
             evaluation_time_ms=evaluation_time_ms,
+            trace_id=_get_current_trace_id(),
             metadata={
                 "agent_id": self._agent_id,
                 "evaluation_number": self._evaluation_count,
@@ -420,3 +425,23 @@ class TealTigerGovernanceComponent:
         self._cumulative_cost = 0.0
         self._evaluation_count = 0
         self._audit_trail = []
+
+
+def _get_current_trace_id() -> Optional[str]:
+    """Return the current OpenTelemetry trace ID, if the optional API is present."""
+    try:
+        trace = importlib.import_module("opentelemetry.trace")
+    except ImportError:
+        return None
+
+    try:
+        span = trace.get_current_span()
+        context = span.get_span_context()
+        trace_id = int(getattr(context, "trace_id", 0))
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+    if trace_id == 0:
+        return None
+
+    return format(trace_id, "032x")

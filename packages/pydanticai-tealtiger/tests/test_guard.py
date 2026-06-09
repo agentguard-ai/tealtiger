@@ -4,16 +4,28 @@ from __future__ import annotations
 
 import json
 import uuid
+from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
+import pydanticai_tealtiger.guard as guard_module
 from pydanticai_tealtiger import (
     GovernanceDenyError,
     TealTigerGuard,
     ToolBaseline,
 )
+
+_TRACE_ID = 0x1234567890ABCDEF1234567890ABCDEF
+_TRACE_ID_HEX = "1234567890abcdef1234567890abcdef"
+
+
+def _fake_trace_module(trace_id: int) -> SimpleNamespace:
+    context = SimpleNamespace(trace_id=trace_id)
+    span = SimpleNamespace(get_span_context=lambda: context)
+    return SimpleNamespace(get_current_span=lambda: span)
+
 
 # ─── Zero-Config Mode Tests ─────────────────────────────────────────────────
 
@@ -95,6 +107,41 @@ class TestZeroConfigMode:
 
         assert decision["action"] == "ALLOW"
         assert decision["tool_name"] == "search"
+
+    def test_trace_id_none_without_opentelemetry(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """OpenTelemetry remains optional for audit entries."""
+        guard_importlib: Any = vars(guard_module)["importlib"]
+        original_import_module = guard_importlib.import_module
+
+        def raise_import_error(name: str) -> object:
+            if name == "opentelemetry.trace":
+                raise ImportError(name)
+            return original_import_module(name)
+
+        monkeypatch.setattr(guard_importlib, "import_module", raise_import_error)
+        guard = TealTigerGuard()
+
+        decision = guard.evaluate(tool="search", args={"query": "audit"})
+
+        assert decision["trace_id"] is None
+
+    def test_trace_id_from_current_opentelemetry_span(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Current OpenTelemetry spans are reflected in audit entries."""
+        guard_importlib: Any = vars(guard_module)["importlib"]
+        monkeypatch.setattr(
+            guard_importlib,
+            "import_module",
+            lambda _name: _fake_trace_module(_TRACE_ID),
+        )
+        guard = TealTigerGuard()
+
+        decision = guard.evaluate(tool="search", args={"query": "audit"})
+
+        assert decision["trace_id"] == _TRACE_ID_HEX
+        assert guard.audit_trail[-1].trace_id == _TRACE_ID_HEX
 
 
 # ─── PII Detection Tests ────────────────────────────────────────────────────
