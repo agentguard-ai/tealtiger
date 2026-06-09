@@ -1,0 +1,59 @@
+{
+  "name": "postgres-mcp",
+  "version": "1.0.0",
+  "description": "Tool catalog for the Postgres MCP server. Classifies common Postgres MCP tools by their governance risk.",
+  "protocol": "mcp",
+  "database": "postgres",
+  "riskLevels": {
+    "READ": "Read-only metadata or query inspection with no database side effects.",
+    "MUTATING": "Changes database state or session behavior but is not inherently destructive.",
+    "DESTRUCTIVE": "Can execute arbitrary SQL or perform high-impact database operations."
+  },
+  "tools": [
+    {
+      "name": "list_tables",
+      "risk": "READ",
+      "description": "Lists tables available to the connected Postgres role."
+    },
+    {
+      "name": "list_schemas",
+      "risk": "READ",
+      "description": "Lists database schemas available to the connected Postgres role."
+    },
+    {
+      "name": "describe_table",
+      "risk": "READ",
+      "description": "Returns columns, indexes, constraints, and metadata for a table."
+    },
+    {
+      "name": "get_table_schema",
+      "risk": "READ",
+      "description": "Returns schema details for a specific table."
+    },
+    {
+      "name": "list_columns",
+      "risk": "READ",
+      "description": "Lists columns for a table or view."
+    },
+    {
+      "name": "list_indexes",
+      "risk": "READ",
+      "description": "Lists indexes defined on a table."
+    },
+    {
+      "name": "list_constraints",
+      "risk": "READ",
+      "description": "Lists primary key, foreign key, unique, and check constraints."
+    },
+    {
+      "name": "explain_query",
+      "risk": "READ",
+      "description": "Returns a query execution plan without modifying data."
+    },
+    {
+      "name": "execute_sql",
+      "risk": "DESTRUCTIVE",
+      "description": "Executes raw SQL against Postgres. Governed by argument-level SQL regex rules in policy.yaml."
+    }
+  ]
+}
