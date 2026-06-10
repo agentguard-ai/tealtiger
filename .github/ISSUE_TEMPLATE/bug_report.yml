@@ -7,36 +7,31 @@ body:
     attributes:
       value: |
         Thanks for taking the time to report a bug! Please fill out the information below to help us resolve the issue.
+        
+        Make sure you have read our [governance and contribution rules](https://github.com/agentguard-ai/tealtiger/blob/main/GOVERNANCE.md#issue-etiquette) before submitting.
+        Before opening this issue, please read [GOVERNANCE.md](https://github.com/agentguard-ai/tealtiger/blob/main/GOVERNANCE.md).
 
   - type: dropdown
-    id: sdk
-    attributes:
-      label: Which SDK are you using?
-      options:
-        - TypeScript/JavaScript
-        - Python
-        - Both
-    validations:
-      required: true
-
-  - type: input
-    id: version
+    id: sdk-version
     attributes:
       label: SDK Version
-      description: What version of TealTiger are you using?
-      placeholder: "e.g., 0.2.2"
+      options:
+        - TypeScript
+        - Python
     validations:
       required: true
 
   - type: dropdown
     id: provider
     attributes:
-      label: AI Provider
+      label: Provider
       description: Which AI provider are you using?
       options:
         - OpenAI
         - Anthropic
         - Azure OpenAI
+        - Cohere
+        - Gemini
         - Other
     validations:
       required: true
@@ -53,7 +48,7 @@ body:
   - type: textarea
     id: reproduction
     attributes:
-      label: Steps to Reproduce
+      label: Reproduction steps
       description: Steps to reproduce the behavior
       placeholder: |
         1. Initialize client with...
@@ -65,7 +60,7 @@ body:
   - type: textarea
     id: expected
     attributes:
-      label: Expected Behavior
+      label: Expected behavior
       description: What did you expect to happen?
     validations:
       required: true
@@ -73,7 +68,7 @@ body:
   - type: textarea
     id: actual
     attributes:
-      label: Actual Behavior
+      label: Actual behavior
       description: What actually happened?
     validations:
       required: true
