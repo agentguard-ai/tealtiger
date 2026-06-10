@@ -1,0 +1,21 @@
+{
+  "name": "deny-destructive",
+  "request": {
+    "tool": "delete_user_account",
+    "args": {
+      "user_id": "prod-7894",
+      "reason": "cleanup test"
+    },
+    "estimated_cost_usd": 0.05
+  },
+  "expected": {
+    "action": "DENY",
+    "reasonCodes": ["policy_prod_user_block", "catalog_match", "catalog_allow", "grant_denied"],
+    "teec": {
+      "tool": "delete_user_account",
+      "action": "DENY",
+      "risk": "DESTRUCTIVE"
+    }
+  }
+}
+

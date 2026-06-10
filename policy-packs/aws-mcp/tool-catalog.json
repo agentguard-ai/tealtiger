@@ -1,0 +1,209 @@
+{
+  "name": "aws-mcp",
+  "version": "1.0.0",
+  "description": "Tool catalog for an AWS MCP server focusing on S3, EC2, and IAM operations.",
+  "protocol": "mcp",
+  "database": "aws",
+  "riskLevels": {
+    "READ": "Inventory and metadata operations that return state without changing it.",
+    "MUTATING": "Create/update operations that change state but are typically reversible.",
+    "DESTRUCTIVE": "Delete/terminate/permission operations with high blast radius."
+  },
+  "tools": [
+    {
+      "name": "list_buckets",
+      "risk": "READ",
+      "description": "List available S3 buckets."
+    },
+    {
+      "name": "get_bucket",
+      "risk": "READ",
+      "description": "Read bucket metadata."
+    },
+    {
+      "name": "create_bucket",
+      "risk": "MUTATING",
+      "description": "Create an S3 bucket."
+    },
+    {
+      "name": "delete_bucket",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete an S3 bucket."
+    },
+    {
+      "name": "list_objects",
+      "risk": "READ",
+      "description": "List objects in an S3 bucket."
+    },
+    {
+      "name": "get_object",
+      "risk": "READ",
+      "description": "Read an object from S3."
+    },
+    {
+      "name": "put_object",
+      "risk": "MUTATING",
+      "description": "Upload or replace an object in S3."
+    },
+    {
+      "name": "delete_object",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete an object from S3."
+    },
+    {
+      "name": "copy_object",
+      "risk": "MUTATING",
+      "description": "Copy objects between S3 locations."
+    },
+    {
+      "name": "get_bucket_policy",
+      "risk": "READ",
+      "description": "Get the bucket policy text."
+    },
+    {
+      "name": "put_bucket_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Write bucket policy."
+    },
+    {
+      "name": "delete_bucket_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete bucket policy."
+    },
+    {
+      "name": "describe_instances",
+      "risk": "READ",
+      "description": "Describe EC2 instances and attributes."
+    },
+    {
+      "name": "run_instances",
+      "risk": "MUTATING",
+      "description": "Launch EC2 instances."
+    },
+    {
+      "name": "start_instances",
+      "risk": "MUTATING",
+      "description": "Start stopped EC2 instances."
+    },
+    {
+      "name": "stop_instances",
+      "risk": "MUTATING",
+      "description": "Stop running EC2 instances."
+    },
+    {
+      "name": "terminate_instances",
+      "risk": "DESTRUCTIVE",
+      "description": "Terminate EC2 instances."
+    },
+    {
+      "name": "reboot_instances",
+      "risk": "MUTATING",
+      "description": "Reboot EC2 instances."
+    },
+    {
+      "name": "modify_instance_attribute",
+      "risk": "DESTRUCTIVE",
+      "description": "Modify key instance attributes."
+    },
+    {
+      "name": "describe_instance_types",
+      "risk": "READ",
+      "description": "List available EC2 instance types."
+    },
+    {
+      "name": "create_security_group",
+      "risk": "MUTATING",
+      "description": "Create an EC2 security group."
+    },
+    {
+      "name": "delete_security_group",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete a security group."
+    },
+    {
+      "name": "authorize_security_group_ingress",
+      "risk": "DESTRUCTIVE",
+      "description": "Open inbound security-group access."
+    },
+    {
+      "name": "revoke_security_group_ingress",
+      "risk": "MUTATING",
+      "description": "Revoke inbound security-group access."
+    },
+    {
+      "name": "list_users",
+      "risk": "READ",
+      "description": "List IAM users."
+    },
+    {
+      "name": "create_user",
+      "risk": "MUTATING",
+      "description": "Create an IAM user."
+    },
+    {
+      "name": "delete_user",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete an IAM user."
+    },
+    {
+      "name": "list_roles",
+      "risk": "READ",
+      "description": "List IAM roles."
+    },
+    {
+      "name": "create_role",
+      "risk": "DESTRUCTIVE",
+      "description": "Create an IAM role."
+    },
+    {
+      "name": "delete_role",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete an IAM role."
+    },
+    {
+      "name": "list_policies",
+      "risk": "READ",
+      "description": "List IAM policies."
+    },
+    {
+      "name": "create_policy",
+      "risk": "MUTATING",
+      "description": "Create an IAM policy."
+    },
+    {
+      "name": "delete_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete an IAM policy."
+    },
+    {
+      "name": "attach_user_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Attach managed policy to an IAM user."
+    },
+    {
+      "name": "detach_user_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Detach managed policy from an IAM user."
+    },
+    {
+      "name": "attach_role_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Attach managed policy to an IAM role."
+    },
+    {
+      "name": "detach_role_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Detach managed policy from an IAM role."
+    },
+    {
+      "name": "put_role_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Create/replace an inline role policy."
+    },
+    {
+      "name": "delete_role_policy",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete an inline role policy."
+    }
+  ]
+}

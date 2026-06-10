@@ -1,0 +1,145 @@
+# TealTiger Policy Pack - GitHub MCP Server
+#
+# Provides a strict baseline for common destructive GitHub MCP operations while
+# allowing low-risk read/search operations to proceed.
+#
+# To use this pack in your policy:
+#   tealtiger policy apply policy-packs/github-mcp/policy.yaml --agent <agent-id>
+
+name: github-mcp
+version: "1.0.0"
+description: "Policy pack for the GitHub MCP server."
+
+tools:
+  - name: add_comment_to_pending_review
+    risk: MUTATING
+  - name: add_issue_comment
+    risk: MUTATING
+  - name: assign_copilot_to_issue
+    risk: MUTATING
+  - name: create_branch
+    risk: MUTATING
+  - name: create_or_update_file
+    risk: MUTATING
+  - name: create_pull_request
+    risk: MUTATING
+  - name: create_repository
+    risk: DESTRUCTIVE
+  - name: delete_file
+    risk: DESTRUCTIVE
+  - name: fork_repository
+    risk: DESTRUCTIVE
+  - name: get_commit
+    risk: READ
+  - name: get_file_contents
+    risk: READ
+  - name: get_label
+    risk: READ
+  - name: get_latest_release
+    risk: READ
+  - name: get_me
+    risk: READ
+  - name: get_release_by_tag
+    risk: READ
+  - name: get_tag
+    risk: READ
+  - name: get_team_members
+    risk: READ
+  - name: get_teams
+    risk: READ
+  - name: issue_read
+    risk: READ
+  - name: issue_write
+    risk: MUTATING
+  - name: list_branches
+    risk: READ
+  - name: list_commits
+    risk: READ
+  - name: list_issue_types
+    risk: READ
+  - name: list_issues
+    risk: READ
+  - name: list_pull_requests
+    risk: READ
+  - name: list_releases
+    risk: READ
+  - name: list_tags
+    risk: READ
+  - name: merge_pull_request
+    risk: DESTRUCTIVE
+  - name: pull_request_read
+    risk: READ
+  - name: pull_request_review_write
+    risk: MUTATING
+  - name: push_files
+    risk: DESTRUCTIVE
+  - name: request_copilot_review
+    risk: MUTATING
+  - name: search_code
+    risk: READ
+  - name: search_issues
+    risk: READ
+  - name: search_pull_requests
+    risk: READ
+  - name: search_repositories
+    risk: READ
+  - name: search_users
+    risk: READ
+  - name: sub_issue_write
+    risk: MUTATING
+  - name: update_pull_request
+    risk: MUTATING
+  - name: update_pull_request_branch
+    risk: DESTRUCTIVE
+
+rules:
+  # Repository control and history safety
+  - tool: create_repository
+    action: DENY
+    reason: "Repository creation is blocked in strict mode by default."
+
+  - tool: fork_repository
+    action: DENY
+    reason: "Forking repository is blocked by default."
+
+  - tool: push_files
+    action: DENY
+    reason: "Push is blocked by default to avoid unreviewed branch/file history changes."
+
+  - tool: delete_file
+    action: DENY
+    reason: "File deletion is blocked by default."
+
+  - tool: merge_pull_request
+    action: DENY
+    reason: "PR merge is blocked by default in this baseline pack."
+
+  - tool: update_pull_request_branch
+    action: DENY
+    reason: "PR branch updates are blocked by default."
+
+  # Sensitive write operations should be manually approved.
+  - tool: create_or_update_file
+    action: REQUIRE_APPROVAL
+    when:
+      args.path:
+        pattern: "(?i)^(\\.github|\\.github/workflows|secrets|infra|terraform|deploy|k8s|helm)/.*"
+    reason: "Changes to sensitive paths require explicit approval."
+
+  - tool: create_pull_request
+    action: REQUIRE_APPROVAL
+    when:
+      args.base:
+        pattern: "^(main|master)$"
+    reason: "PRs targeting protected branches require manual approval."
+
+  - tool: issue_write
+    action: REQUIRE_APPROVAL
+    reason: "Issue write access should be approved in strict mode."
+
+  - tool: pull_request_read
+    action: REQUIRE_APPROVAL
+    when:
+      args.method:
+        pattern: "get_status|get_diff"
+    reason: "PR-level reads that can expose wider context require approval when explicitly requested."

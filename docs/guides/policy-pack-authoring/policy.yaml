@@ -1,0 +1,32 @@
+policyVersion: "2026-06-09-demo-1"
+pack: "policy-pack-authoring-guide"
+defaultAction: ALLOW
+maxBudgetUsd: 1.0
+toolRules:
+  - tool: search_docs
+    action: ALLOW
+    reasonCode: policy_tool_allow
+  - tool: summarize_notes
+    action: ALLOW
+    reasonCode: policy_tool_allow
+  - tool: delete_user_account
+    reasonCode: policy_prod_user_block
+    when:
+      argPattern:
+        user_id: "^prod-"
+    action: DENY
+  - tool: update_profile
+    reasonCode: policy_requires_review
+    action: REQUIRE_APPROVAL
+  - tool: export_user_data
+    reasonCode: policy_internal_redact
+    when:
+      argContains:
+        region: "internal"
+    action: REVISE
+  - tool: share_customer_notes
+    reasonCode: policy_notes_pii_redaction
+    when:
+      argPattern:
+        notes: "jane.doe@tealtiger.io"
+    action: REVISE

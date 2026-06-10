@@ -1,0 +1,23 @@
+{
+  "name": "require-approval",
+  "request": {
+    "tool": "update_profile",
+    "args": {
+      "user_id": "cust_101",
+      "changes": {
+        "status": "suspended"
+      }
+    },
+    "estimated_cost_usd": 0.08
+  },
+  "expected": {
+    "action": "REQUIRE_APPROVAL",
+    "reasonCodes": ["policy_requires_review", "catalog_match", "catalog_allow"],
+    "teec": {
+      "tool": "update_profile",
+      "action": "REQUIRE_APPROVAL",
+      "risk": "MUTATING"
+    }
+  }
+}
+

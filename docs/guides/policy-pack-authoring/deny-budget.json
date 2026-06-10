@@ -1,0 +1,19 @@
+{
+  "name": "deny-budget",
+  "request": {
+    "tool": "summarize_notes",
+    "args": {
+      "note_count": 2000
+    },
+    "estimated_cost_usd": 1.35
+  },
+  "expected": {
+    "action": "DENY",
+    "reasonCodes": ["budget_exceeded", "catalog_match", "policy_tool_allow"],
+    "teec": {
+      "tool": "summarize_notes",
+      "action": "DENY",
+      "risk": "READ"
+    }
+  }
+}
