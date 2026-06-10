@@ -8,6 +8,7 @@ body:
       value: |
         Thanks for suggesting a feature! Please provide as much detail as possible.
         Please check the [governance and contribution rules](https://github.com/agentguard-ai/tealtiger/blob/main/GOVERNANCE.md#issue-etiquette) before submitting.
+        Before opening this issue, please read [GOVERNANCE.md](https://github.com/agentguard-ai/tealtiger/blob/main/GOVERNANCE.md).
 
   - type: dropdown
     id: sdk
@@ -35,6 +36,15 @@ body:
         - Integrations
         - Dashboard
         - CLI
+      description: Which component does this request target?
+      options:
+        - TealEngine
+        - TealGuard
+        - Cost Governance
+        - New Provider
+        - API Client
+        - Documentation
+        - Developer Experience
         - Other
     validations:
       required: true
