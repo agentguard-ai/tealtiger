@@ -7,6 +7,7 @@ Deterministic governance hook for [CAMEL-AI](https://github.com/camel-ai/camel) 
 [![PyPI](https://img.shields.io/pypi/v/camelai-tealtiger)](https://pypi.org/project/camelai-tealtiger/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/pypi/pyversions/camelai-tealtiger)](https://pypi.org/project/camelai-tealtiger/)
+[![Coverage](https://codecov.io/gh/agentguard-ai/tealtiger/branch/main/graph/badge.svg?flag=camelai-tealtiger)](https://app.codecov.io/gh/agentguard-ai/tealtiger?flags%5B0%5D=camelai-tealtiger)
 
 ## Installation
 

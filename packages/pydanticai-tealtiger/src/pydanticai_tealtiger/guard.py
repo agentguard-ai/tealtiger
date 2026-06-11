@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import logging
 import re
 import time
 import uuid
@@ -34,6 +35,8 @@ _PII_PATTERNS: dict[str, re.Pattern[str]] = {
         r"\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b"
     ),
 }
+
+logger = logging.getLogger(__name__)
 
 
 # ─── Types ───────────────────────────────────────────────────────────────────
@@ -214,6 +217,7 @@ class TealTigerGuard:
         session_id: str | None = None,
         tool_allowlist: list[str] | None = None,
         budget_limit: float | None = None,
+        anomaly_threshold: float = 200,
     ) -> None:
         """Initialize the governance guard.
 
@@ -229,6 +233,9 @@ class TealTigerGuard:
                            tools not in this list will be denied.
             budget_limit: Optional maximum cost per session in USD.
                           When exceeded, subsequent calls are denied in ENFORCE mode.
+            anomaly_threshold: Percentage threshold for post-call cost anomaly
+                               alerts. Default 200 means actual cost over 2x
+                               the pre-call estimate is flagged.
         """
         self._engine = engine
         self._mode = GovernanceMode(mode)
@@ -236,6 +243,7 @@ class TealTigerGuard:
         self._session_id = session_id or str(uuid.uuid4())
         self._tool_allowlist: set[str] | None = set(tool_allowlist) if tool_allowlist else None
         self._budget_limit = budget_limit
+        self._anomaly_threshold = anomaly_threshold
 
         # Session state
         self._cumulative_cost: float = 0.0
@@ -247,6 +255,7 @@ class TealTigerGuard:
         self._tool_denied: dict[str, int] = {}
         self._tool_pii: dict[str, int] = {}
         self._frozen: bool = False
+        self._last_estimated_cost_by_tool: dict[str, float] = {}
 
     # ─── evaluate (pre_call) ─────────────────────────────────────────────
 
@@ -324,6 +333,7 @@ class TealTigerGuard:
         self._cumulative_cost += estimated_cost
         self._tool_costs[tool] = self._tool_costs.get(tool, 0) + estimated_cost
         self._tool_calls[tool] = self._tool_calls.get(tool, 0) + 1
+        self._last_estimated_cost_by_tool[tool] = estimated_cost
 
         # ── Policy Evaluation ────────────────────────────────────────────
         action = GovernanceAction.ALLOW
@@ -470,6 +480,22 @@ class TealTigerGuard:
         if pii_findings:
             risk_score = min(len(pii_findings) * 20, 80)
 
+        reason_codes = ["POST_CALL_AUDIT"]
+        estimated_cost = self._last_estimated_cost_by_tool.get(tool_name, 0.0)
+        if estimated_cost > 0:
+            cost_ratio = (actual_cost / estimated_cost) * 100
+            if cost_ratio > self._anomaly_threshold:
+                logger.warning(
+                    "Cost anomaly for tool %s: actual %.6f is %.0f%% of estimated %.6f "
+                    "(threshold %.0f%%)",
+                    tool_name,
+                    actual_cost,
+                    cost_ratio,
+                    estimated_cost,
+                    self._anomaly_threshold,
+                )
+                reason_codes.append("COST_ANOMALY")
+
         audit_entry = AuditEntry(
             correlation_id=correlation_id,
             timestamp_ms=time.time() * 1000,
@@ -479,7 +505,7 @@ class TealTigerGuard:
             tool_name=tool_name,
             agent_id="default",
             reason="Post-call audit recorded",
-            reason_codes=["POST_CALL_AUDIT"],
+            reason_codes=reason_codes,
             risk_score=risk_score,
             pii_detected=[
                 {
@@ -498,6 +524,7 @@ class TealTigerGuard:
             metadata={
                 "token_usage": token_usage,
                 "result_length": len(result_str),
+                "estimated_cost": estimated_cost,
             },
         )
         self._audit_trail.append(audit_entry)
@@ -530,6 +557,7 @@ class TealTigerGuard:
         self._tool_calls = {}
         self._tool_denied = {}
         self._tool_pii = {}
+        self._last_estimated_cost_by_tool = {}
         self._frozen = False
 
     # ─── Properties ──────────────────────────────────────────────────────

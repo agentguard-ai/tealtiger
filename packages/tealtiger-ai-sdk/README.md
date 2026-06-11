@@ -4,6 +4,7 @@ TealTiger governance middleware for the [Vercel AI SDK](https://ai-sdk.dev/) —
 
 [![npm](https://img.shields.io/npm/v/tealtiger-ai-sdk)](https://www.npmjs.com/package/tealtiger-ai-sdk)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Coverage](https://codecov.io/gh/agentguard-ai/tealtiger/branch/main/graph/badge.svg?flag=tealtiger-ai-sdk)](https://app.codecov.io/gh/agentguard-ai/tealtiger?flags%5B0%5D=tealtiger-ai-sdk)
 
 ## Quick Start
 
