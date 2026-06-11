@@ -1,0 +1,214 @@
+{
+  "name": "github-mcp",
+  "version": "1.0.0",
+  "description": "Tool catalog for the GitHub MCP server. Classifies GitHub tooling by governance risk.",
+  "protocol": "mcp",
+  "database": "github",
+  "riskLevels": {
+    "READ": "Read-only discovery and inspection with no repository writes.",
+    "MUTATING": "Alters repository, issue, or pull request state but is not inherently destructive.",
+    "DESTRUCTIVE": "Can remove content, rewrite history paths, or force major release/access changes."
+  },
+  "tools": [
+    {
+      "name": "add_comment_to_pending_review",
+      "risk": "MUTATING",
+      "description": "Add review comment to the latest pending pull request review."
+    },
+    {
+      "name": "add_issue_comment",
+      "risk": "MUTATING",
+      "description": "Add a comment to an issue."
+    },
+    {
+      "name": "assign_copilot_to_issue",
+      "risk": "MUTATING",
+      "description": "Assign Copilot to an issue."
+    },
+    {
+      "name": "create_branch",
+      "risk": "MUTATING",
+      "description": "Create a branch."
+    },
+    {
+      "name": "create_or_update_file",
+      "risk": "MUTATING",
+      "description": "Create or update a repository file."
+    },
+    {
+      "name": "create_pull_request",
+      "risk": "MUTATING",
+      "description": "Open new pull request."
+    },
+    {
+      "name": "create_repository",
+      "risk": "DESTRUCTIVE",
+      "description": "Create a repository."
+    },
+    {
+      "name": "delete_file",
+      "risk": "DESTRUCTIVE",
+      "description": "Delete a file from a repository."
+    },
+    {
+      "name": "fork_repository",
+      "risk": "DESTRUCTIVE",
+      "description": "Fork a repository."
+    },
+    {
+      "name": "get_commit",
+      "risk": "READ",
+      "description": "Get commit details."
+    },
+    {
+      "name": "get_file_contents",
+      "risk": "READ",
+      "description": "Get file or directory contents."
+    },
+    {
+      "name": "get_label",
+      "risk": "READ",
+      "description": "Get a specific label from a repository."
+    },
+    {
+      "name": "get_latest_release",
+      "risk": "READ",
+      "description": "Get latest repository release."
+    },
+    {
+      "name": "get_me",
+      "risk": "READ",
+      "description": "Get authenticated user profile."
+    },
+    {
+      "name": "get_release_by_tag",
+      "risk": "READ",
+      "description": "Get release details by tag."
+    },
+    {
+      "name": "get_tag",
+      "risk": "READ",
+      "description": "Get tag details."
+    },
+    {
+      "name": "get_team_members",
+      "risk": "READ",
+      "description": "Get team members."
+    },
+    {
+      "name": "get_teams",
+      "risk": "READ",
+      "description": "Get teams."
+    },
+    {
+      "name": "issue_read",
+      "risk": "READ",
+      "description": "Get issue details."
+    },
+    {
+      "name": "issue_write",
+      "risk": "MUTATING",
+      "description": "Create or update an issue."
+    },
+    {
+      "name": "list_branches",
+      "risk": "READ",
+      "description": "List branches."
+    },
+    {
+      "name": "list_commits",
+      "risk": "READ",
+      "description": "List repository commits."
+    },
+    {
+      "name": "list_issue_types",
+      "risk": "READ",
+      "description": "List issue types."
+    },
+    {
+      "name": "list_issues",
+      "risk": "READ",
+      "description": "List repository issues."
+    },
+    {
+      "name": "list_pull_requests",
+      "risk": "READ",
+      "description": "List pull requests."
+    },
+    {
+      "name": "list_releases",
+      "risk": "READ",
+      "description": "List releases."
+    },
+    {
+      "name": "list_tags",
+      "risk": "READ",
+      "description": "List tags."
+    },
+    {
+      "name": "merge_pull_request",
+      "risk": "DESTRUCTIVE",
+      "description": "Merge a pull request."
+    },
+    {
+      "name": "pull_request_read",
+      "risk": "READ",
+      "description": "Get details for a single pull request."
+    },
+    {
+      "name": "pull_request_review_write",
+      "risk": "MUTATING",
+      "description": "Create, submit, or delete pull request reviews."
+    },
+    {
+      "name": "push_files",
+      "risk": "DESTRUCTIVE",
+      "description": "Push file changes."
+    },
+    {
+      "name": "request_copilot_review",
+      "risk": "MUTATING",
+      "description": "Request a Copilot review."
+    },
+    {
+      "name": "search_code",
+      "risk": "READ",
+      "description": "Search code."
+    },
+    {
+      "name": "search_issues",
+      "risk": "READ",
+      "description": "Search issues."
+    },
+    {
+      "name": "search_pull_requests",
+      "risk": "READ",
+      "description": "Search pull requests."
+    },
+    {
+      "name": "search_repositories",
+      "risk": "READ",
+      "description": "Search repositories."
+    },
+    {
+      "name": "search_users",
+      "risk": "READ",
+      "description": "Search users."
+    },
+    {
+      "name": "sub_issue_write",
+      "risk": "MUTATING",
+      "description": "Change sub-issue fields."
+    },
+    {
+      "name": "update_pull_request",
+      "risk": "MUTATING",
+      "description": "Edit pull request details."
+    },
+    {
+      "name": "update_pull_request_branch",
+      "risk": "DESTRUCTIVE",
+      "description": "Update pull request branch."
+    }
+  ]
+}

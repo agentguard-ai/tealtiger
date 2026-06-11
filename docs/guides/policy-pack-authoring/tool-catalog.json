@@ -1,0 +1,36 @@
+{
+  "name": "policy-pack-authoring-guide-catalog",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "search_docs",
+      "risk": "READ",
+      "description": "Searches documentation and public knowledge sources."
+    },
+    {
+      "name": "summarize_notes",
+      "risk": "READ",
+      "description": "Summarizes notes for an agent session."
+    },
+    {
+      "name": "update_profile",
+      "risk": "MUTATING",
+      "description": "Updates customer profile fields."
+    },
+    {
+      "name": "delete_user_account",
+      "risk": "DESTRUCTIVE",
+      "description": "Soft-deletes a user account."
+    },
+    {
+      "name": "export_user_data",
+      "risk": "DESTRUCTIVE",
+      "description": "Exports customer-sensitive fields."
+    },
+    {
+      "name": "share_customer_notes",
+      "risk": "MUTATING",
+      "description": "Shares notes that may contain PII."
+    }
+  ]
+}

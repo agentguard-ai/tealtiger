@@ -140,6 +140,8 @@ git commit -m "docs: add CrewAI integration example"
 - [ ] Documentation updated if needed
 - [ ] Commit messages follow conventional commits
 - [ ] No merge conflicts with main
+- [ ] Contributor followed the change management process in [docs/security/change-management.md](docs/security/change-management.md)
+- [ ] PR template requirements reviewed and completed
 
 ## Good First Issues
 

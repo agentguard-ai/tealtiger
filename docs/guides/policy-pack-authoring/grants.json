@@ -1,0 +1,32 @@
+[
+  {
+    "tool": "search_docs",
+    "status": "ALLOW",
+    "reason": "public_reference"
+  },
+  {
+    "tool": "summarize_notes",
+    "status": "ALLOW",
+    "reason": "low_risk_summary"
+  },
+  {
+    "tool": "update_profile",
+    "status": "ALLOW",
+    "reason": "profile_mutations_reviewable"
+  },
+  {
+    "tool": "delete_user_account",
+    "status": "DENY",
+    "reason": "destructive_operation"
+  },
+  {
+    "tool": "export_user_data",
+    "status": "ALLOW",
+    "reason": "needs_argument_guardrails"
+  },
+  {
+    "tool": "share_customer_notes",
+    "status": "ALLOW",
+    "reason": "mutating_action"
+  }
+]

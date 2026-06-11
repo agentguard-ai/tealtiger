@@ -1,0 +1,23 @@
+{
+  "name": "revise-redact",
+  "request": {
+    "tool": "share_customer_notes",
+    "args": {
+      "notes": "Customer email: jane.doe@tealtiger.io, SSN: 123-45-6789, follow-up required."
+    },
+    "estimated_cost_usd": 0.15
+  },
+  "expected": {
+    "action": "REVISE",
+    "reasonCodes": ["policy_notes_pii_redaction", "catalog_match", "catalog_allow"],
+    "teec": {
+      "tool": "share_customer_notes",
+      "action": "REVISE",
+      "risk": "MUTATING"
+    }
+  },
+  "expectedSanitized": {
+    "notes": "Customer email: [REDACTED_EMAIL], SSN: [REDACTED_PII], follow-up required."
+  }
+}
+
