@@ -375,7 +375,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
 - Local CLI dashboard (`npx tealtiger dashboard`)
 - Progressive disclosure: observe → suggest → enforce → govern
-- 8 framework adapters: LangChain, LangGraph, CrewAI, AG2/, LlamaIndex, CAMEL-AI, Haystack, Vercel AI SDK
+- 8 framework adapters: LangChain, LangGraph, CrewAI, AG2, LlamaIndex, CAMEL-AI, Haystack, Vercel AI SDK
 - MCP governance: tool validation, per-identity grants, argument-level policies
 - Tool poisoning & rug pull defense
 - Runaway loop detection & per-trace token budgets
