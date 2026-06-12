@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ag2-tealtiger"
 version = "0.1.0"
-description = "Deterministic governance adapter for AG2 (AutoGen fork) — policy enforcement, PII detection, cost tracking, per-agent kill switch, governed speaker selection, and structured audit evidence. No LLM in the governance path."
+description = "Deterministic governance adapter for AG2 — policy enforcement, PII detection, cost tracking, per-agent kill switch, governed speaker selection, and structured audit evidence. No LLM in the governance path."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
@@ -14,7 +14,6 @@ authors = [
 ]
 keywords = [
     "ag2",
-    "autogen",
     "ai-agents",
     "multi-agent",
     "governance",
@@ -44,7 +43,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "ag2>=0.4.0",
+    "ag2>=0.6.0,<1.0",
     "tealtiger>=1.3.0",
 ]
 
