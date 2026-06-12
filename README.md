@@ -321,7 +321,7 @@ TealTiger is open source and we're looking for early contributors to shape the f
 | 🔍 Secret Detection | New detection patterns, custom categories | 🟢 Beginner |
 | 📝 Documentation | Guides, examples, API docs, typo fixes | 🟢 Beginner |
 | 🧪 Tests | Unit tests, property-based tests, integration tests | 🟡 Intermediate |
-| 🔌 Integrations | LangChain, CrewAI, AutoGen, LlamaIndex middleware | 🟡 Intermediate |
+| 🔌 Integrations | LangChain, CrewAI, , LlamaIndex middleware | 🟡 Intermediate |
 | 💾 Memory Adapters | Redis, Pinecone, Weaviate, ChromaDB adapters | 🟡 Intermediate |
 | 🔄 CI/CD Templates | Jenkins, Azure Pipelines, Bitbucket Pipelines | 🟡 Intermediate |
 | 🏗️ Core Modules | Governance engine, evidence export, policy evaluation | 🔴 Advanced |
@@ -375,7 +375,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
 - Local CLI dashboard (`npx tealtiger dashboard`)
 - Progressive disclosure: observe → suggest → enforce → govern
-- 8 framework adapters: LangChain, LangGraph, CrewAI, AG2/AutoGen, LlamaIndex, CAMEL-AI, Haystack, Vercel AI SDK
+- 8 framework adapters: LangChain, LangGraph, CrewAI, AG2/, LlamaIndex, CAMEL-AI, Haystack, Vercel AI SDK
 - MCP governance: tool validation, per-identity grants, argument-level policies
 - Tool poisoning & rug pull defense
 - Runaway loop detection & per-trace token budgets
