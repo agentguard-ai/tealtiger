@@ -1,6 +1,6 @@
 # ag2-tealtiger
 
-Deterministic governance adapter for [AG2](https://github.com/ag2ai/ag2) (AutoGen fork) — policy enforcement, PII detection, cost tracking, per-agent kill switch, governed speaker selection, and structured audit evidence.
+Deterministic governance adapter for [AG2](https://github.com/ag2ai/ag2) — policy enforcement, PII detection, cost tracking, per-agent kill switch, governed speaker selection, and structured audit evidence.
 
 **No LLM in the governance path.** All policy evaluation is deterministic, adding <5ms latency.
 

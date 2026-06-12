@@ -321,7 +321,7 @@ TealTiger is open source and we're looking for early contributors to shape the f
 | 🔍 Secret Detection | New detection patterns, custom categories | 🟢 Beginner |
 | 📝 Documentation | Guides, examples, API docs, typo fixes | 🟢 Beginner |
 | 🧪 Tests | Unit tests, property-based tests, integration tests | 🟡 Intermediate |
-| 🔌 Integrations | LangChain, CrewAI, , LlamaIndex middleware | 🟡 Intermediate |
+| 🔌 Integrations | LangChain, CrewAI, AG2, LlamaIndex middleware | 🟡 Intermediate |
 | 💾 Memory Adapters | Redis, Pinecone, Weaviate, ChromaDB adapters | 🟡 Intermediate |
 | 🔄 CI/CD Templates | Jenkins, Azure Pipelines, Bitbucket Pipelines | 🟡 Intermediate |
 | 🏗️ Core Modules | Governance engine, evidence export, policy evaluation | 🔴 Advanced |
