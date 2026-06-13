@@ -7,6 +7,7 @@ Deterministic governance component for [Haystack](https://haystack.deepset.ai/) 
 [![PyPI](https://img.shields.io/pypi/v/tealtiger-haystack)](https://pypi.org/project/tealtiger-haystack/)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/pypi/pyversions/tealtiger-haystack)](https://pypi.org/project/tealtiger-haystack/)
+[![Coverage](https://codecov.io/gh/agentguard-ai/tealtiger/branch/main/graph/badge.svg?flag=haystack-tealtiger)](https://app.codecov.io/gh/agentguard-ai/tealtiger?flags%5B0%5D=haystack-tealtiger)
 
 ## Installation
 
