@@ -381,6 +381,14 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - Runaway loop detection & per-trace token budgets
 - TEEC v2.1 Execution Receipts (cryptographic evidence)
 - EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
+- **Universal Adapter Governance Contract** — enforced across all framework adapters:
+  - Every proposed tool call, budget change, freeze/unfreeze, and delegated handoff creates a decision record before execution
+  - Decision binds: agent_id, turn_id, parent_turn_id, action kind, tool name, canonical args digest, policy digest, decision source, expiry, delegation scope
+  - Execution outcome backlinks to decision_id and effective args digest that actually ran
+  - Denial, timeout, and require-approval become visible terminal or pending states (no silent transcript gaps)
+  - Per-actor enforcement: channel/hub approval does not become ambient authority for every agent
+  - Delegation creates scope-bound authorization: delegatee emits its own decision and outcome record
+  - Invariant tests: same payload in two turns produces two decision IDs; approval for one agent does not authorize another; revised args create a new pending decision; timeout produces durable terminal result; retry returns prior terminal state instead of re-running side effect
 
 **Planned:** v1.5.0 — Enterprise Platform (Q3 2026)
 - Multi-tenancy with complete data isolation
