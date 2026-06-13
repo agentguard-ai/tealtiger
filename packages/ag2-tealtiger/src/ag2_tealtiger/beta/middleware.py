@@ -38,15 +38,15 @@ from ag2_tealtiger.beta.types import (
 
 logger = logging.getLogger("tealtiger.ag2.beta")
 
-# Lazy import AG2 Beta types — guarded for when ag2 is not installed
+# AG2 Beta imports — required dependency
 try:
     from autogen.beta import Context
     from autogen.beta.events import BaseEvent, ModelResponse, ToolCallEvent
     from autogen.beta.middleware import BaseMiddleware
 except ImportError:
     raise ImportError(
-        "ag2-tealtiger requires the 'ag2' package with beta support. "
-        "Install it with: pip install 'ag2>=0.13.0'"
+        "ag2-tealtiger beta middleware requires AG2 with beta support. "
+        "Install with: pip install 'ag2>=0.13.0'"
     )
 
 
