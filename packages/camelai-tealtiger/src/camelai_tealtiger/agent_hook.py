@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import logging
 import re
 import time
 import uuid
@@ -35,6 +36,8 @@ _PII_PATTERNS: dict[str, re.Pattern[str]] = {
         r"\b(?:(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\b"
     ),
 }
+
+logger = logging.getLogger(__name__)
 
 
 # ─── Types ───────────────────────────────────────────────────────────────────
@@ -213,6 +216,7 @@ class TealTigerAgentHook:
         society_id: str | None = None,
         task_prompt: str | None = None,
         role_allowlist: list[str] | None = None,
+        anomaly_threshold: float = 200,
     ) -> None:
         """Initialize the governance hook.
 
@@ -228,6 +232,9 @@ class TealTigerAgentHook:
             task_prompt: Optional task prompt (will be hashed for TEEC).
             role_allowlist: Optional list of allowed agent roles. If set,
                            agents with roles not in this list will be denied.
+            anomaly_threshold: Percentage threshold for post-step cost anomaly
+                               alerts. Default 200 means actual cost over 2x
+                               the pre-step estimate is flagged.
         """
         self._engine = engine
         self._mode = GovernanceMode(mode)
@@ -238,6 +245,7 @@ class TealTigerAgentHook:
             hashlib.sha256(task_prompt.encode()).hexdigest() if task_prompt else None
         )
         self._role_allowlist: set[str] | None = set(role_allowlist) if role_allowlist else None
+        self._anomaly_threshold = anomaly_threshold
 
         # Session state
         self._cumulative_cost: float = 0.0
@@ -251,6 +259,7 @@ class TealTigerAgentHook:
         self._agent_tools: dict[str, list[str]] = {}
         self._agent_risk_scores: dict[str, list[int]] = {}
         self._frozen_agents: set[str] = set()
+        self._last_estimated_cost_by_agent: dict[str, float] = {}
 
     # ─── Pre-Step Hook ───────────────────────────────────────────────────
 
@@ -393,6 +402,7 @@ class TealTigerAgentHook:
         self._cumulative_cost += estimated_cost
         self._agent_costs[agent_id] = self._agent_costs.get(agent_id, 0) + estimated_cost
         self._agent_steps[agent_id] = self._agent_steps.get(agent_id, 0) + 1
+        self._last_estimated_cost_by_agent[agent_id] = estimated_cost
 
         # ── Policy Evaluation ────────────────────────────────────────────
         action = GovernanceAction.ALLOW
@@ -530,6 +540,22 @@ class TealTigerAgentHook:
         if pii_findings:
             risk_score = min(len(pii_findings) * 20, 80)
 
+        reason_codes = ["POST_STEP_AUDIT"]
+        estimated_cost = self._last_estimated_cost_by_agent.get(agent_id, 0.0)
+        if estimated_cost > 0:
+            cost_ratio = (actual_cost / estimated_cost) * 100
+            if cost_ratio > self._anomaly_threshold:
+                logger.warning(
+                    "Cost anomaly for agent %s: actual %.6f is %.0f%% of estimated %.6f "
+                    "(threshold %.0f%%)",
+                    agent_id,
+                    actual_cost,
+                    cost_ratio,
+                    estimated_cost,
+                    self._anomaly_threshold,
+                )
+                reason_codes.append("COST_ANOMALY")
+
         audit_entry = AuditEntry(
             correlation_id=correlation_id,
             timestamp_ms=time.time() * 1000,
@@ -538,7 +564,7 @@ class TealTigerAgentHook:
             phase="post_step",
             agent_id=agent_id,
             reason="Post-step audit recorded",
-            reason_codes=["POST_STEP_AUDIT"],
+            reason_codes=reason_codes,
             risk_score=risk_score,
             pii_detected=[
                 {
@@ -557,6 +583,7 @@ class TealTigerAgentHook:
             metadata={
                 "token_usage": token_usage,
                 "output_length": len(step_result),
+                "estimated_cost": estimated_cost,
             },
         )
         self._audit_trail.append(audit_entry)

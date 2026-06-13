@@ -499,3 +499,13 @@ class TestComponentInterface:
 
         # With 0.05/1k tokens and ~1000 tokens, cost should be ~0.05
         assert gov.cumulative_cost > 0.01
+
+    def test_run_flags_cost_anomaly(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Run flags actual token usage that exceeds the input estimate threshold."""
+        gov = TealTigerGovernanceComponent(cost_per_1k_tokens=0.01, anomaly_threshold=200)
+
+        with caplog.at_level("WARNING"):
+            result = gov.run(text="tiny", token_usage={"total_tokens": 1000})
+
+        assert "COST_ANOMALY" in result["decision"]["reason_codes"]
+        assert "Cost anomaly for Haystack input" in caplog.text

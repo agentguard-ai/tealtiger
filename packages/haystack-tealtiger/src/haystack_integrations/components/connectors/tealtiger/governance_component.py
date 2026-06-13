@@ -16,7 +16,7 @@ import time
 import uuid
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from haystack import component, logging
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 # ─── PII Detection Patterns ─────────────────────────────────────────────────
 
-_PII_PATTERNS: Dict[str, re.Pattern[str]] = {
+_PII_PATTERNS: dict[str, re.Pattern[str]] = {
     "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
     "phone_us": re.compile(
         r"\b(?:\+1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b"
@@ -105,13 +105,13 @@ class AuditEntry:
     reason: str
     """Human-readable reason for the decision."""
 
-    reason_codes: List[str]
+    reason_codes: list[str]
     """Machine-readable reason codes."""
 
     risk_score: int
     """Risk score (0-100)."""
 
-    pii_detected: List[Dict[str, Any]]
+    pii_detected: list[dict[str, Any]]
     """List of PII findings."""
 
     cost_tracked: float
@@ -123,13 +123,13 @@ class AuditEntry:
     evaluation_time_ms: float
     """Time taken for governance evaluation in milliseconds."""
 
-    trace_id: Optional[str] = None
+    trace_id: str | None = None
     """Current OpenTelemetry trace ID, if available."""
 
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     """Additional metadata."""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return asdict(self)
 
@@ -140,7 +140,7 @@ class AuditEntry:
 class GovernanceDenyError(Exception):
     """Raised when a governance policy denies the request in ENFORCE mode."""
 
-    def __init__(self, decision: Dict[str, Any]) -> None:
+    def __init__(self, decision: dict[str, Any]) -> None:
         self.decision = decision
         super().__init__(
             f"Governance DENY: {decision.get('reason', 'Policy violation')}"
@@ -176,11 +176,12 @@ class TealTigerGovernanceComponent:
 
     def __init__(
         self,
-        engine: Optional[Any] = None,
+        engine: Any | None = None,
         mode: str = "OBSERVE",
         cost_per_1k_tokens: float = 0.002,
         raise_on_deny: bool = True,
-        agent_id: Optional[str] = None,
+        agent_id: str | None = None,
+        anomaly_threshold: float = 200,
     ) -> None:
         """Initialize the governance component.
 
@@ -194,20 +195,25 @@ class TealTigerGovernanceComponent:
             raise_on_deny: If True, raise GovernanceDenyError on DENY in ENFORCE mode.
                           If False, return empty string for text output.
             agent_id: Optional agent identifier for audit correlation.
+            anomaly_threshold: Percentage threshold for cost anomaly alerts.
+                               Default 200 means actual cost over 2x the
+                               input estimate is flagged.
         """
         self._engine = engine
         self._mode = GovernanceMode(mode)
         self._cost_per_1k_tokens = cost_per_1k_tokens
         self._raise_on_deny = raise_on_deny
         self._agent_id = agent_id or f"haystack-pipeline-{uuid.uuid4().hex[:8]}"
+        self._anomaly_threshold = anomaly_threshold
 
         # Session state
         self._cumulative_cost: float = 0.0
         self._evaluation_count: int = 0
-        self._audit_trail: List[AuditEntry] = []
+        self._audit_trail: list[AuditEntry] = []
+        self._last_estimated_cost: float = 0.0
 
     @component.output_types(text=str, decision=dict)
-    def run(self, text: str) -> Dict[str, Any]:
+    def run(self, text: str, token_usage: dict[str, int] | None = None) -> dict[str, Any]:
         """Evaluate governance policies on the input text.
 
         In zero-config mode, passes text through unchanged while tracking
@@ -217,6 +223,8 @@ class TealTigerGovernanceComponent:
 
         Args:
             text: Input text to evaluate.
+            token_usage: Optional usage with "total_tokens" or
+                         "prompt_tokens"/"completion_tokens" for actual cost.
 
         Returns:
             Dictionary with:
@@ -233,12 +241,21 @@ class TealTigerGovernanceComponent:
         # ── Cost Tracking ────────────────────────────────────────────────
         estimated_tokens = max(len(text) / 4, 1)  # rough char-to-token ratio
         estimated_cost = (estimated_tokens / 1000) * self._cost_per_1k_tokens
-        self._cumulative_cost += estimated_cost
+        actual_cost = estimated_cost
+        if token_usage:
+            total_tokens = token_usage.get(
+                "total_tokens",
+                token_usage.get("prompt_tokens", 0) + token_usage.get("completion_tokens", 0),
+            )
+            actual_cost = (total_tokens / 1000) * self._cost_per_1k_tokens
+
+        self._last_estimated_cost = estimated_cost
+        self._cumulative_cost += actual_cost
 
         # ── Policy Evaluation ────────────────────────────────────────────
         action = GovernanceAction.ALLOW
         reason = "Allowed: zero-config observe mode"
-        reason_codes: List[str] = ["OBSERVE_PASSTHROUGH"]
+        reason_codes: list[str] = ["OBSERVE_PASSTHROUGH"]
         risk_score = 0
 
         if self._engine is not None:
@@ -256,6 +273,20 @@ class TealTigerGovernanceComponent:
             )
             reason_codes = ["PII_DETECTED", "OBSERVE_PASSTHROUGH"]
             risk_score = min(len(pii_findings) * 20, 80)
+
+        if estimated_cost > 0:
+            cost_ratio = (actual_cost / estimated_cost) * 100
+            if cost_ratio > self._anomaly_threshold:
+                logger.warning(
+                    "Cost anomaly for Haystack input: actual ${actual:.6f} is "
+                    "{ratio:.0f}% of estimated ${estimated:.6f} "
+                    "(threshold {threshold:.0f}%)",
+                    actual=actual_cost,
+                    ratio=cost_ratio,
+                    estimated=estimated_cost,
+                    threshold=self._anomaly_threshold,
+                )
+                reason_codes = [*reason_codes, "COST_ANOMALY"]
 
         # ── Build Audit Entry ────────────────────────────────────────────
         evaluation_time_ms = (time.perf_counter() - start_time) * 1000
@@ -277,7 +308,7 @@ class TealTigerGovernanceComponent:
                 }
                 for f in pii_findings
             ],
-            cost_tracked=estimated_cost,
+            cost_tracked=actual_cost,
             cumulative_cost=self._cumulative_cost,
             evaluation_time_ms=evaluation_time_ms,
             trace_id=_get_current_trace_id(),
@@ -286,6 +317,8 @@ class TealTigerGovernanceComponent:
                 "evaluation_number": self._evaluation_count,
                 "input_length": len(text),
                 "estimated_tokens": int(estimated_tokens),
+                "estimated_cost": estimated_cost,
+                "token_usage": token_usage,
             },
         )
         self._audit_trail.append(audit_entry)
@@ -295,7 +328,7 @@ class TealTigerGovernanceComponent:
             "cost=${cost:.4f} | pii_count={pii} | time={time:.2f}ms",
             action=action.value,
             cid=correlation_id,
-            cost=estimated_cost,
+            cost=actual_cost,
             pii=len(pii_findings),
             time=evaluation_time_ms,
         )
@@ -311,7 +344,7 @@ class TealTigerGovernanceComponent:
         # ── ALLOW / MONITOR: pass through ────────────────────────────────
         return {"text": text, "decision": decision_dict}
 
-    def _detect_pii(self, text: str) -> List[PIIFinding]:
+    def _detect_pii(self, text: str) -> list[PIIFinding]:
         """Detect PII patterns in input text.
 
         Args:
@@ -320,7 +353,7 @@ class TealTigerGovernanceComponent:
         Returns:
             List of PII findings with redacted values.
         """
-        findings: List[PIIFinding] = []
+        findings: list[PIIFinding] = []
 
         for pii_type, pattern in _PII_PATTERNS.items():
             for match in pattern.finditer(text):
@@ -342,7 +375,7 @@ class TealTigerGovernanceComponent:
 
         return findings
 
-    def _evaluate_with_engine(self, text: str) -> Dict[str, Any]:
+    def _evaluate_with_engine(self, text: str) -> dict[str, Any]:
         """Evaluate text against TealEngine policies.
 
         Args:
@@ -398,7 +431,7 @@ class TealTigerGovernanceComponent:
             }
 
     @property
-    def audit_trail(self) -> List[AuditEntry]:
+    def audit_trail(self) -> list[AuditEntry]:
         """Access the full audit trail of governance decisions."""
         return list(self._audit_trail)
 
@@ -425,9 +458,10 @@ class TealTigerGovernanceComponent:
         self._cumulative_cost = 0.0
         self._evaluation_count = 0
         self._audit_trail = []
+        self._last_estimated_cost = 0.0
 
 
-def _get_current_trace_id() -> Optional[str]:
+def _get_current_trace_id() -> str | None:
     """Return the current OpenTelemetry trace ID, if the optional API is present."""
     try:
         trace = importlib.import_module("opentelemetry.trace")
