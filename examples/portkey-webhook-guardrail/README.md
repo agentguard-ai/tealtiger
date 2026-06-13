@@ -6,26 +6,7 @@ Portkey routes and observes. TealTiger governs — deterministically, in <5ms, w
 
 ## Architecture
 
-```
-┌──────────────┐     ┌──────────────────┐     ┌──────────────┐
-│  Your App    │────▶│  Portkey Gateway  │────▶│  LLM Provider│
-│              │     │                  │     │  (OpenAI,    │
-│              │     │  beforeRequest ──┼──┐  │   Anthropic, │
-│              │◀────│  afterRequest  ──┼──┤  │   etc.)      │
-└──────────────┘     └──────────────────┘  │  └──────────────┘
-                                           │
-                                           ▼
-                                    ┌──────────────┐
-                                    │  TealTiger   │
-                                    │  Webhook     │
-                                    │              │
-                                    │  • PII       │
-                                    │  • Injection │
-                                    │  • Secrets   │
-                                    │  • Cost      │
-                                    │  • Policy    │
-                                    └──────────────┘
-```
+![TealTiger × Portkey Architecture](https://raw.githubusercontent.com/agentguard-ai/tealtiger/main/examples/portkey-webhook-guardrail/architecture.svg)
 
 ## How It Works
 
