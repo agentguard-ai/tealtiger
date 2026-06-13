@@ -109,6 +109,8 @@ docker-compose*.yml
 src/
 !dashboard/governance-feed/src/
 !dashboard/governance-feed/src/**
+!packages/tealtiger-ai-sdk/src/
+!packages/tealtiger-ai-sdk/src/**
 
 # Postman collections
 postman/

@@ -51,6 +51,21 @@ maintainer acknowledgment before merge.
 4. A release note/changelog update is prepared for user-impacting changes.
 5. Versioning and publishing follow maintainers’ release playbook.
 
+### Release checklist
+
+Before tagging or publishing a release, confirm:
+
+- All release-blocking PRs are merged and associated issues are closed or
+  explicitly deferred.
+- CI, test, build, coverage, dependency, and security gates are green for the
+  release commit.
+- Version numbers, package metadata, and release notes/changelog entries match
+  the intended release contents.
+- Artifacts are built from the approved release commit, not from a local dirty
+  checkout.
+- A post-release smoke test owner is identified for each published package or
+  integration surface.
+
 ## 5) Release and Rollback Procedure
 
 ### Standard release
@@ -67,6 +82,18 @@ If a release introduces a regression:
 2. Revert the release commit(s) with clear rollback reasoning.
 3. Re-publish the previous good version.
 4. Open a follow-up issue for root-cause correction and corrective release.
+
+### Rollback verification
+
+Rollback readiness is tested through a dry-run or documented rehearsal before a
+release that changes user-facing behavior, package publishing, security policy,
+or governance enforcement. The rehearsal should record:
+
+- the release identifier or commit that would be reverted,
+- the previous known-good version or commit,
+- the command or GitHub action used to revert or re-publish,
+- smoke checks used to confirm the rollback,
+- and the owner responsible for communicating rollback status.
 
 ## 6) Emergency Hotfix Process
 
