@@ -17,6 +17,58 @@ pip install tealtiger-haystack
 
 ## Quick Start
 
+### Recipe B: Infinite Agent Loop Circuit Breaker
+
+Place `TealTigerCircuitBreaker` after an agent or tool-calling component inside
+a Haystack loop. It stops automation when cumulative cost, consecutive failures,
+or total iterations exceed your session limits.
+
+```python
+from haystack import Pipeline, component
+from haystack_integrations.components.connectors.tealtiger import TealTigerCircuitBreaker
+
+
+@component
+class ToolCallingAgent:
+    @component.output_types(text=str)
+    def run(self, prompt: str) -> dict[str, object]:
+        return {"text": f"tool result for {prompt}"}
+
+
+pipeline = Pipeline()
+pipeline.add_component("agent", ToolCallingAgent())
+pipeline.add_component(
+    "circuit_breaker",
+    TealTigerCircuitBreaker(
+        max_cost_per_session=0.50,
+        max_consecutive_failures=2,
+        max_iterations=4,
+        action_on_break="terminate",
+        cost_per_1k_tokens=1.0,
+    ),
+)
+
+pipeline.connect("agent.text", "circuit_breaker.text")
+
+for _ in range(10):
+    result = pipeline.run({
+        "agent": {"prompt": "research next action"},
+        "circuit_breaker": {
+            "token_usage": {"total_tokens": 180},
+            "success": True,
+        },
+    })
+    breaker = result["circuit_breaker"]
+    if not breaker["should_continue"]:
+        print(breaker["message"])
+        print(breaker["audit"])
+        break
+```
+
+See the full recipe in
+[`docs/recipes/agent-circuit-breaker.md`](docs/recipes/agent-circuit-breaker.md)
+and the runnable example in
+[`examples/agent_circuit_breaker.py`](examples/agent_circuit_breaker.py).
 ### Recipe A: Compliant Enterprise RAG Pipeline
 
 Place `TealTigerPIIRedactor` after your Haystack retriever and before your
@@ -134,6 +186,7 @@ result = pipeline.run({"governance": {"text": "Process this request"}})
 | PII detection (email, SSN, credit card, phone, IP) | ✅ | ✅ |
 | Retrieved-document PII redaction before generation | ✅ | ✅ |
 | Cost tracking per evaluation | ✅ | ✅ |
+| Agent loop circuit breaking | ✅ | ✅ |
 | Structured audit entries | ✅ | ✅ |
 | Correlation IDs (UUID v4) | ✅ | ✅ |
 | Policy enforcement (DENY/ALLOW) | — | ✅ |

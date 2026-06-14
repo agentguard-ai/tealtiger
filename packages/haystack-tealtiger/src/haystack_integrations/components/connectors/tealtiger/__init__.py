@@ -27,8 +27,8 @@ No LLM in the governance path. All policy evaluation is deterministic, adding <5
 from haystack_integrations.components.connectors.tealtiger.governance_component import (
     TealTigerGovernanceComponent,
 )
-from haystack_integrations.components.connectors.tealtiger.pii_redactor import (
-    TealTigerPIIRedactor,
+from haystack_integrations.components.connectors.tealtiger.circuit_breaker import (
+    TealTigerCircuitBreaker,
 )
 
-__all__ = ["TealTigerGovernanceComponent", "TealTigerPIIRedactor"]
+__all__ = ["TealTigerCircuitBreaker", "TealTigerGovernanceComponent"]
