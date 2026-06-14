@@ -17,6 +17,64 @@ pip install tealtiger-haystack
 
 ## Quick Start
 
+### Recipe A: Compliant Enterprise RAG Pipeline
+
+Place `TealTigerPIIRedactor` after your Haystack retriever and before your
+prompt or generator. Retrieved documents keep their metadata, but emails, SSNs,
+credit cards, phone numbers, and API keys are replaced before the LLM sees them.
+
+```python
+from haystack import Document, Pipeline
+from haystack.components.builders import PromptBuilder
+from haystack.components.generators import OpenAIGenerator
+from haystack.components.retrievers.in_memory import InMemoryBM25Retriever
+from haystack.document_stores.in_memory import InMemoryDocumentStore
+from haystack.utils import Secret
+from haystack_integrations.components.connectors.tealtiger import TealTigerPIIRedactor
+
+document_store = InMemoryDocumentStore()
+document_store.write_documents([
+    Document(content="Jane's email is jane@example.com and SSN is 123-45-6789."),
+    Document(content="Support policy says never send raw PII to an LLM."),
+])
+
+prompt_template = """
+Answer using only the sanitized context.
+
+Context:
+{% for document in documents %}
+- {{ document.content }}
+{% endfor %}
+
+Question: {{ question }}
+Answer:
+"""
+
+pipeline = Pipeline()
+pipeline.add_component("retriever", InMemoryBM25Retriever(document_store=document_store))
+pipeline.add_component("pii_redactor", TealTigerPIIRedactor(action="redact"))
+pipeline.add_component(
+    "prompt",
+    PromptBuilder(
+        template=prompt_template,
+        required_variables=["documents", "question"],
+    ),
+)
+pipeline.add_component(
+    "generator",
+    OpenAIGenerator(api_key=Secret.from_env_var("OPENAI_API_KEY")),
+)
+
+pipeline.connect("retriever.documents", "pii_redactor.documents")
+pipeline.connect("pii_redactor.clean_documents", "prompt.documents")
+pipeline.connect("prompt.prompt", "generator.prompt")
+```
+
+See the full recipe in
+[`docs/recipes/compliant-enterprise-rag.md`](docs/recipes/compliant-enterprise-rag.md)
+and the runnable example in
+[`examples/compliant_enterprise_rag.py`](examples/compliant_enterprise_rag.py).
+
 ### Zero-Config Mode (Observe)
 
 Add governance to any Haystack pipeline with zero configuration. In this mode, TealTiger observes all traffic, tracks cost estimates, detects PII, and allows everything through unchanged — producing structured audit entries for observability.
@@ -74,6 +132,7 @@ result = pipeline.run({"governance": {"text": "Process this request"}})
 | Feature | Zero-Config | Policy Mode |
 |---------|:-----------:|:-----------:|
 | PII detection (email, SSN, credit card, phone, IP) | ✅ | ✅ |
+| Retrieved-document PII redaction before generation | ✅ | ✅ |
 | Cost tracking per evaluation | ✅ | ✅ |
 | Structured audit entries | ✅ | ✅ |
 | Correlation IDs (UUID v4) | ✅ | ✅ |
