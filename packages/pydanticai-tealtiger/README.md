@@ -7,6 +7,7 @@ No LLM in the governance path. All policy evaluation is deterministic, adding <2
 [![PyPI](https://img.shields.io/pypi/v/pydanticai-tealtiger)](https://pypi.org/project/pydanticai-tealtiger/)
 [![Python](https://img.shields.io/pypi/pyversions/pydanticai-tealtiger)](https://pypi.org/project/pydanticai-tealtiger/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Coverage](https://codecov.io/gh/agentguard-ai/tealtiger/branch/main/graph/badge.svg?flag=pydanticai-tealtiger)](https://app.codecov.io/gh/agentguard-ai/tealtiger?flags%5B0%5D=pydanticai-tealtiger)
 
 ## Installation
 

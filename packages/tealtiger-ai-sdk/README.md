@@ -4,6 +4,7 @@ TealTiger governance middleware for the [Vercel AI SDK](https://ai-sdk.dev/) —
 
 [![npm](https://img.shields.io/npm/v/tealtiger-ai-sdk)](https://www.npmjs.com/package/tealtiger-ai-sdk)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Coverage](https://codecov.io/gh/agentguard-ai/tealtiger/branch/main/graph/badge.svg?flag=tealtiger-ai-sdk)](https://app.codecov.io/gh/agentguard-ai/tealtiger?flags%5B0%5D=tealtiger-ai-sdk)
 
 ## Quick Start
 
@@ -168,6 +169,12 @@ npm run typecheck # tsc --noEmit
 - [Next.js App Router chat](./examples/nextjs-app-router/) — wraps a Vercel AI
   SDK model with `tealtigerMiddleware()` and displays governance metadata in a
   `useChat` client.
+
+## Support
+
+- Source: https://github.com/agentguard-ai/tealtiger-typescript-prod
+- Issues: https://github.com/agentguard-ai/tealtiger-typescript-prod/issues
+- Security advisories: https://github.com/agentguard-ai/tealtiger-typescript-prod/security/advisories/new
 
 ## License
 

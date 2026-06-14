@@ -485,6 +485,21 @@ class TestCostTracking:
 
         assert decision["cost_tracked"] > 0
 
+    def test_post_step_flags_cost_anomaly(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Post-step flags actual cost that exceeds the pre-step estimate threshold."""
+        hook = TealTigerAgentHook(cost_per_1k_tokens=0.01, anomaly_threshold=200)
+        hook.pre_step(agent_id="agent-1", step_content="tiny")
+
+        with caplog.at_level("WARNING"):
+            decision = hook.post_step(
+                agent_id="agent-1",
+                step_result="large response",
+                token_usage={"total_tokens": 1000},
+            )
+
+        assert "COST_ANOMALY" in decision["reason_codes"]
+        assert "Cost anomaly for agent agent-1" in caplog.text
+
 
 # ─── Audit Trail Tests ──────────────────────────────────────────────────────
 

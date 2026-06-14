@@ -37,15 +37,15 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^24.13.1",
-    "@types/react": "^19.2.16",
+    "@types/node": "^24.13.2",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/react-window": "^1.8.8",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.2.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
-    "lucide-react": "^1.17.0",
+    "lucide-react": "^1.18.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-window": "^1.8.11",

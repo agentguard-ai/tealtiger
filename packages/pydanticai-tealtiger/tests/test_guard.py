@@ -654,6 +654,21 @@ class TestCostTracking:
 
         assert decision["cost_tracked"] > 0
 
+    def test_post_call_flags_cost_anomaly(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Post-call flags actual cost that exceeds the pre-call estimate threshold."""
+        guard = TealTigerGuard(cost_per_1k_tokens=0.01, anomaly_threshold=200)
+        guard.evaluate(tool="search", args={"query": "tiny"})
+
+        with caplog.at_level("WARNING"):
+            decision = guard.post_call(
+                tool_name="search",
+                result="large response",
+                token_usage={"total_tokens": 1000},
+            )
+
+        assert "COST_ANOMALY" in decision["reason_codes"]
+        assert "Cost anomaly for tool search" in caplog.text
+
 
 # ─── Audit Trail Tests ──────────────────────────────────────────────────────
 

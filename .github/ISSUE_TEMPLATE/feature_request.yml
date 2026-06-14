@@ -36,15 +36,6 @@ body:
         - Integrations
         - Dashboard
         - CLI
-      description: Which component does this request target?
-      options:
-        - TealEngine
-        - TealGuard
-        - Cost Governance
-        - New Provider
-        - API Client
-        - Documentation
-        - Developer Experience
         - Other
     validations:
       required: true

@@ -52,6 +52,8 @@ export {
   BudgetExceededError,
 } from './errors';
 
+export { FreezeRegistry } from './observe/FreezeRegistry';
+
 // Factory function (default export)
 import { tealtigerMiddleware } from './factory';
 export { tealtigerMiddleware };

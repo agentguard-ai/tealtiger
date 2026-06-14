@@ -1,0 +1,3 @@
+# Hash-pinned test tools for adapter coverage workflow.
+pytest==8.4.2
+pytest-cov==7.0.0
