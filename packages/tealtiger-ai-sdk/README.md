@@ -170,6 +170,12 @@ npm run typecheck # tsc --noEmit
   SDK model with `tealtigerMiddleware()` and displays governance metadata in a
   `useChat` client.
 
+## Support
+
+- Source: https://github.com/agentguard-ai/tealtiger-typescript-prod
+- Issues: https://github.com/agentguard-ai/tealtiger-typescript-prod/issues
+- Security advisories: https://github.com/agentguard-ai/tealtiger-typescript-prod/security/advisories/new
+
 ## License
 
 Apache-2.0

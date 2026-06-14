@@ -57,11 +57,11 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/agentguard-ai/tealtiger-typescript.git",
+    "url": "https://github.com/agentguard-ai/tealtiger-typescript-prod.git",
     "directory": "packages/tealtiger-ai-sdk"
   },
   "bugs": {
-    "url": "https://github.com/agentguard-ai/tealtiger-typescript/issues"
+    "url": "https://github.com/agentguard-ai/tealtiger-typescript-prod/issues"
   },
   "homepage": "https://tealtiger.ai",
   "peerDependencies": {
