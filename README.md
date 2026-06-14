@@ -395,6 +395,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - **Kill Switch Latency SLA** — guaranteed <5ms FREEZE propagation with published benchmarks, quantified time-to-halt for compliance
 - **Shadow Agent Detection** — discover ungoverned agents in the environment, surface unmonitored tool calls and untracked cost
 - **AI Dependency SBOM** — generate Software Bill of Materials for agent dependencies, model provenance, and MCP server inventory
+- **Pack Hunt Defense** — multi-agent coordinated attack detection:
+  - Cross-session intent correlation: link related sessions via `session_group_id`, query receipts across sessions by agent + time window
+  - Reassembly detection: flag when N individually-benign requests from different agents/sessions converge on the same output scope within a time window (deterministic, no LLM)
+  - Multi-model coordination detection: track which model produced which output, flag when output from model A becomes input to model B without governance evaluation in between
 
 **Planned:** v1.5.0 — Enterprise Platform (Q3 2026)
 - Multi-tenancy with complete data isolation
