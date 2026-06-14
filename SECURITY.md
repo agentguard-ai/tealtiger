@@ -27,6 +27,7 @@ Report vulnerabilities through one of these private channels:
 
 - Email: security@tealtiger.co.in
 - GitHub Security Advisories: https://github.com/agentguard-ai/tealtiger/security/advisories/new
+- TypeScript SDK Security Advisories: https://github.com/agentguard-ai/tealtiger-typescript-prod/security/advisories/new
 
 If GitHub Security Advisories are unavailable for your account, use the email
 address above. Do not include exploit details in a public issue.
@@ -97,6 +98,8 @@ Security updates may be announced through:
 
 - GitHub Security Advisories:
   https://github.com/agentguard-ai/tealtiger/security/advisories
+- TypeScript SDK Security Advisories:
+  https://github.com/agentguard-ai/tealtiger-typescript-prod/security/advisories
 - GitHub releases and release notes.
 - `CHANGELOG.md` entries.
 - Package updates on npm or PyPI for affected SDK packages.
@@ -175,6 +178,8 @@ as code review, CI checks, deployment policy, and audit monitoring.
 - Security reports: security@tealtiger.co.in
 - Security advisories:
   https://github.com/agentguard-ai/tealtiger/security/advisories
+- TypeScript SDK advisories:
+  https://github.com/agentguard-ai/tealtiger-typescript-prod/security/advisories
 - General project contact: reachout@tealtiger.ai
 
 Thank you for helping keep TealTiger and its users secure.
