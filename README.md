@@ -371,7 +371,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - 12 LLM providers + 3 platform adapters (Bedrock, AgentCore, Azure)
 - Full Python SDK parity
 
-**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (June 2026)
+**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (July 2026)
 - `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
 - Local CLI dashboard (`npx tealtiger dashboard`)
 - Progressive disclosure: observe → suggest → enforce → govern
