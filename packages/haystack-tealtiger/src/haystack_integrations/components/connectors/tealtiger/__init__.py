@@ -22,13 +22,27 @@ Add deterministic governance to any Haystack pipeline:
     governed = TealTigerGovernanceComponent(engine=engine)
 
 No LLM in the governance path. All policy evaluation is deterministic, adding <5ms latency.
+
+Also includes deterministic PII redaction, agent loop circuit breaking, and
+inter-agent prompt-injection defense components.
 """
 
-from haystack_integrations.components.connectors.tealtiger.governance_component import (
-    TealTigerGovernanceComponent,
-)
 from haystack_integrations.components.connectors.tealtiger.circuit_breaker import (
     TealTigerCircuitBreaker,
 )
+from haystack_integrations.components.connectors.tealtiger.guard_component import (
+    TealTigerGuardComponent,
+)
+from haystack_integrations.components.connectors.tealtiger.governance_component import (
+    TealTigerGovernanceComponent,
+)
+from haystack_integrations.components.connectors.tealtiger.pii_redactor import (
+    TealTigerPIIRedactor,
+)
 
-__all__ = ["TealTigerCircuitBreaker", "TealTigerGovernanceComponent"]
+__all__ = [
+    "TealTigerCircuitBreaker",
+    "TealTigerGovernanceComponent",
+    "TealTigerGuardComponent",
+    "TealTigerPIIRedactor",
+]
