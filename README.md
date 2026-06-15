@@ -220,6 +220,15 @@ response = client.chat.completions.create(
 | Haystack | [haystack-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/haystack-tealtiger) | `pip install haystack-tealtiger` |
 | CAMEL-AI | [camelai-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/camelai-tealtiger) | `pip install camelai-tealtiger` |
 
+### 🔗 Infrastructure Integrations
+
+| Platform | What it provides | Install |
+|----------|-----------------|---------|
+| [Dakera](https://github.com/Dakera-AI/dakera-py) | Persistent governance state backend (cost storage, decision receipts, delegation chains via KG) | `pip install dakera[tealtiger]` |
+| [AG2 Beta](https://github.com/ag2ai/ag2) | Governance middleware Extension for AG2 Beta agents | `pip install ag2-tealtiger` |
+| [Portkey Gateway](https://github.com/Portkey-AI/gateway) | Webhook guardrail for Portkey AI Gateway | [Example](https://github.com/agentguard-ai/tealtiger/tree/main/examples/portkey-webhook-guardrail) |
+| [Daytona](https://github.com/daytonaio/daytona) | Pre-execution governance for sandboxed code execution | [Example](https://github.com/agentguard-ai/tealtiger/tree/main/examples/daytona-governed-sandbox) |
+
 ---
 
 ## 📚 Documentation
