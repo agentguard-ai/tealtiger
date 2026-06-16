@@ -224,7 +224,7 @@ response = client.chat.completions.create(
 
 | Platform | What it provides | Install |
 |----------|-----------------|---------|
-| [Dakera](https://github.com/Dakera-AI/dakera-py) | Persistent governance state backend (cost storage, decision receipts, delegation chains via KG) | `pip install dakera[tealtiger]` |
+| [Dakera](https://github.com/Dakera-AI/dakera-py) | Persistent governance state backend (cost storage, decision receipts, delegation chains via KG) | `pip install dakera[tealtiger]` | [Docs](https://dakera.ai/integrations/tealtiger) |
 | [AG2 Beta](https://github.com/ag2ai/ag2) | Governance middleware Extension for AG2 Beta agents | `pip install ag2-tealtiger` |
 | [Portkey Gateway](https://github.com/Portkey-AI/gateway) | Webhook guardrail for Portkey AI Gateway | [Example](https://github.com/agentguard-ai/tealtiger/tree/main/examples/portkey-webhook-guardrail) |
 | [Daytona](https://github.com/daytonaio/daytona) | Pre-execution governance for sandboxed code execution | [Example](https://github.com/agentguard-ai/tealtiger/tree/main/examples/daytona-governed-sandbox) |
@@ -404,6 +404,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - **Kill Switch Latency SLA** — guaranteed <5ms FREEZE propagation with published benchmarks, quantified time-to-halt for compliance
 - **Shadow Agent Detection** — discover ungoverned agents in the environment, surface unmonitored tool calls and untracked cost
 - **AI Dependency SBOM** — generate Software Bill of Materials for agent dependencies, model provenance, and MCP server inventory
+- **Dakera Integration (shipped)** — persistent governance state backend for distributed deployments (`pip install dakera[tealtiger]`). Cost records, decision receipts, and delegation chains survive restarts via agent-scoped memory with importance-weighted retention.
 - **Pack Hunt Defense** — multi-agent coordinated attack detection:
   - Cross-session intent correlation: link related sessions via `session_group_id`, query receipts across sessions by agent + time window
   - Reassembly detection: flag when N individually-benign requests from different agents/sessions converge on the same output scope within a time window (deterministic, no LLM)
