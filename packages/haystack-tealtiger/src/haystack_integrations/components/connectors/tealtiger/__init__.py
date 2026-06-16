@@ -39,10 +39,18 @@ from haystack_integrations.components.connectors.tealtiger.governance_component 
 from haystack_integrations.components.connectors.tealtiger.pii_redactor import (
     TealTigerPIIRedactor,
 )
+from haystack_integrations.components.connectors.tealtiger.policy_templates import (
+    PolicyTemplate,
+    get_policy_template,
+    list_policy_templates,
+)
 
 __all__ = [
+    "PolicyTemplate",
     "TealTigerCircuitBreaker",
     "TealTigerGovernanceComponent",
     "TealTigerGuardComponent",
     "TealTigerPIIRedactor",
+    "get_policy_template",
+    "list_policy_templates",
 ]

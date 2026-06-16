@@ -17,6 +17,32 @@ pip install tealtiger-haystack
 
 ## Quick Start
 
+### Pre-Built Templates
+
+Use a named template when you want an enterprise guardrail profile with one
+parameter:
+
+```python
+from haystack_integrations.components.connectors.tealtiger import (
+    TealTigerGovernanceComponent,
+)
+
+guard = TealTigerGovernanceComponent(preset="financial-rag")
+```
+
+Available templates:
+
+| Preset | Use Case | Detects / Blocks |
+|--------|----------|------------------|
+| `healthcare-guard` | PHI/HIPAA support and RAG flows | Redacts PII/PHI and marks restricted data |
+| `financial-rag` | Financial RAG pipelines | Blocks prompt injection and records data-boundary matches |
+| `agent-loop-safe` | Agent/tool loops | Blocks excessive session cost or iteration count |
+| `eu-ai-act` | Regulated automated decisions | Requires human escalation for high-risk decisions |
+| `zero-config` | Observe-only rollout | Allows all text while recording telemetry |
+
+Template docs live in [`docs/templates/`](docs/templates/) and runnable examples
+live in [`examples/template_*.py`](examples/).
+
 ### Recipe C: Inter-Agent Prompt Injection Defense
 
 Place `TealTigerGuardComponent` between untrusted text and a downstream agent.

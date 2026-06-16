@@ -20,6 +20,12 @@ from typing import Any
 
 from haystack import component, logging
 
+from haystack_integrations.components.connectors.tealtiger.policy_templates import (
+    PolicyTemplate,
+    evaluate_template_policy,
+    get_policy_template,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -182,6 +188,7 @@ class TealTigerGovernanceComponent:
         raise_on_deny: bool = True,
         agent_id: str | None = None,
         anomaly_threshold: float = 200,
+        preset: str | None = None,
     ) -> None:
         """Initialize the governance component.
 
@@ -198,9 +205,12 @@ class TealTigerGovernanceComponent:
             anomaly_threshold: Percentage threshold for cost anomaly alerts.
                                Default 200 means actual cost over 2x the
                                input estimate is flagged.
+            preset: Optional built-in policy template slug, such as
+                    "financial-rag" or "healthcare-guard".
         """
+        self._template: PolicyTemplate | None = get_policy_template(preset) if preset else None
         self._engine = engine
-        self._mode = GovernanceMode(mode)
+        self._mode = GovernanceMode(self._template.mode if self._template else mode)
         self._cost_per_1k_tokens = cost_per_1k_tokens
         self._raise_on_deny = raise_on_deny
         self._agent_id = agent_id or f"haystack-pipeline-{uuid.uuid4().hex[:8]}"
@@ -254,9 +264,11 @@ class TealTigerGovernanceComponent:
 
         # ── Policy Evaluation ────────────────────────────────────────────
         action = GovernanceAction.ALLOW
+        output_text = text
         reason = "Allowed: zero-config observe mode"
         reason_codes: list[str] = ["OBSERVE_PASSTHROUGH"]
         risk_score = 0
+        template_metadata: dict[str, Any] = {}
 
         if self._engine is not None:
             # Policy mode: delegate to TealEngine
@@ -265,6 +277,20 @@ class TealTigerGovernanceComponent:
             reason = engine_decision.get("reason", "Policy evaluated")
             reason_codes = engine_decision.get("reason_codes", ["POLICY_EVALUATED"])
             risk_score = engine_decision.get("risk_score", 0)
+        elif self._template is not None:
+            template_decision = evaluate_template_policy(
+                self._template,
+                text=text,
+                pii_findings=pii_findings,
+                cumulative_cost=self._cumulative_cost,
+                evaluation_count=self._evaluation_count,
+            )
+            action = GovernanceAction(template_decision["action"])
+            output_text = template_decision["text"]
+            reason = template_decision["reason"]
+            reason_codes = template_decision["reason_codes"]
+            risk_score = template_decision["risk_score"]
+            template_metadata = template_decision["metadata"]
         elif pii_findings:
             # Zero-config mode with PII detected: flag but allow
             reason = (
@@ -319,6 +345,7 @@ class TealTigerGovernanceComponent:
                 "estimated_tokens": int(estimated_tokens),
                 "estimated_cost": estimated_cost,
                 "token_usage": token_usage,
+                **template_metadata,
             },
         )
         self._audit_trail.append(audit_entry)
@@ -342,7 +369,7 @@ class TealTigerGovernanceComponent:
             return {"text": "", "decision": decision_dict}
 
         # ── ALLOW / MONITOR: pass through ────────────────────────────────
-        return {"text": text, "decision": decision_dict}
+        return {"text": output_text, "decision": decision_dict}
 
     def _detect_pii(self, text: str) -> list[PIIFinding]:
         """Detect PII patterns in input text.
