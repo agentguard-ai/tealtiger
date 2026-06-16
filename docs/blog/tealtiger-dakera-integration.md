@@ -1,95 +1,76 @@
 # TealTiger × Dakera: Governance State That Survives Restarts
 
-**Published:** June 17, 2026  
-**Author:** TealTiger Team
-
----
-
-## TL;DR
-
-TealTiger's deterministic governance now persists across process restarts, agent migrations, and horizontal scaling — via Dakera's agent-scoped memory layer. Install with `pip install dakera[tealtiger]`.
-
----
+*Published: June 2026*
 
 ## The Problem
 
-TealTiger governs AI agent actions in <5ms — enforcing tool allowlists, detecting PII, tracking cost, and producing structured audit receipts. But until now, that governance state lived in-memory: restart the process and your cost accumulators reset, decision receipts vanish, and delegation chains disappear.
+TealTiger's governance middleware evaluates policies in under 5ms — deterministic, no LLM in the path. But until now, governance state (cost records, decision receipts, delegation chains) lived in-memory. Process restarts, agent migrations, and horizontal scaling all lost that state.
 
-For single-process prototypes, this is fine. For production multi-agent systems — where agents restart, migrate between hosts, or scale horizontally — governance continuity is a hard requirement.
+For single-process prototyping, in-memory is fine. For production multi-agent systems running across multiple processes, you need governance continuity.
 
-## The Solution
+## The Solution: Dakera as Governance State Backend
 
-[Dakera](https://dakera.ai) provides agent-scoped persistent memory with importance-weighted retention, semantic search, and a knowledge graph. Three adapter classes now bridge TealTiger's governance interfaces to Dakera's storage:
+[Dakera](https://dakera.ai) is a self-hosted AI agent memory server with agent-scoped state, decay-weighted retention, and a knowledge graph. It's the first persistent backend for TealTiger's governance layer.
 
-### DakeraCostStorage
+```bash
+pip install dakera[tealtiger]
+```
 
-Drop-in replacement for TealTiger's `InMemoryCostStorage`. All 8 `CostStorage` ABC methods implemented — your per-agent cost tracking now survives restarts.
+Three adapter classes shipped in `dakera v0.12.1`:
+
+- **DakeraCostStorage** — implements all 8 methods of TealTiger's `CostStorage` ABC. Per-agent cost records persist across restarts.
+- **DakeraDecisionStore** — governance decisions stored with importance-tiered retention (DENY=0.95, ALLOW=0.80). Critical denials outlive routine approvals.
+- **DakeraDelegationHelper** — delegation chains stored as knowledge graph edges (`delegated_from`), enabling full audit-trail traversal.
+
+## Architecture Principle
+
+A key design constraint (credit [@rpelevin](https://github.com/rpelevin) from the AG2 governance discussion):
+
+**Storage = evidence/continuity, NOT authority.**
+
+The storage layer answers:
+- "Has this decision already reached a terminal state?" (idempotency)
+- "What delegation chain was in force?" (evidence for new decision)
+
+It does NOT answer: "Is this new action authorized?" — that always requires a fresh policy evaluation over the current action envelope.
+
+This means a stored ALLOW from yesterday cannot authorize today's action. Every new request gets a fresh deterministic evaluation. Storage informs; it doesn't permit.
+
+## Usage
 
 ```python
 from dakera.async_client import AsyncDakeraClient
 from dakera.integrations.tealtiger import DakeraCostStorage
+
 from tealtiger import TealOpenAI, TealOpenAIConfig
 
 client = AsyncDakeraClient("http://localhost:3000", api_key="dk-mykey")
 cost_storage = DakeraCostStorage(client)
 
+# Every LLM call's cost is now persisted in Dakera
 teal_client = TealOpenAI(config=TealOpenAIConfig(cost_storage=cost_storage))
-# Every LLM call tracked and persisted in Dakera
 ```
-
-### DakeraDecisionStore
-
-Governance decisions persist with importance-weighted retention:
-- **DENY** receipts at importance 0.95 — survive memory compaction longest
-- **REQUIRE_APPROVAL** at 0.90 — stays until resolved
-- **ALLOW** at 0.80 — routine decisions decay naturally
-
-Idempotency check: `is_terminal()` returns prior terminal state for retry scenarios without re-executing the side effect.
-
-### DakeraDelegationHelper
-
-Delegation chains stored as typed knowledge graph edges (`delegated_from`). Traverse multi-hop delegations to answer: "who delegated authority to whom, and what scope was granted?"
-
-## Architecture Principle
-
-**Storage = evidence/continuity, NOT authority.**
-
-This was the key design constraint (credit: @rpelevin from the AG2 governance discussion). A stored ALLOW decision is *not* permission to proceed. Every new action still gets a fresh deterministic evaluation. Storage answers "what was decided before?" — the middleware answers "what is authorized now?"
-
-Three independent questions, three independent answers:
-1. **Storage**: What was remembered?
-2. **Middleware**: What is authorized now?
-3. **Receipt**: What actually executed?
 
 ## What This Enables
 
-| Before (in-memory) | After (Dakera backend) |
-|---|---|
-| Cost resets on restart | Cost accumulates across restarts |
-| Decision receipts lost | Receipts persist with tiered retention |
-| Delegation chains in flat JSON | Traversable knowledge graph |
-| Single-process only | Horizontal scaling, agent migration |
-| No semantic search | "Find decisions similar to this denied call" |
-
-## Getting Started
-
-```bash
-# Start Dakera (single container, no external deps)
-git clone https://github.com/Dakera-AI/dakera-deploy.git
-cd dakera-deploy && docker compose up -d
-
-# Install
-pip install dakera[tealtiger] tealtiger
-```
+| Scenario | Before (in-memory) | After (Dakera) |
+|---|---|---|
+| Process restart | Cost budgets reset to zero | Budget state preserved |
+| Agent migration | Decision history lost | Full receipt chain available |
+| Horizontal scaling | Each instance has its own state | Shared governance state |
+| Compliance audit | Manual log reconstruction | Query by agent, time, action type |
+| Retry after timeout | Unknown if already executed | Idempotency check returns prior terminal state |
 
 ## Links
 
-- [Dakera Integration Page](https://dakera.ai/integrations/tealtiger)
-- [Dakera Blog: TealTiger Integration](https://dakera.ai/blog/dakera-tealtiger-integration)
-- [TealTiger Integration Docs](https://github.com/agentguard-ai/tealtiger/blob/main/docs/integrations/dakera.md)
-- [Design Discussion](https://github.com/Dakera-AI/dakera-deploy/discussions/169)
-- [AG2 Governance Thread](https://github.com/ag2ai/ag2/issues/2967)
+- Dakera integration page: [dakera.ai/integrations/tealtiger](https://dakera.ai/integrations/tealtiger)
+- Dakera blog post: [dakera.ai/blog/dakera-tealtiger-integration](https://dakera.ai/blog/dakera-tealtiger-integration)
+- TealTiger integration docs: [docs/integrations/dakera.md](https://github.com/agentguard-ai/tealtiger/blob/main/docs/integrations/dakera.md)
+- Design discussion: [Dakera-AI/dakera-deploy#169](https://github.com/Dakera-AI/dakera-deploy/discussions/169)
+- PyPI: `pip install dakera[tealtiger]`
 
----
+## What's Next
 
-*TealTiger is an open-source AI agent governance SDK (Apache 2.0). Deterministic policy enforcement, <5ms overhead, no LLM in the governance path.*
+- Governance event stream integration (Dakera SSE → TealTiger SARIF export)
+- Cross-agent governance network visualization
+- TealTiger TypeScript SDK + Dakera JS SDK integration (PR #157 in progress)

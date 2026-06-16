@@ -46,6 +46,8 @@ Stored decisions inform fresh evaluations — they never become ambient permissi
 
 ## Links
 
+- Integration page: [dakera.ai/integrations/tealtiger](https://dakera.ai/integrations/tealtiger)
+- Blog: [dakera.ai/blog/dakera-tealtiger-integration](https://dakera.ai/blog/dakera-tealtiger-integration)
 - PyPI: `pip install dakera[tealtiger]`
 - Source: [Dakera-AI/dakera-py](https://github.com/Dakera-AI/dakera-py)
 - Discussion: [dakera-deploy#169](https://github.com/Dakera-AI/dakera-deploy/discussions/169)
