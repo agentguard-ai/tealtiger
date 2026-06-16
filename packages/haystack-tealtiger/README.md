@@ -17,6 +17,20 @@ pip install tealtiger-haystack
 
 ## Quick Start
 
+### 1-Minute Quickstart
+
+Start from the GitHub template repository:
+[`CleanDev-Fix/haystack-secure-starter`](https://github.com/CleanDev-Fix/haystack-secure-starter).
+
+```bash
+git clone https://github.com/CleanDev-Fix/haystack-secure-starter.git
+cd haystack-secure-starter
+pip install -r requirements.txt && python quickstart.py
+```
+
+The guide lives in
+[`docs/guides/quickstart.md`](docs/guides/quickstart.md).
+
 ### Pre-Built Templates
 
 Use a named template when you want an enterprise guardrail profile with one
