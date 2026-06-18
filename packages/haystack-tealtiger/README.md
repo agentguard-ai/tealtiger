@@ -378,6 +378,12 @@ except GovernanceDenyError as e:
     print(f"Codes: {e.decision['reason_codes']}")
 ```
 
+## Security guides
+
+- [Securing Haystack Pipelines against the OWASP LLM Top 10](docs/guides/owasp-llm-top10.md) —
+  maps each OWASP LLM vulnerability to the TealTiger component that mitigates it, with
+  working Haystack pipeline code for all 10 categories.
+
 ## Development
 
 ```bash
