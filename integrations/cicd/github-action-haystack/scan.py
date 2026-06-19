@@ -187,6 +187,12 @@ def _check_agent_loop(
     """
     Warn when pipeline.run() is called inside an unbounded while-True loop
     without a TealTiger budget guard or circuit breaker in the same module.
+
+    Design note: a bare `break` statement inside the loop does not suppress this
+    warning because the check verifies governance intent, not control flow. A
+    loop that exits via an arbitrary condition still has no cost cap if it runs
+    for many iterations before hitting that condition. Only an explicit TealTiger
+    budget guard in module scope suppresses the warning.
     """
     has_budget_guard = bool(names & _BUDGET_GUARDS)
     findings: list[Finding] = []
@@ -333,6 +339,55 @@ def _parse_checks(raw: str) -> set[str]:
     return selected & all_checks
 
 
+def _format_sarif(findings: list[Finding]) -> str:
+    results = []
+    for f in findings:
+        results.append(
+            {
+                "ruleId": f.check,
+                "message": {"text": f.message},
+                "locations": [
+                    {
+                        "physicalLocation": {
+                            "artifactLocation": {"uri": f.file},
+                            "region": {"startLine": f.line},
+                        }
+                    }
+                ],
+            }
+        )
+    sarif = {
+        "version": "2.1.0",
+        "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0.json",
+        "runs": [
+            {
+                "tool": {
+                    "driver": {
+                        "name": "tealtiger-haystack-scan",
+                        "version": "1.0.0",
+                        "rules": [
+                            {
+                                "id": "unguarded-generator",
+                                "shortDescription": {
+                                    "text": "Haystack LLM generator used without TealTiger governance"
+                                },
+                            },
+                            {
+                                "id": "agent-loop",
+                                "shortDescription": {
+                                    "text": "Unbounded agent loop without budget guard"
+                                },
+                            },
+                        ],
+                    }
+                },
+                "results": results,
+            }
+        ],
+    }
+    return json.dumps(sarif, indent=2)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="TealTiger Haystack Pipeline Security Scanner"
@@ -352,6 +407,12 @@ def main() -> None:
         "--post-comment",
         default="true",
         help="Post findings as a PR comment (requires GITHUB_TOKEN)",
+    )
+    parser.add_argument(
+        "--output-format",
+        default="text",
+        choices=["text", "json", "sarif"],
+        help="Output format for local runs: text (default), json, or sarif",
     )
     parser.add_argument("--github-token", default="", help="GitHub token for PR comments")
     args = parser.parse_args()
@@ -378,17 +439,37 @@ def main() -> None:
             fh.write(f"warnings={len(findings)}\n")
             fh.write(f"report={report_json}\n")
 
-    # Console summary
-    if not findings:
-        print("No unguarded Haystack pipeline components detected.")
+    # Console output — format selected by --output-format
+    if args.output_format == "json":
+        print(
+            json.dumps(
+                [
+                    {
+                        "file": f.file,
+                        "line": f.line,
+                        "check": f.check,
+                        "message": f.message,
+                        "fix": f.fix,
+                    }
+                    for f in findings
+                ],
+                indent=2,
+            )
+        )
+    elif args.output_format == "sarif":
+        print(_format_sarif(findings))
     else:
-        print(f"{len(findings)} warning(s) found:\n")
-        for f in findings:
-            print(f"  [{f.check}] {f.file}:{f.line}")
-            print(f"    {f.message}")
-            print(f"    Fix: {f.fix}\n")
+        if not findings:
+            print("No unguarded Haystack pipeline components detected.")
+        else:
+            print(f"{len(findings)} warning(s) found:\n")
+            for f in findings:
+                print(f"  [{f.check}] {f.file}:{f.line}")
+                print(f"    {f.message}")
+                print(f"    Fix: {f.fix}\n")
 
-    # Post PR comment if running in a pull_request event with findings
+    # Post PR comment if running in a pull_request event with findings.
+    # argparse converts --post-comment to args.post_comment (hyphens become underscores).
     event_name = os.environ.get("GITHUB_EVENT_NAME", "")
     if (
         findings

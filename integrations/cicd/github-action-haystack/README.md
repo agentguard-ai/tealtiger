@@ -7,7 +7,7 @@ Findings are posted as a PR comment with specific fix suggestions.
 ## Quickstart
 
 ```yaml
-- uses: actions/checkout@v4
+- uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 - uses: agentguard-ai/tealtiger/integrations/cicd/github-action-haystack@main
 ```
 
@@ -65,7 +65,7 @@ jobs:
   haystack-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - uses: agentguard-ai/tealtiger/integrations/cicd/github-action-haystack@main
         id: scan
@@ -88,7 +88,14 @@ jobs:
 ## Running locally
 
 ```bash
+# Human-readable (default)
 python integrations/cicd/github-action-haystack/scan.py --path ./src
+
+# Machine-parseable JSON
+python integrations/cicd/github-action-haystack/scan.py --path ./src --output-format json
+
+# SARIF for GitHub code scanning upload
+python integrations/cicd/github-action-haystack/scan.py --path ./src --output-format sarif
 ```
 
 ## Running tests
