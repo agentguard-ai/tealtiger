@@ -8,6 +8,7 @@ Deterministic governance component for [Haystack](https://haystack.deepset.ai/) 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/pypi/pyversions/tealtiger-haystack)](https://pypi.org/project/tealtiger-haystack/)
 [![Coverage](https://codecov.io/gh/agentguard-ai/tealtiger/branch/main/graph/badge.svg?flag=haystack-tealtiger)](https://app.codecov.io/gh/agentguard-ai/tealtiger?flags%5B0%5D=haystack-tealtiger)
+[![Governed by TealTiger](https://img.shields.io/badge/Governed%20by-TealTiger-0f766e?style=flat)](https://github.com/agentguard-ai/tealtiger)
 
 ## Installation
 
@@ -377,6 +378,12 @@ except GovernanceDenyError as e:
     print(f"Blocked: {e.decision['reason']}")
     print(f"Codes: {e.decision['reason_codes']}")
 ```
+
+## Security guides
+
+- [Securing Haystack Pipelines against the OWASP LLM Top 10](docs/guides/owasp-llm-top10.md) —
+  maps each OWASP LLM vulnerability to the TealTiger component that mitigates it, with
+  working Haystack pipeline code for all 10 categories.
 
 ## Development
 
