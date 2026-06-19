@@ -35,7 +35,9 @@ The shorter code is not the only benefit. The value is that cost, safety, and ev
 - Cost tracking and budget enforcement across model calls.
 - Guardrails for PII detection, prompt injection prevention, content moderation, secret detection, and custom rules.
 - Audit and redaction support for structured evidence.
-- Provider coverage for OpenAI, Anthropic, Google Gemini, AWS Bedrock, Azure OpenAI, Cohere, Mistral AI, DeepSeek, Groq, Together AI, Hugging Face TGI, and xAI.
+- Core provider coverage for OpenAI, Anthropic, Google Gemini, AWS Bedrock,
+  Azure OpenAI, Cohere, and Mistral AI, with expanded v1.3 provider coverage
+  tracked per SDK.
 - A shared place to evolve policy as agent and provider usage grows.
 
 ## Trade-offs
