@@ -7,7 +7,7 @@
 **AI Agent Security & Governance SDK**
 
 Deterministic governance, guardrails, cost tracking, and policy management for LLM applications.
-Open source. TypeScript + Python. Works with any provider.
+Open source. TypeScript + Python. Provider coverage is tracked per SDK.
 
 [![npm version](https://badge.fury.io/js/tealtiger.svg)](https://www.npmjs.com/package/tealtiger)
 [![PyPI version](https://badge.fury.io/py/tealtiger.svg)](https://pypi.org/project/tealtiger/)
@@ -151,7 +151,10 @@ response = client.chat.completions.create(
 - **Cost Alerts** — Notifications at configurable thresholds
 - **Circuit Breakers** — Prevent runaway cost loops automatically
 
-### 🔌 12 LLM Providers
+### 🔌 Provider Coverage
+
+Core provider clients are available across the TypeScript and Python SDKs:
+
 - **OpenAI** — GPT-4, GPT-4o, GPT-3.5
 - **Anthropic** — Claude 3.5, Claude 3
 - **Google Gemini** — Multimodal support
@@ -159,6 +162,10 @@ response = client.chat.completions.create(
 - **Azure OpenAI** — Deployment-based routing
 - **Cohere** — Chat, RAG, embeddings
 - **Mistral AI** — European data residency
+
+Additional v1.3 provider coverage is currently supported in the Python SDK and
+tracked as planned TypeScript SDK parity:
+
 - **DeepSeek** — Cost-efficient reasoning models
 - **Groq** — Ultra-low latency inference
 - **Together AI** — Open-source model hosting
@@ -238,7 +245,7 @@ response = client.chat.completions.create(
 - [Quick Start Guide](#-quick-start)
 - [Security Guardrails](#️-security-guardrails)
 - [Cost Governance](#-cost-governance)
-- [Provider Setup](#-7-llm-providers)
+- [Provider Setup](#-provider-coverage)
 - [FAQ](./docs/faq.md)
 - [Why TealTiger?](./docs/why-tealtiger.md)
 - [Cross-SDK Feature Parity Matrix](./docs/cross-sdk-feature-parity-matrix.md)
@@ -377,8 +384,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - TealDrift, TealState, TealTemporal — behavioral, context, and session governance
 - TealMonitor v2 — governance-owned cost ceilings, anomaly detection
 - OWASP Agentic Top 10 policy pack (zero-config)
-- 12 LLM providers + 3 platform adapters (Bedrock, AgentCore, Azure)
-- Full Python SDK parity
+- Core provider clients plus Python support for the expanded v1.3 provider set
+- TypeScript/Python parity tracked in the cross-SDK feature parity matrix
 
 **Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (July 2026)
 - `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
