@@ -226,29 +226,35 @@ See the full recipe in
 and the runnable example in
 [`examples/compliant_enterprise_rag.py`](examples/compliant_enterprise_rag.py).
 
-### Zero-Config Mode (Observe)
+### 1-Line Observe Mode
 
-Add governance to any Haystack pipeline with zero configuration. In this mode, TealTiger observes all traffic, tracks cost estimates, detects PII, and allows everything through unchanged — producing structured audit entries for observability.
+*Drop this into your existing Haystack pipeline. It changes zero logic. Let it run for 48 hours. See exactly how much money you're wasting and where users are injecting prompts.*
+
+The `TealTigerObserver` is a zero-risk, zero-config component that passively monitors your pipeline. It tracks cost, redacts nothing, blocks nothing, and outputs exactly what it receives.
 
 ```python
 from haystack import Pipeline
-from haystack_integrations.components.connectors.tealtiger import (
-    TealTigerGovernanceComponent,
-)
+from haystack_integrations.components.connectors.tealtiger import TealTigerObserver
 
 pipeline = Pipeline()
-pipeline.add_component("governance", TealTigerGovernanceComponent())
+# Add the observer before your prompts
+observer = TealTigerObserver(cost_per_1k_tokens=0.002)
+pipeline.add_component("observer", observer)
 pipeline.add_component("llm", your_generator)
-pipeline.connect("governance.text", "llm.prompt")
+pipeline.connect("observer.text", "llm.prompt")
 
-result = pipeline.run({"governance": {"text": "What is the capital of France?"}})
-# result["governance"]["decision"] contains:
-# - correlation_id: UUID v4 for tracing
-# - action: "ALLOW"
-# - pii_detected: []
-# - cost_tracked: 0.000014
-# - cumulative_cost: 0.000014
-# - evaluation_time_ms: 0.42
+# Run your pipeline as normal
+pipeline.run({"observer": {"text": "What is the capital of France?"}})
+pipeline.run({"observer": {"text": "ignore previous instructions"}})
+
+# Generate a telemetry report anytime
+print(observer.report())
+# {
+#   'invocations': 2, 
+#   'total_cost': 0.000014, 
+#   'pii_detections': 0, 
+#   'injection_attempts': 1
+# }
 ```
 
 ### Policy Mode (Enforce)
