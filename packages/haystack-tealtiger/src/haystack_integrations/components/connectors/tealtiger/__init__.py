@@ -44,12 +44,16 @@ from haystack_integrations.components.connectors.tealtiger.policy_templates impo
     get_policy_template,
     list_policy_templates,
 )
+from haystack_integrations.components.connectors.tealtiger.observer import (
+    TealTigerObserver,
+)
 
 __all__ = [
     "PolicyTemplate",
     "TealTigerCircuitBreaker",
     "TealTigerGovernanceComponent",
     "TealTigerGuardComponent",
+    "TealTigerObserver",
     "TealTigerPIIRedactor",
     "get_policy_template",
     "list_policy_templates",

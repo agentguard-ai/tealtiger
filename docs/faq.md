@@ -20,9 +20,11 @@ dashboards can still export evidence and events to their own infrastructure.
 
 ## Which providers are supported?
 
-TealTiger documents support for 12 LLM providers: OpenAI, Anthropic, Google
-Gemini, AWS Bedrock, Azure OpenAI, Cohere, Mistral AI, DeepSeek, Groq, Together
-AI, Hugging Face TGI, and xAI/Grok. Provider-specific keys should stay in
+TealTiger documents core provider clients for OpenAI, Anthropic, Google Gemini,
+AWS Bedrock, Azure OpenAI, Cohere, and Mistral AI across the TypeScript and
+Python SDKs. Additional v1.3 providers, including DeepSeek, Groq, Together AI,
+Hugging Face TGI, and xAI/Grok, are currently supported in the Python SDK and
+tracked as planned TypeScript SDK parity. Provider-specific keys should stay in
 environment variables or other secret-management systems, not in source files.
 
 ## Is TealTiger free?
