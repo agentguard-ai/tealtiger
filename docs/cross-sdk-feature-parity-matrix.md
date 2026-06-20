@@ -1,6 +1,6 @@
 # Cross-SDK Feature Parity Matrix
 
-Last verified: May 22, 2026.
+Last verified: June 20, 2026.
 
 This matrix tracks feature parity between the TypeScript and Python SDKs in this repository. It should be updated whenever a provider, module, or example changes in either SDK.
 
@@ -18,7 +18,7 @@ This matrix tracks feature parity between the TypeScript and Python SDKs in this
 | Capability | TypeScript SDK | Python SDK | Evidence |
 | --- | --- | --- | --- |
 | Core provider clients | Supported | Supported | [TypeScript clients](../packages/tealtiger-sdk/src/client/), [Python clients](../packages/tealtiger-python/src/tealtiger/clients/) |
-| Additional v1.3 providers (Groq, DeepSeek, Together AI, Hugging Face TGI, xAI) | Planned | Supported | [TypeScript clients](../packages/tealtiger-sdk/src/client/), [Python new providers](../packages/tealtiger-python/src/tealtiger/clients/new_providers.py) |
+| Additional v1.3 providers (Groq, DeepSeek, Together AI, Hugging Face TGI, xAI) | Supported | Supported | [TypeScript provider clients](../packages/tealtiger-sdk/src/providers/), [TypeScript provider tests](../packages/tealtiger-sdk/src/providers/__tests__/new-providers.test.ts), [TypeScript parity example](../packages/tealtiger-sdk/examples/v1.3-provider-parity.ts), [Python new providers](../packages/tealtiger-python/src/tealtiger/clients/new_providers.py) |
 | Guardrails | Supported | Supported | [TypeScript guardrails](../packages/tealtiger-sdk/src/guardrails/), [Python guardrails](../packages/tealtiger-python/src/tealtiger/guardrails/) |
 | Custom guardrails | Supported | Supported | [TypeScript guardrail tests](../packages/tealtiger-sdk/src/guardrails/__tests__/engine.test.ts), [Python guardrail tests](../packages/tealtiger-python/tests/test_guardrail_engine.py) |
 | Cost tracking and budgets | Supported | Supported | [TypeScript cost modules](../packages/tealtiger-sdk/src/cost/), [Python cost demo](../packages/tealtiger-python/examples/cost_tracking_demo.py) |
