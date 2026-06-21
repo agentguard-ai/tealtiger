@@ -19,6 +19,9 @@ Thank you to everyone who has contributed to TealTiger! 🐯
 - **[@stark256-spec](https://github.com/stark256-spec)** — Slack MCP server policy pack (22 tools, 5 deny rules) — PR #215; WAL corruption recovery, invalid replay cursor fix, dateValue NaN crash fix — PR #216; Linux/Docker host binding (0.0.0.0) and graceful SIGTERM/SIGINT shutdown — PR #217
 - **[@wondr-wclabs](https://github.com/wondr-wclabs)** — PydanticAI guard reset method — PR #249; Audit trail JSONL export (all 3 Python adapters) — PR #250; PydanticAI tool baselines — PR #251; Next.js App Router AI SDK example — PR #252; OpenTelemetry trace ID integration (all 4 Python adapters) — PR #253
 - **[@wipheg](https://github.com/wipheg)** — Postgres MCP policy pack with SQL deny rules and tool classification — PR #270
+- **[@turfin-logic](https://github.com/turfin-logic)** — 1-Line Observe Mode Component for Haystack (`TealTigerObserver` with passthrough telemetry, cost tracking, PII/injection detection) — PR #343
+- **[@blut-agent](https://github.com/blut-agent)** — Policy validation CLI subcommand (`tealtiger validate`) with JSON/YAML support, schema checking, and JSON output for CI — PR #14 (tealtiger-python-prod)
+- **[@stark256-spec](https://github.com/stark256-spec)** *(continued)* — Haystack pipeline security scan GitHub Action (AST-based, zero dependencies, 16 tests) — PR #315
 
 ## Core Team
 
