@@ -1,0 +1,77 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tealtiger-redteam"
+version = "0.1.0"
+description = "Static red-team scanner for Haystack pipelines with TealTiger fix suggestions."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "TealTiger Team", email = "reachout@tealtiger.ai"},
+]
+keywords = [
+    "haystack",
+    "tealtiger",
+    "red-team",
+    "security",
+    "scanner",
+    "llm",
+    "prompt-injection",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "mypy>=1.5.0",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+tealtiger-redteam = "tealtiger_redteam.cli:main"
+
+[project.urls]
+Homepage = "https://tealtiger.ai"
+Documentation = "https://docs.tealtiger.ai/integrations/haystack"
+Repository = "https://github.com/agentguard-ai/tealtiger"
+Issues = "https://github.com/agentguard-ai/tealtiger/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tealtiger_redteam"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+strict = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "C", "B", "UP"]
+ignore = ["E501"]

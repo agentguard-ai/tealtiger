@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "packages/haystack-tealtiger/**"
+      - "packages/tealtiger-redteam/**"
       - "packages/camelai-tealtiger/**"
       - "packages/pydanticai-tealtiger/**"
       - "packages/tealtiger-ai-sdk/**"
@@ -12,6 +13,7 @@ on:
     branches: [main]
     paths:
       - "packages/haystack-tealtiger/**"
+      - "packages/tealtiger-redteam/**"
       - "packages/camelai-tealtiger/**"
       - "packages/pydanticai-tealtiger/**"
       - "packages/tealtiger-ai-sdk/**"
@@ -29,6 +31,7 @@ jobs:
       matrix:
         package:
           - haystack-tealtiger
+          - tealtiger-redteam
           - camelai-tealtiger
           - pydanticai-tealtiger
     steps:
