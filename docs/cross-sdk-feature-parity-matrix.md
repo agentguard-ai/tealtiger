@@ -24,7 +24,7 @@ This matrix tracks feature parity between the TypeScript and Python SDKs in this
 | Cost tracking and budgets | Supported | Supported | [TypeScript cost modules](../packages/tealtiger-sdk/src/cost/), [Python cost demo](../packages/tealtiger-python/examples/cost_tracking_demo.py) |
 | Audit and redaction | Supported | Supported | [TypeScript audit module](../packages/tealtiger-sdk/src/core/audit/), [Python audit module](../packages/tealtiger-python/src/tealtiger/core/audit/) |
 | Governance and policy evaluation | Supported | Supported | [TypeScript client](../packages/tealtiger-sdk/src/client/TealTiger.ts), [Python engine](../packages/tealtiger-python/src/tealtiger/core/engine/) |
-| Examples and quickstarts | Supported | Supported | [TypeScript examples](../packages/tealtiger-sdk/examples/), [Python examples](../packages/tealtiger-python/examples/) |
+| Examples and quickstarts | Supported | Supported | [TypeScript examples](../packages/tealtiger-sdk/examples/), [Python examples](../packages/tealtiger-python/examples/), [LlamaIndex Python example](../examples/python/llamaindex_integration.py) |
 
 ## v1.3 Module Snapshot
 
