@@ -9,6 +9,7 @@ const { homedir } = require('node:os');
 const { createClient } = require('@libsql/client');
 const WebSocket = require('ws');
 const { WebSocketServer } = WebSocket;
+const { validatePolicyFile } = require('./policy-validator');
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_HOST = '127.0.0.1';
@@ -32,6 +33,12 @@ async function main(argv) {
     return;
   }
 
+  if (command === 'validate') {
+    const exitCode = runPolicyValidation(rest);
+    process.exitCode = exitCode;
+    return;
+  }
+
   if (command !== 'dashboard') {
     throw new CliError(`Unknown command "${command}". Run "tealtiger --help" for usage.`, 1);
   }
@@ -43,6 +50,21 @@ async function main(argv) {
   }
 
   await runDashboard(options);
+}
+
+function runPolicyValidation(argv) {
+  const [policyFile, ...extra] = argv;
+
+  if (!policyFile || policyFile === '--help' || policyFile === '-h') {
+    printValidateHelp();
+    return policyFile ? 0 : 1;
+  }
+
+  if (extra.length > 0) {
+    throw new CliError('validate accepts exactly one policy file path.');
+  }
+
+  return validatePolicyFile(policyFile);
 }
 
 function parseDashboardArgs(argv) {
@@ -703,9 +725,11 @@ function printRootHelp() {
 
 Usage:
   tealtiger dashboard [options]
+  tealtiger validate <path>
 
 Commands:
   dashboard   Launch the local observability dashboard
+  validate    Validate a TealTiger policy JSON or YAML file
 `);
 }
 
@@ -723,6 +747,17 @@ Options:
 `);
 }
 
+function printValidateHelp() {
+  console.log(`Validate a TealTiger policy file.
+
+Usage:
+  tealtiger validate <path>
+
+Arguments:
+  <path>  Policy file to validate (.json, .yaml, or .yml)
+`);
+}
+
 module.exports = {
   DEFAULT_DB_PATH,
   DEFAULT_PORT,
@@ -734,6 +769,7 @@ module.exports = {
   openEventStore,
   parseDashboardArgs,
   parsePort,
+  runPolicyValidation,
   resolveDatabasePath,
   rowToReceipt,
 };

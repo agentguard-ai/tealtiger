@@ -24,6 +24,7 @@
     "test:stream": "node --test -r ts-node/register tests/api/governance-stream.test.ts",
     "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
     "test:dashboard-cli": "node --test tests/cli/dashboard-cli.test.js",
+    "test:validate-cli": "node --test tests/cli/validate-cli.test.js",
     "test:dashboard-feed": "node --test -r ts-node/register tests/dashboard/governance-feed-latency.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
@@ -34,6 +35,7 @@
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.8.5",
     "ws": "^8.18.3",
+    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
