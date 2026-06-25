@@ -226,6 +226,7 @@ tracked as planned TypeScript SDK parity:
 | PydanticAI | [pydanticai-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/pydanticai-tealtiger) | `pip install pydanticai-tealtiger` |
 | Haystack | [haystack-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/haystack-tealtiger) | `pip install haystack-tealtiger` |
 | CAMEL-AI | [camelai-tealtiger](https://github.com/agentguard-ai/tealtiger/tree/main/packages/camelai-tealtiger) | `pip install camelai-tealtiger` |
+| LlamaIndex | [python example](https://github.com/agentguard-ai/tealtiger/blob/main/examples/python/llamaindex_integration.py) | `pip install tealtiger llama-index openai` |
 
 ### 🔗 Infrastructure Integrations
 
