@@ -16,13 +16,12 @@ import pytest
 
 from ag2_tealtiger.guard import TealTigerGuard
 from ag2_tealtiger.types import (
+    ActionKind,
     AuditEntry,
     GovernanceAction,
     GovernanceMode,
-    ActionKind,
     TEECContext,
 )
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -38,19 +37,19 @@ def _make_audit_entry(
     import uuid
 
     decision_id = str(uuid.uuid4())
-    defaults = dict(
-        correlation_id=str(uuid.uuid4()),
-        decision_id=decision_id,
-        timestamp_ms=time.time() * 1000,
-        action=action,
-        action_kind=ActionKind.TOOL_CALL.value,
-        mode=GovernanceMode.OBSERVE.value,
-        agent_id=agent_id,
-        reason="Test entry",
-        reason_codes=["OBSERVE_PASSTHROUGH"],
-        risk_score=0,
-        evaluation_time_ms=evaluation_time_ms,
-        teec=TEECContext(
+    defaults = {
+        "correlation_id": str(uuid.uuid4()),
+        "decision_id": decision_id,
+        "timestamp_ms": time.time() * 1000,
+        "action": action,
+        "action_kind": ActionKind.TOOL_CALL.value,
+        "mode": GovernanceMode.OBSERVE.value,
+        "agent_id": agent_id,
+        "reason": "Test entry",
+        "reason_codes": ["OBSERVE_PASSTHROUGH"],
+        "risk_score": 0,
+        "evaluation_time_ms": evaluation_time_ms,
+        "teec": TEECContext(
             namespace="teec.ag2",
             conversation_id=str(uuid.uuid4()),
             turn_id=1,
@@ -58,8 +57,8 @@ def _make_audit_entry(
             decision_id=decision_id,
             decision_source="default_mode",
         ),
-        tool_name=tool_name,
-    )
+        "tool_name": tool_name,
+    }
     defaults.update(overrides)
     return AuditEntry(**defaults)
 
@@ -403,3 +402,42 @@ class TestExportAuditTrailIntegration:
 
         assert count == n
         assert count == len(guard.audit_trail)
+
+
+class TestAuditTrailJsonExport:
+    """Test compact JSON export for dashboard ingestion."""
+
+    def test_to_json_returns_expected_schema(self) -> None:
+        """to_json returns one compact decision object per audit entry."""
+        guard = TealTigerGuard()
+        entry = _make_audit_entry(
+            agent_id="research-agent",
+            tool_name="web_scrape",
+            action=GovernanceAction.DENY.value,
+            reason_codes=["TOOL_NOT_ALLOWED"],
+            risk_score=80,
+            evaluation_time_ms=2.1,
+            timestamp_ms=0,
+        )
+        guard._audit_trail.append(entry)
+
+        payload = guard.to_json()
+
+        assert payload == [
+            {
+                "decision_id": entry.decision_id,
+                "timestamp": "1970-01-01T00:00:00Z",
+                "agent_id": "research-agent",
+                "action": "deny",
+                "tool_name": "web_scrape",
+                "reason_codes": ["TOOL_NOT_ALLOWED"],
+                "risk_score": 80,
+                "evaluation_time_ms": 2.1,
+            }
+        ]
+
+    def test_to_json_empty_trail(self) -> None:
+        """Empty audit trails export as an empty JSON array."""
+        guard = TealTigerGuard()
+
+        assert guard.to_json() == []

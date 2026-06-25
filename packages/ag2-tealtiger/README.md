@@ -44,6 +44,24 @@ guard.attach(agent)
 # DENY blocks the call with a structured denial message
 ```
 
+### Audit Export
+
+```python
+decisions = guard.to_json()
+# [
+#   {
+#     "decision_id": "d-4a8b2c1f",
+#     "timestamp": "2026-06-16T14:30:00Z",
+#     "agent_id": "research-agent",
+#     "action": "deny",
+#     "tool_name": "web_scrape",
+#     "reason_codes": ["TOOL_NOT_ALLOWED"],
+#     "risk_score": 80,
+#     "evaluation_time_ms": 2.1,
+#   }
+# ]
+```
+
 ### Governed GroupChat
 
 ```python
