@@ -19,7 +19,6 @@ Targets the uncovered paths in middleware.py (76.70% -> 90%+ target):
 - GovernanceDenyError attributes
 """
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -27,13 +26,11 @@ import pytest
 from autogen.beta.extensions.tealtiger.middleware import (
     GovernanceDenyError,
     TealTigerMiddleware,
-    _PII_PATTERNS,
     _SECRET_PATTERNS,
 )
 from autogen.beta.extensions.tealtiger.types import (
     DecisionAction,
     DecisionSource,
-    GovernanceDecision,
     GovernanceMode,
     GovernancePolicy,
     TEECReceipt,

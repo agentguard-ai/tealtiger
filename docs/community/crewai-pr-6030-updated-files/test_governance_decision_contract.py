@@ -440,7 +440,7 @@ FIXTURE_TAIL_DROP_SEALED: list[dict[str, Any]] = [
     {"decision_id": "d-403", "tool": "write", "decision": "allow",
      "reason": "ok", "seq": 2, "running_count": 3},
     # Seal says 4 total, but only 3 held — tail drop detected
-    {"boundary_id": "crew-run-1", "sealed": True, "total": 4},
+    {**FIXTURE_SEAL, "total": 4},
 ]
 
 FIXTURE_TAIL_DROP_NO_SEAL: list[dict[str, Any]] = [
