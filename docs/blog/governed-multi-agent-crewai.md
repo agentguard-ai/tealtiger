@@ -6,6 +6,9 @@ date: 2026-06-08
 permalink: /governance/frameworks/governed-multi-agent-crewai/
 category: governance
 hub: frameworks
+author: Chad Nelson (@CleanDev-Fix)
+author_github: https://github.com/CleanDev-Fix
+author_role: Trusted Contributor
 
 tags:
   - crewai

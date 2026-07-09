@@ -1,0 +1,11 @@
+{
+  "name": "@tealtiger/dashboard-shared",
+  "version": "0.1.0",
+  "description": "Shared TypeScript types for the TealTiger Governance Dashboard",
+  "main": "./types.ts",
+  "types": "./types.ts",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

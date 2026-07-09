@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="520" viewBox="0 0 800 520" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect width="800" height="520" fill="#fafafa"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="16" font-weight="600" fill="#111827">TEEC Evidence Viewer — Data Flow</text>
+  
+  <!-- Entry Points section -->
+  <text x="200" y="65" text-anchor="middle" font-size="11" font-weight="600" fill="#6b7280">ENTRY POINTS</text>
+  
+  <!-- Entry Point 1: Audit Trail -->
+  <rect x="60" y="80" width="160" height="44" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="140" y="100" text-anchor="middle" font-size="10" font-weight="500" fill="#0d9488">Audit Trail</text>
+  <text x="140" y="114" text-anchor="middle" font-size="9" fill="#6b7280">Row click → detail</text>
+  
+  <!-- Entry Point 2: Decision Explorer -->
+  <rect x="240" y="80" width="160" height="44" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+  <text x="320" y="100" text-anchor="middle" font-size="10" font-weight="500" fill="#f97316">Decision Explorer</text>
+  <text x="320" y="114" text-anchor="middle" font-size="9" fill="#6b7280">Drill-down → evidence</text>
+  
+  <!-- Entry Point 3: Direct URL -->
+  <rect x="420" y="80" width="160" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+  <text x="500" y="100" text-anchor="middle" font-size="10" font-weight="500" fill="#10b981">Direct URL</text>
+  <text x="500" y="114" text-anchor="middle" font-size="9" fill="#6b7280">/evidence/:id</text>
+  
+  <!-- Arrows from entry points to Evidence Detail View -->
+  <line x1="140" y1="124" x2="140" y2="155" stroke="#0d9488" stroke-width="1" marker-end="url(#arrowTeal4)"/>
+  <line x1="320" y1="124" x2="320" y2="155" stroke="#f97316" stroke-width="1" marker-end="url(#arrowOrange4)"/>
+  <line x1="500" y1="124" x2="500" y2="155" stroke="#10b981" stroke-width="1" marker-end="url(#arrowGreen4)"/>
+  
+  <!-- Converging lines -->
+  <path d="M 140 155 L 140 170 L 320 180" stroke="#0d9488" stroke-width="1" fill="none"/>
+  <path d="M 320 155 L 320 180" stroke="#f97316" stroke-width="1" fill="none"/>
+  <path d="M 500 155 L 500 170 L 320 180" stroke="#10b981" stroke-width="1" fill="none"/>
+  
+  <!-- Evidence Detail View (main box) -->
+  <rect x="80" y="185" width="500" height="280" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="2"/>
+  <rect x="80" y="185" width="500" height="32" rx="8" fill="#111827"/>
+  <rect x="80" y="200" width="500" height="17" fill="#111827"/>
+  <text x="330" y="205" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff">Evidence Detail View</text>
+  
+  <!-- Detail View sections (vertical stack) -->
+  <rect x="100" y="228" width="460" height="32" rx="6" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1"/>
+  <text x="130" y="248" font-size="10" font-weight="500" fill="#0f766e">📋 Top Fields</text>
+  <text x="300" y="248" font-size="9" fill="#6b7280">Decision ID, Agent, Timestamp, Action, Provider</text>
+  
+  <rect x="100" y="268" width="460" height="32" rx="6" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1"/>
+  <text x="130" y="288" font-size="10" font-weight="500" fill="#0f766e">🔗 Reason Chain</text>
+  <text x="300" y="288" font-size="9" fill="#6b7280">Module → Reason Code → Human-readable explanation</text>
+  
+  <rect x="100" y="308" width="460" height="32" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1"/>
+  <text x="130" y="328" font-size="10" font-weight="500" fill="#9a3412">📊 Confidence</text>
+  <text x="300" y="328" font-size="9" fill="#6b7280">Risk score, confidence level, module scores breakdown</text>
+  
+  <rect x="100" y="348" width="460" height="32" rx="6" fill="#fff7ed" stroke="#fed7aa" stroke-width="1"/>
+  <text x="130" y="368" font-size="10" font-weight="500" fill="#9a3412">🔏 Governance Seal</text>
+  <text x="300" y="368" font-size="9" fill="#6b7280">Signature, bundle hash, integrity status</text>
+  
+  <rect x="100" y="388" width="460" height="32" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="130" y="408" font-size="10" font-weight="500" fill="#065f46">💰 Cost Evidence</text>
+  <text x="300" y="408" font-size="9" fill="#6b7280">Tokens, cost_usd, budget remaining, provider</text>
+  
+  <rect x="100" y="428" width="460" height="32" rx="6" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="130" y="448" font-size="10" font-weight="500" fill="#374151">📦 Export</text>
+  <text x="300" y="448" font-size="9" fill="#6b7280">Download as SARIF, JSON, or JUnit XML</text>
+  
+  <!-- Filter Panel (right side) -->
+  <rect x="610" y="185" width="160" height="220" rx="8" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="690" y="208" text-anchor="middle" font-size="11" font-weight="600" fill="#374151">Filter Panel</text>
+  
+  <rect x="625" y="220" width="130" height="30" rx="5" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="690" y="239" text-anchor="middle" font-size="9" fill="#6b7280">Reason Code ▾</text>
+  
+  <rect x="625" y="258" width="130" height="30" rx="5" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="690" y="277" text-anchor="middle" font-size="9" fill="#6b7280">Module ▾</text>
+  
+  <rect x="625" y="296" width="130" height="30" rx="5" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="690" y="315" text-anchor="middle" font-size="9" fill="#6b7280">Action Type ▾</text>
+  
+  <rect x="625" y="334" width="130" height="30" rx="5" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="690" y="353" text-anchor="middle" font-size="9" fill="#6b7280">Agent ID ▾</text>
+  
+  <rect x="625" y="372" width="130" height="26" rx="5" fill="#0d9488"/>
+  <text x="690" y="389" text-anchor="middle" font-size="9" font-weight="500" fill="#ffffff">Apply Filters</text>
+  
+  <!-- Arrow from filter to detail -->
+  <line x1="610" y1="300" x2="585" y2="300" stroke="#6b7280" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arrowGray4)"/>
+  
+  <!-- Footer -->
+  <text x="400" y="495" text-anchor="middle" font-size="10" fill="#6b7280">Every decision produces a TEEC evidence record — queryable, exportable, tamper-evident</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowTeal4" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto">
+      <path d="M 0 0 L 3 6 L 6 0 Z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrowOrange4" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto">
+      <path d="M 0 0 L 3 6 L 6 0 Z" fill="#f97316"/>
+    </marker>
+    <marker id="arrowGreen4" markerWidth="6" markerHeight="6" refX="3" refY="6" orient="auto">
+      <path d="M 0 0 L 3 6 L 6 0 Z" fill="#10b981"/>
+    </marker>
+    <marker id="arrowGray4" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto-start-reverse">
+      <path d="M 8 0 L 0 3 L 8 6 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+</svg>

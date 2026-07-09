@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect width="800" height="400" fill="#fafafa"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="16" font-weight="600" fill="#111827">observe() Proxy Request Flow</text>
+  
+  <!-- Your App -->
+  <rect x="20" y="80" width="80" height="44" rx="8" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="60" y="106" text-anchor="middle" font-size="11" font-weight="500" fill="#111827">Your App</text>
+  
+  <!-- Arrow to ObserveProxy -->
+  <line x1="100" y1="102" x2="120" y2="102" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+  
+  <!-- ObserveProxy -->
+  <rect x="122" y="80" width="90" height="44" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="167" y="100" text-anchor="middle" font-size="10" font-weight="600" fill="#0d9488">Observe</text>
+  <text x="167" y="113" text-anchor="middle" font-size="10" font-weight="600" fill="#0d9488">Proxy</text>
+  
+  <!-- Arrow to PII Scan -->
+  <line x1="212" y1="102" x2="232" y2="102" stroke="#0d9488" stroke-width="1.5" marker-end="url(#arrowTeal)"/>
+  
+  <!-- PII Scan (Request) -->
+  <rect x="234" y="80" width="72" height="44" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="270" y="100" text-anchor="middle" font-size="9" font-weight="500" fill="#0d9488">PII Scan</text>
+  <text x="270" y="112" text-anchor="middle" font-size="8" fill="#0d9488">(input)</text>
+  
+  <!-- Arrow to Audit Log -->
+  <line x1="306" y1="102" x2="326" y2="102" stroke="#0d9488" stroke-width="1.5" marker-end="url(#arrowTeal)"/>
+  
+  <!-- Audit Log (Request) -->
+  <rect x="328" y="80" width="72" height="44" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="364" y="100" text-anchor="middle" font-size="9" font-weight="500" fill="#0d9488">Audit Log</text>
+  <text x="364" y="112" text-anchor="middle" font-size="8" fill="#0d9488">(request)</text>
+  
+  <!-- Arrow to Provider -->
+  <line x1="400" y1="102" x2="420" y2="102" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowGray)"/>
+  
+  <!-- Provider -->
+  <rect x="422" y="80" width="80" height="44" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="462" y="100" text-anchor="middle" font-size="10" font-weight="500" fill="#6b7280">LLM</text>
+  <text x="462" y="113" text-anchor="middle" font-size="10" font-weight="500" fill="#6b7280">Provider</text>
+  
+  <!-- Response Arrow down -->
+  <path d="M 462 124 L 462 180 L 680 180 L 680 230" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#arrowGreen)"/>
+  <text x="570" y="174" text-anchor="middle" font-size="9" fill="#10b981" font-weight="500">Response</text>
+  
+  <!-- Response Path (bottom row, right to left) -->
+  
+  <!-- PII Scan Output -->
+  <rect x="628" y="232" width="80" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+  <text x="668" y="252" text-anchor="middle" font-size="9" font-weight="500" fill="#065f46">PII Scan</text>
+  <text x="668" y="264" text-anchor="middle" font-size="8" fill="#065f46">(output)</text>
+  
+  <!-- Arrow -->
+  <line x1="628" y1="254" x2="608" y2="254" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreenLeft)"/>
+  
+  <!-- Cost Record -->
+  <rect x="520" y="232" width="80" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+  <text x="560" y="252" text-anchor="middle" font-size="9" font-weight="500" fill="#065f46">Cost</text>
+  <text x="560" y="264" text-anchor="middle" font-size="8" fill="#065f46">Record</text>
+  
+  <!-- Arrow -->
+  <line x1="520" y1="254" x2="500" y2="254" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreenLeft)"/>
+  
+  <!-- Baseline Update -->
+  <rect x="412" y="232" width="80" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+  <text x="452" y="252" text-anchor="middle" font-size="9" font-weight="500" fill="#065f46">Baseline</text>
+  <text x="452" y="264" text-anchor="middle" font-size="8" fill="#065f46">Update</text>
+  
+  <!-- Arrow -->
+  <line x1="412" y1="254" x2="392" y2="254" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreenLeft)"/>
+  
+  <!-- Audit Log (Response) -->
+  <rect x="304" y="232" width="80" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+  <text x="344" y="252" text-anchor="middle" font-size="9" font-weight="500" fill="#065f46">Audit Log</text>
+  <text x="344" y="264" text-anchor="middle" font-size="8" fill="#065f46">(response)</text>
+  
+  <!-- Arrow to Return -->
+  <line x1="304" y1="254" x2="284" y2="254" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreenLeft)"/>
+  
+  <!-- Return to App -->
+  <rect x="196" y="232" width="80" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+  <text x="236" y="252" text-anchor="middle" font-size="9" font-weight="500" fill="#065f46">Return</text>
+  <text x="236" y="264" text-anchor="middle" font-size="8" fill="#065f46">to App</text>
+  
+  <!-- Arrow to App -->
+  <path d="M 196 254 L 60 254 L 60 124" stroke="#10b981" stroke-width="1.5" fill="none" marker-end="url(#arrowGreenUp)"/>
+  
+  <!-- Legend -->
+  <rect x="20" y="330" width="12" height="12" rx="2" fill="#f0fdfa" stroke="#0d9488" stroke-width="1"/>
+  <text x="38" y="340" font-size="10" fill="#374151">Governance Steps (teal)</text>
+  
+  <rect x="200" y="330" width="12" height="12" rx="2" fill="#f3f4f6" stroke="#6b7280" stroke-width="1"/>
+  <text x="218" y="340" font-size="10" fill="#374151">Pass-through (gray)</text>
+  
+  <rect x="380" y="330" width="12" height="12" rx="2" fill="#ecfdf5" stroke="#10b981" stroke-width="1"/>
+  <text x="398" y="340" font-size="10" fill="#374151">Response Path (green)</text>
+  
+  <!-- Subtitle -->
+  <text x="400" y="380" text-anchor="middle" font-size="10" fill="#6b7280">Zero-config: wrap any provider with observe() to get full telemetry without changing behavior</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowGray" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#6b7280"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#10b981"/>
+    </marker>
+    <marker id="arrowGreenLeft" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto-start-reverse">
+      <path d="M 8 0 L 0 3 L 8 6 Z" fill="#10b981"/>
+    </marker>
+    <marker id="arrowGreenUp" markerWidth="6" markerHeight="8" refX="3" refY="0" orient="auto">
+      <path d="M 0 8 L 3 0 L 6 8 Z" fill="#10b981"/>
+    </marker>
+  </defs>
+</svg>

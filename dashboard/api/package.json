@@ -1,0 +1,35 @@
+{
+  "name": "@tealtiger/dashboard-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TealTiger Governance Dashboard API — Fastify backend with real-time WebSocket streaming",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest --run"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.2",
+    "@fastify/websocket": "^11.0.2",
+    "@libsql/client": "^0.17.3",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.8.5",
+    "node-cron": "^3.0.3",
+    "uuid": "^11.1.0",
+    "ws": "^8.18.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2",
+    "@types/node-cron": "^3.0.11",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
+    "fast-check": "^3.23.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.3"
+  }
+}

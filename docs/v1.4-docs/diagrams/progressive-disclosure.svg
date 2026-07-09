@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560" viewBox="0 0 800 560" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect width="800" height="560" fill="#fafafa"/>
+  
+  <!-- Title -->
+  <text x="400" y="35" text-anchor="middle" font-size="16" font-weight="600" fill="#111827">Progressive Disclosure — Graduate When Ready</text>
+  
+  <!-- Column Headers -->
+  <text x="140" y="70" text-anchor="middle" font-size="11" font-weight="600" fill="#6b7280">WHAT YOU WRITE</text>
+  <text x="400" y="70" text-anchor="middle" font-size="11" font-weight="600" fill="#6b7280">LEVEL</text>
+  <text x="660" y="70" text-anchor="middle" font-size="11" font-weight="600" fill="#6b7280">WHAT YOU GET</text>
+  
+  <!-- Level 0 — Lightest -->
+  <rect x="250" y="90" width="300" height="80" rx="8" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1.5"/>
+  <text x="400" y="115" text-anchor="middle" font-size="13" font-weight="600" fill="#0d9488">Level 0: Observe</text>
+  <text x="400" y="135" text-anchor="middle" font-size="11" fill="#115e59">One line, zero config</text>
+  <text x="400" y="152" text-anchor="middle" font-size="10" fill="#6b7280">const client = observe(openai)</text>
+  
+  <!-- Level 0 labels -->
+  <text x="140" y="125" text-anchor="middle" font-size="10" fill="#374151">1 line of code</text>
+  <text x="140" y="140" text-anchor="middle" font-size="9" fill="#6b7280">No config files</text>
+  <text x="660" y="115" text-anchor="middle" font-size="10" fill="#374151">• PII detection</text>
+  <text x="660" y="130" text-anchor="middle" font-size="10" fill="#374151">• Cost tracking</text>
+  <text x="660" y="145" text-anchor="middle" font-size="10" fill="#374151">• Audit trail</text>
+  <text x="660" y="160" text-anchor="middle" font-size="10" fill="#374151">• Baseline learning</text>
+  
+  <!-- Graduate Arrow 0→1 -->
+  <line x1="400" y1="170" x2="400" y2="195" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowTealDown)"/>
+  
+  <!-- Level 1 — Medium -->
+  <rect x="250" y="198" width="300" height="80" rx="8" fill="#ccfbf1" stroke="#5eead4" stroke-width="1.5"/>
+  <text x="400" y="223" text-anchor="middle" font-size="13" font-weight="600" fill="#0f766e">Level 1: Explicit Policies</text>
+  <text x="400" y="243" text-anchor="middle" font-size="11" fill="#115e59">Enforcement, allowlists, budgets</text>
+  <text x="400" y="260" text-anchor="middle" font-size="10" fill="#6b7280">teal.yaml + observe(openai, config)</text>
+  
+  <!-- Level 1 labels -->
+  <text x="140" y="225" text-anchor="middle" font-size="10" fill="#374151">teal.yaml config</text>
+  <text x="140" y="240" text-anchor="middle" font-size="9" fill="#6b7280">Policy declarations</text>
+  <text x="660" y="223" text-anchor="middle" font-size="10" fill="#374151">• ENFORCE/DENY actions</text>
+  <text x="660" y="238" text-anchor="middle" font-size="10" fill="#374151">• Model allowlisting</text>
+  <text x="660" y="253" text-anchor="middle" font-size="10" fill="#374151">• Budget caps</text>
+  <text x="660" y="268" text-anchor="middle" font-size="10" fill="#374151">• Role-based policies</text>
+  
+  <!-- Graduate Arrow 1→2 -->
+  <line x1="400" y1="278" x2="400" y2="303" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowTealDown)"/>
+  
+  <!-- Level 2 — Darker -->
+  <rect x="250" y="306" width="300" height="80" rx="8" fill="#99f6e4" stroke="#2dd4bf" stroke-width="1.5"/>
+  <text x="400" y="331" text-anchor="middle" font-size="13" font-weight="600" fill="#0f766e">Level 2: FREEZE Rules</text>
+  <text x="400" y="351" text-anchor="middle" font-size="11" fill="#115e59">Immutable safety constraints</text>
+  <text x="400" y="368" text-anchor="middle" font-size="10" fill="#6b7280">freeze() / unfreeze() + immutable policies</text>
+  
+  <!-- Level 2 labels -->
+  <text x="140" y="333" text-anchor="middle" font-size="10" fill="#374151">FREEZE declarations</text>
+  <text x="140" y="348" text-anchor="middle" font-size="9" fill="#6b7280">Kill-switch setup</text>
+  <text x="660" y="331" text-anchor="middle" font-size="10" fill="#374151">• Instant kill switch</text>
+  <text x="660" y="346" text-anchor="middle" font-size="10" fill="#374151">• Immutable guardrails</text>
+  <text x="660" y="361" text-anchor="middle" font-size="10" fill="#374151">• Cannot be overridden</text>
+  <text x="660" y="376" text-anchor="middle" font-size="10" fill="#374151">• Agent-level control</text>
+  
+  <!-- Graduate Arrow 2→3 -->
+  <line x1="400" y1="386" x2="400" y2="411" stroke="#0d9488" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowTealDown)"/>
+  
+  <!-- Level 3 — Darkest -->
+  <rect x="250" y="414" width="300" height="80" rx="8" fill="#14b8a6" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="400" y="439" text-anchor="middle" font-size="13" font-weight="600" fill="#ffffff">Level 3: Signed Bundles</text>
+  <text x="400" y="459" text-anchor="middle" font-size="11" fill="#f0fdfa">Cryptographic evidence, compliance</text>
+  <text x="400" y="476" text-anchor="middle" font-size="10" fill="#ccfbf1">TEEC bundles + SARIF export</text>
+  
+  <!-- Level 3 labels -->
+  <text x="140" y="441" text-anchor="middle" font-size="10" fill="#374151">Bundle signing keys</text>
+  <text x="140" y="456" text-anchor="middle" font-size="9" fill="#6b7280">Compliance templates</text>
+  <text x="660" y="439" text-anchor="middle" font-size="10" fill="#374151">• Tamper-proof evidence</text>
+  <text x="660" y="454" text-anchor="middle" font-size="10" fill="#374151">• SOC2/HIPAA artifacts</text>
+  <text x="660" y="469" text-anchor="middle" font-size="10" fill="#374151">• Exportable bundles</text>
+  <text x="660" y="484" text-anchor="middle" font-size="10" fill="#374151">• Governance seals</text>
+  
+  <!-- "Graduate when ready" annotation -->
+  <text x="400" y="530" text-anchor="middle" font-size="11" font-weight="500" fill="#0d9488">↑ Graduate when ready — each level is independently useful ↑</text>
+  <text x="400" y="548" text-anchor="middle" font-size="10" fill="#6b7280">No level requires the one above it. Start at 0, add complexity only when you need it.</text>
+  
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrowTealDown" markerWidth="8" markerHeight="8" refX="4" refY="8" orient="auto">
+      <path d="M 0 0 L 4 8 L 8 0 Z" fill="#0d9488"/>
+    </marker>
+  </defs>
+</svg>

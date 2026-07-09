@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="480" viewBox="0 0 800 480" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect width="800" height="480" fill="#fafafa"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="16" font-weight="600" fill="#111827">freeze() / unfreeze() Kill-Switch Mechanism</text>
+  
+  <!-- === NORMAL FLOW (top) === -->
+  <text x="50" y="70" font-size="12" font-weight="600" fill="#10b981">Normal Flow (not frozen)</text>
+  
+  <!-- App -->
+  <rect x="50" y="85" width="90" height="44" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="95" y="111" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">Your App</text>
+  
+  <!-- Arrow -->
+  <line x1="140" y1="107" x2="170" y2="107" stroke="#374151" stroke-width="1.5" marker-end="url(#arrowDark6)"/>
+  
+  <!-- ObserveProxy -->
+  <rect x="173" y="85" width="100" height="44" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="223" y="105" text-anchor="middle" font-size="10" font-weight="500" fill="#0d9488">Observe</text>
+  <text x="223" y="118" text-anchor="middle" font-size="10" font-weight="500" fill="#0d9488">Proxy</text>
+  
+  <!-- Arrow -->
+  <line x1="273" y1="107" x2="303" y2="107" stroke="#374151" stroke-width="1.5" marker-end="url(#arrowDark6)"/>
+  
+  <!-- Check FreezeRegistry -->
+  <rect x="306" y="80" width="140" height="54" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="376" y="103" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">Check</text>
+  <text x="376" y="118" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">FreezeRegistry</text>
+  
+  <!-- Arrow with "Not Frozen" -->
+  <line x1="446" y1="107" x2="490" y2="107" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreen6)"/>
+  <text x="468" y="98" text-anchor="middle" font-size="8" font-weight="500" fill="#10b981">NOT FROZEN</text>
+  
+  <!-- Forward to Provider -->
+  <rect x="493" y="85" width="120" height="44" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="1.5"/>
+  <text x="553" y="105" text-anchor="middle" font-size="10" font-weight="500" fill="#065f46">Forward to</text>
+  <text x="553" y="118" text-anchor="middle" font-size="10" font-weight="500" fill="#065f46">Provider ✓</text>
+  
+  <!-- === FROZEN FLOW (bottom) === -->
+  <text x="50" y="185" font-size="12" font-weight="600" fill="#ef4444">Frozen Flow (agent is frozen)</text>
+  
+  <!-- App -->
+  <rect x="50" y="200" width="90" height="44" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="95" y="226" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">Your App</text>
+  
+  <!-- Arrow -->
+  <line x1="140" y1="222" x2="170" y2="222" stroke="#374151" stroke-width="1.5" marker-end="url(#arrowDark6)"/>
+  
+  <!-- ObserveProxy -->
+  <rect x="173" y="200" width="100" height="44" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="223" y="220" text-anchor="middle" font-size="10" font-weight="500" fill="#0d9488">Observe</text>
+  <text x="223" y="233" text-anchor="middle" font-size="10" font-weight="500" fill="#0d9488">Proxy</text>
+  
+  <!-- Arrow -->
+  <line x1="273" y1="222" x2="303" y2="222" stroke="#374151" stroke-width="1.5" marker-end="url(#arrowDark6)"/>
+  
+  <!-- Check FreezeRegistry -->
+  <rect x="306" y="195" width="140" height="54" rx="8" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="376" y="218" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">Check</text>
+  <text x="376" y="233" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">FreezeRegistry</text>
+  
+  <!-- Arrow with "FROZEN" -->
+  <line x1="446" y1="222" x2="490" y2="222" stroke="#ef4444" stroke-width="2" marker-end="url(#arrowRed6)"/>
+  <text x="468" y="213" text-anchor="middle" font-size="8" font-weight="700" fill="#ef4444">FROZEN!</text>
+  
+  <!-- FrozenAgentError -->
+  <rect x="493" y="195" width="160" height="54" rx="8" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="573" y="218" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">FrozenAgentError</text>
+  <text x="573" y="235" text-anchor="middle" font-size="9" fill="#991b1b">Agent halted immediately</text>
+  
+  <!-- === FreezeRegistry Section === -->
+  <rect x="100" y="290" width="600" height="160" rx="8" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="400" y="315" text-anchor="middle" font-size="12" font-weight="600" fill="#111827">FreezeRegistry</text>
+  
+  <!-- freeze() inputs -->
+  <rect x="130" y="335" width="200" height="40" rx="6" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="230" y="352" text-anchor="middle" font-size="10" font-weight="500" fill="#991b1b">freeze("agent-research-01")</text>
+  <text x="230" y="367" text-anchor="middle" font-size="8" fill="#6b7280">Freeze specific agent</text>
+  
+  <rect x="130" y="385" width="200" height="40" rx="6" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+  <text x="230" y="402" text-anchor="middle" font-size="10" font-weight="500" fill="#991b1b">freeze("*")</text>
+  <text x="230" y="417" text-anchor="middle" font-size="8" fill="#6b7280">Freeze ALL agents (global kill)</text>
+  
+  <!-- Arrow from freeze inputs to registry -->
+  <line x1="330" y1="360" x2="400" y2="360" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrowRed6)"/>
+  <line x1="330" y1="405" x2="400" y2="405" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrowRed6)"/>
+  
+  <!-- Registry state -->
+  <rect x="403" y="335" width="150" height="80" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="478" y="355" text-anchor="middle" font-size="9" font-weight="600" fill="#374151">Frozen Set</text>
+  <text x="478" y="373" text-anchor="middle" font-size="9" fill="#6b7280">{ "agent-research-01",</text>
+  <text x="478" y="387" text-anchor="middle" font-size="9" fill="#6b7280">  "agent-writer-01",</text>
+  <text x="478" y="401" text-anchor="middle" font-size="9" fill="#6b7280">  "*" }</text>
+  
+  <!-- unfreeze() -->
+  <rect x="580" y="345" width="100" height="40" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1"/>
+  <text x="630" y="362" text-anchor="middle" font-size="10" font-weight="500" fill="#065f46">unfreeze()</text>
+  <text x="630" y="377" text-anchor="middle" font-size="8" fill="#6b7280">Remove from set</text>
+  
+  <!-- Arrow from registry to unfreeze (removal) -->
+  <line x1="553" y1="370" x2="580" y2="370" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreen6)"/>
+  
+  <!-- Footer -->
+  <text x="400" y="468" text-anchor="middle" font-size="10" fill="#6b7280">In-memory, sub-millisecond check. freeze("*") is the emergency stop for all agents.</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowDark6" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#374151"/>
+    </marker>
+    <marker id="arrowGreen6" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#10b981"/>
+    </marker>
+    <marker id="arrowRed6" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#ef4444"/>
+    </marker>
+  </defs>
+</svg>

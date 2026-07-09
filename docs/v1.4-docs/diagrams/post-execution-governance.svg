@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect width="800" height="400" fill="#fafafa"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="16" font-weight="600" fill="#111827">Bi-Directional Pre/Post Scanning</text>
+  <text x="400" y="48" text-anchor="middle" font-size="11" fill="#6b7280">Block dangerous inputs AND sensitive outputs</text>
+  
+  <!-- Your App -->
+  <rect x="30" y="130" width="100" height="60" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1.5"/>
+  <text x="80" y="157" text-anchor="middle" font-size="11" font-weight="600" fill="#111827">Your App</text>
+  <text x="80" y="172" text-anchor="middle" font-size="9" fill="#6b7280">Request origin</text>
+  
+  <!-- Arrow App → PRE -->
+  <line x1="130" y1="160" x2="180" y2="160" stroke="#374151" stroke-width="1.5" marker-end="url(#arrowDark2)"/>
+  <text x="155" y="152" text-anchor="middle" font-size="8" fill="#6b7280">request</text>
+  
+  <!-- PRE Guardrails -->
+  <rect x="183" y="115" width="140" height="90" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+  <text x="253" y="140" text-anchor="middle" font-size="12" font-weight="600" fill="#0d9488">PRE Guardrails</text>
+  <text x="253" y="158" text-anchor="middle" font-size="9" fill="#115e59">🔍 PII Detection</text>
+  <text x="253" y="172" text-anchor="middle" font-size="9" fill="#115e59">🛡️ Injection Scan</text>
+  <text x="253" y="186" text-anchor="middle" font-size="9" fill="#115e59">📋 Policy Check</text>
+  
+  <!-- Arrow PRE → LLM -->
+  <line x1="323" y1="160" x2="370" y2="160" stroke="#374151" stroke-width="1.5" marker-end="url(#arrowDark2)"/>
+  <text x="346" y="152" text-anchor="middle" font-size="8" fill="#6b7280">clean</text>
+  
+  <!-- LLM Provider -->
+  <rect x="373" y="130" width="110" height="60" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="428" y="155" text-anchor="middle" font-size="11" font-weight="600" fill="#374151">LLM Provider</text>
+  <text x="428" y="170" text-anchor="middle" font-size="9" fill="#6b7280">Generation</text>
+  
+  <!-- Arrow LLM → POST -->
+  <line x1="483" y1="160" x2="530" y2="160" stroke="#374151" stroke-width="1.5" marker-end="url(#arrowDark2)"/>
+  <text x="506" y="152" text-anchor="middle" font-size="8" fill="#6b7280">response</text>
+  
+  <!-- POST Guardrails -->
+  <rect x="533" y="115" width="140" height="90" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+  <text x="603" y="140" text-anchor="middle" font-size="12" font-weight="600" fill="#f97316">POST Guardrails</text>
+  <text x="603" y="158" text-anchor="middle" font-size="9" fill="#9a3412">🔍 PII in Output</text>
+  <text x="603" y="172" text-anchor="middle" font-size="9" fill="#9a3412">🔒 Secret Detection</text>
+  <text x="603" y="186" text-anchor="middle" font-size="9" fill="#9a3412">📏 Content Policy</text>
+  
+  <!-- Arrow POST → Response -->
+  <line x1="673" y1="160" x2="705" y2="160" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrowGreen2)"/>
+  <text x="689" y="152" text-anchor="middle" font-size="8" fill="#6b7280">safe</text>
+  
+  <!-- Response to App -->
+  <rect x="708" y="130" width="70" height="60" rx="8" fill="#ecfdf5" stroke="#10b981" stroke-width="2"/>
+  <text x="743" y="155" text-anchor="middle" font-size="10" font-weight="600" fill="#065f46">Response</text>
+  <text x="743" y="170" text-anchor="middle" font-size="9" fill="#065f46">to App</text>
+  
+  <!-- PRE DENY arrow -->
+  <line x1="253" y1="205" x2="253" y2="270" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrowRed2)"/>
+  <text x="267" y="240" font-size="9" font-weight="600" fill="#ef4444">DENY</text>
+  
+  <!-- PRE Blocked box -->
+  <rect x="203" y="273" width="100" height="36" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="253" y="295" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">✕ Blocked</text>
+  
+  <!-- POST DENY arrow -->
+  <line x1="603" y1="205" x2="603" y2="270" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arrowRed2)"/>
+  <text x="617" y="240" font-size="9" font-weight="600" fill="#ef4444">DENY</text>
+  
+  <!-- POST Blocked box -->
+  <rect x="553" y="273" width="100" height="36" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="603" y="295" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">✕ Blocked</text>
+  
+  <!-- Labels under PRE and POST -->
+  <text x="253" y="330" text-anchor="middle" font-size="10" font-weight="500" fill="#0d9488">Block dangerous inputs</text>
+  <text x="253" y="344" text-anchor="middle" font-size="9" fill="#6b7280">Injection, PII leakage, policy violations</text>
+  
+  <text x="603" y="330" text-anchor="middle" font-size="10" font-weight="500" fill="#f97316">Block sensitive outputs</text>
+  <text x="603" y="344" text-anchor="middle" font-size="9" fill="#6b7280">Secrets, PII, hallucinated data</text>
+  
+  <!-- Footer -->
+  <text x="400" y="380" text-anchor="middle" font-size="10" fill="#6b7280">Both guardrail stages run deterministically — no LLM in the governance path</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowDark2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#374151"/>
+    </marker>
+    <marker id="arrowGreen2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M 0 0 L 8 3 L 0 6 Z" fill="#10b981"/>
+    </marker>
+    <marker id="arrowRed2" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto">
+      <path d="M 0 0 L 4 6 L 8 0 Z" fill="#ef4444"/>
+    </marker>
+  </defs>
+</svg>

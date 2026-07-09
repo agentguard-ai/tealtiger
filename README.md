@@ -58,6 +58,28 @@ Next: [full Quick Start](#-quick-start) and [examples](./examples).
 
 ---
 
+## 🔭 observe() — Zero-Config Instrumentation (v1.4)
+
+One line adds cost tracking, audit logging, PII detection, and behavioral baselines to any LLM client. No config files, no policy definitions.
+
+```typescript
+import { observe, freeze } from 'tealtiger';
+const client = observe(new OpenAI());  // done — all calls are now instrumented
+console.log(client.getCost());         // { totalCost: 0.0023, requestCount: 1, ... }
+```
+
+```python
+from tealtiger.observe import observe, freeze
+client = observe(OpenAI())             # done — all calls are now instrumented
+print(client.get_cost())               # ObserveCostSummary(total_cost=0.0023, ...)
+```
+
+**What you get automatically:** per-request cost tracking across 12 providers, structured audit log with correlation IDs, behavioral baseline (P50/P95/P99), PII detection in REPORT_ONLY mode, and an instant kill switch via `freeze()`. Under 5ms overhead per call.
+
+See [examples/observe-quickstart.ts](./examples/observe-quickstart.ts) and [examples/observe_quickstart.py](./examples/observe_quickstart.py).
+
+---
+
 ## What is TealTiger?
 
 TealTiger is an open-source SDK that provides **deterministic governance** for AI agents. It enforces security policies, tracks costs, and produces structured evidence — all at runtime, with no infrastructure required.

@@ -1,0 +1,18 @@
+{
+  "name": "tealtiger-demo-app",
+  "version": "1.0.0",
+  "description": "Multi-agent demo showcasing all TealTiger governance capabilities",
+  "type": "module",
+  "scripts": {
+    "demo": "tsx src/demo.ts",
+    "demo:live": "tsx src/live-traffic.ts",
+    "demo:interactive": "tsx src/interactive.ts"
+  },
+  "dependencies": {
+    "tealtiger": "file:../packages/tealtiger-sdk"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "typescript": "^5.9.3"
+  }
+}

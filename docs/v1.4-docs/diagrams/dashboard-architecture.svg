@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="580" viewBox="0 0 800 580" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+  <rect width="800" height="580" fill="#fafafa"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-size="16" font-weight="600" fill="#111827">Dashboard Component Architecture</text>
+  
+  <!-- Top Tier: Frontend -->
+  <rect x="50" y="55" width="700" height="140" rx="8" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+  <text x="400" y="78" text-anchor="middle" font-size="13" font-weight="600" fill="#0d9488">Dashboard Frontend (Next.js)</text>
+  
+  <!-- Frontend panels -->
+  <rect x="75" y="92" width="95" height="40" rx="6" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="122" y="116" text-anchor="middle" font-size="9" font-weight="500" fill="#0f766e">Overview</text>
+  
+  <rect x="182" y="92" width="95" height="40" rx="6" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="229" y="116" text-anchor="middle" font-size="9" font-weight="500" fill="#0f766e">Agents</text>
+  
+  <rect x="289" y="92" width="95" height="40" rx="6" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="336" y="116" text-anchor="middle" font-size="9" font-weight="500" fill="#0f766e">Costs</text>
+  
+  <rect x="396" y="92" width="95" height="40" rx="6" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="443" y="116" text-anchor="middle" font-size="9" font-weight="500" fill="#0f766e">Policies</text>
+  
+  <rect x="503" y="92" width="95" height="40" rx="6" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="550" y="116" text-anchor="middle" font-size="9" font-weight="500" fill="#0f766e">Audit Trail</text>
+  
+  <rect x="610" y="92" width="95" height="40" rx="6" fill="#ffffff" stroke="#99f6e4" stroke-width="1"/>
+  <text x="657" y="116" text-anchor="middle" font-size="9" font-weight="500" fill="#0f766e">Evidence</text>
+  
+  <!-- Frontend tech details -->
+  <text x="400" y="160" text-anchor="middle" font-size="9" fill="#6b7280">React Components • TanStack Query • Tailwind CSS • Recharts</text>
+  <text x="400" y="178" text-anchor="middle" font-size="9" fill="#6b7280">Real-time updates via WebSocket | REST API calls for data fetching</text>
+  
+  <!-- REST Arrow -->
+  <line x1="340" y1="195" x2="340" y2="240" stroke="#0d9488" stroke-width="1.5" marker-end="url(#arrowTeal3)"/>
+  <text x="310" y="220" font-size="9" font-weight="500" fill="#0d9488">REST</text>
+  
+  <!-- WebSocket Arrow -->
+  <line x1="460" y1="195" x2="460" y2="240" stroke="#f97316" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowOrange3)"/>
+  <text x="495" y="220" font-size="9" font-weight="500" fill="#f97316">WebSocket</text>
+  
+  <!-- Middle Tier: API -->
+  <rect x="50" y="243" width="700" height="140" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+  <text x="400" y="266" text-anchor="middle" font-size="13" font-weight="600" fill="#f97316">Dashboard API (Fastify)</text>
+  
+  <!-- API service boxes -->
+  <rect x="90" y="280" width="170" height="50" rx="6" fill="#ffffff" stroke="#fed7aa" stroke-width="1"/>
+  <text x="175" y="300" text-anchor="middle" font-size="10" font-weight="500" fill="#9a3412">EvidenceAssembler</text>
+  <text x="175" y="316" text-anchor="middle" font-size="8" fill="#6b7280">TEEC bundle assembly</text>
+  
+  <rect x="280" y="280" width="170" height="50" rx="6" fill="#ffffff" stroke="#fed7aa" stroke-width="1"/>
+  <text x="365" y="300" text-anchor="middle" font-size="10" font-weight="500" fill="#9a3412">DecisionFilter</text>
+  <text x="365" y="316" text-anchor="middle" font-size="8" fill="#6b7280">Query & filter decisions</text>
+  
+  <rect x="470" y="280" width="170" height="50" rx="6" fill="#ffffff" stroke="#fed7aa" stroke-width="1"/>
+  <text x="555" y="300" text-anchor="middle" font-size="10" font-weight="500" fill="#9a3412">AggregationEngine</text>
+  <text x="555" y="316" text-anchor="middle" font-size="8" fill="#6b7280">Metrics & time-series</text>
+  
+  <!-- API tech details -->
+  <text x="400" y="360" text-anchor="middle" font-size="9" fill="#6b7280">Route handlers • Auth middleware • Rate limiting • Validation (Zod)</text>
+  
+  <!-- Read Arrows -->
+  <line x1="340" y1="383" x2="340" y2="425" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowGray3)"/>
+  <line x1="460" y1="383" x2="460" y2="425" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrowGray3)"/>
+  <text x="400" y="410" text-anchor="middle" font-size="9" font-weight="500" fill="#6b7280">READ</text>
+  
+  <!-- Bottom Tier: Database -->
+  <rect x="50" y="428" width="700" height="120" rx="8" fill="#f3f4f6" stroke="#6b7280" stroke-width="2"/>
+  <text x="400" y="451" text-anchor="middle" font-size="13" font-weight="600" fill="#374151">SQLite Database</text>
+  
+  <!-- Database table boxes -->
+  <rect x="90" y="465" width="170" height="44" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="175" y="484" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">pipeline_decisions</text>
+  <text x="175" y="499" text-anchor="middle" font-size="8" fill="#6b7280">action, reason, timestamp</text>
+  
+  <rect x="280" y="465" width="170" height="44" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="365" y="484" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">module_evaluations</text>
+  <text x="365" y="499" text-anchor="middle" font-size="8" fill="#6b7280">module, result, latency</text>
+  
+  <rect x="470" y="465" width="170" height="44" rx="6" fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+  <text x="555" y="484" text-anchor="middle" font-size="10" font-weight="500" fill="#374151">cost_records</text>
+  <text x="555" y="499" text-anchor="middle" font-size="8" fill="#6b7280">tokens, cost_usd, provider</text>
+  
+  <!-- Footer -->
+  <text x="400" y="565" text-anchor="middle" font-size="10" fill="#6b7280">Embedded SQLite — no external database required. WAL mode for concurrent reads.</text>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowTeal3" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto">
+      <path d="M 0 0 L 4 6 L 8 0 Z" fill="#0d9488"/>
+    </marker>
+    <marker id="arrowOrange3" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto">
+      <path d="M 0 0 L 4 6 L 8 0 Z" fill="#f97316"/>
+    </marker>
+    <marker id="arrowGray3" markerWidth="8" markerHeight="6" refX="4" refY="6" orient="auto">
+      <path d="M 0 0 L 4 6 L 8 0 Z" fill="#6b7280"/>
+    </marker>
+  </defs>
+</svg>
