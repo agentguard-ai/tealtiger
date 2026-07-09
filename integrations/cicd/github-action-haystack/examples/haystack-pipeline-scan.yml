@@ -1,0 +1,41 @@
+# TealTiger Haystack Pipeline Security Scan — Example Workflow
+#
+# Scans every Python file in the repository for Haystack pipelines that lack
+# TealTiger governance guards. Runs on every pull request.
+#
+# Usage:
+#   Copy this file to .github/workflows/haystack-security-scan.yml in your repo.
+#   No additional configuration is required for a standard Haystack project.
+
+name: TealTiger Haystack Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.py'
+
+permissions:
+  contents: read
+  pull-requests: write  # required for posting PR comments
+
+jobs:
+  haystack-scan:
+    name: Haystack Pipeline Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Run TealTiger Haystack Scan
+        id: scan
+        uses: agentguard-ai/tealtiger/integrations/cicd/github-action-haystack@main
+        with:
+          path: '.'
+          checks: 'all'
+          fail-on-warning: 'false'
+          post-comment: 'true'
+
+      - name: Print warning count
+        run: echo "Warnings found ${{ steps.scan.outputs.warnings }}"

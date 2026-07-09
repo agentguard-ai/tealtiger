@@ -17,6 +17,10 @@
     "build": "tsc --noEmit",
     "dashboard": "node bin/tealtiger.js dashboard",
     "dashboard:build": "tsc --noEmit -p dashboard/governance-feed/tsconfig.json && vite build --config dashboard/governance-feed/vite.config.ts",
+    "dashboard:compliance:build": "tsc --noEmit -p dashboard/compliance-status/tsconfig.json && vite build --config dashboard/compliance-status/vite.config.ts",
+    "dashboard:compliance:dev": "vite --config dashboard/compliance-status/vite.config.ts --host 127.0.0.1",
+    "dashboard:cost:build": "tsc --noEmit -p dashboard/cost-analytics/tsconfig.json && vite build --config dashboard/cost-analytics/vite.config.ts",
+    "dashboard:cost:dev": "vite --config dashboard/cost-analytics/vite.config.ts --host 127.0.0.1",
     "dashboard:dev": "vite --config dashboard/governance-feed/vite.config.ts --host 127.0.0.1",
     "dashboard:mock-stream": "ts-node dashboard/governance-feed/mock-stream.ts",
     "test:schema": "node --test -r ts-node/register tests/api/governance-event-store-schema.test.ts",
@@ -24,16 +28,18 @@
     "test:stream": "node --test -r ts-node/register tests/api/governance-stream.test.ts",
     "test:ingestion": "node --test -r ts-node/register tests/api/governance-ingestion.test.ts",
     "test:dashboard-cli": "node --test tests/cli/dashboard-cli.test.js",
+    "test:validate-cli": "node --test tests/cli/validate-cli.test.js",
     "test:dashboard-feed": "node --test -r ts-node/register tests/dashboard/governance-feed-latency.test.ts",
     "validate:policy": "ts-node scripts/validate-policy.ts",
     "test:policy-validator": "ts-node scripts/test-validate-policy.ts"
   },
   "dependencies": {
     "@fastify/swagger": "^9.7.0",
-    "@libsql/client": "^0.17.3",
+    "@libsql/client": "^0.17.4",
     "drizzle-orm": "^0.45.2",
-    "fastify": "^5.8.5",
+    "fastify": "^5.9.0",
     "ws": "^8.18.3",
+    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -45,13 +51,13 @@
     "@vitejs/plugin-react": "^5.2.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
-    "lucide-react": "^1.18.0",
+    "lucide-react": "^1.23.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-window": "^1.8.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vite": "^7.3.5"
+    "vite": "^7.3.6"
   },
   "overrides": {
     "esbuild": "0.28.1"

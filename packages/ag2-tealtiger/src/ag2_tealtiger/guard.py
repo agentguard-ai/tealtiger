@@ -239,6 +239,33 @@ class TealTigerGuard:
 
         return entries_written
 
+    def to_json(self) -> list[dict[str, Any]]:
+        """Return audit decisions as dashboard-friendly JSON objects.
+
+        This is a compact representation for SIEM, dashboard, or data pipeline
+        ingestion. For the full AuditEntry payload, use export_audit_trail().
+
+        Returns:
+            A list of decision dictionaries containing the stable fields most
+            consumers need for governance reporting.
+        """
+        return [
+            {
+                "decision_id": entry.decision_id,
+                "timestamp": datetime.fromtimestamp(
+                    entry.timestamp_ms / 1000,
+                    tz=timezone.utc,
+                ).isoformat().replace("+00:00", "Z"),
+                "agent_id": entry.agent_id,
+                "action": entry.action.lower(),
+                "tool_name": entry.tool_name,
+                "reason_codes": list(entry.reason_codes),
+                "risk_score": entry.risk_score,
+                "evaluation_time_ms": entry.evaluation_time_ms,
+            }
+            for entry in self._audit_trail
+        ]
+
     # ── Per-Agent Kill Switch ─────────────────────────────────────────────────
 
     def freeze(self, agent_id: str) -> None:
