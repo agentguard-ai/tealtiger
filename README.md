@@ -80,6 +80,43 @@ See [examples/observe-quickstart.ts](./examples/observe-quickstart.ts) and [exam
 
 ---
 
+---
+
+## 📊 Governance Dashboard (v1.4)
+
+Real-time visibility into your AI agent fleet — security posture, cost governance, and behavioral alerts in one view.
+
+<div align="center">
+  <img src="assets/screenshots/dashboard-overview.png" alt="TealTiger Governance Dashboard" width="900">
+</div>
+
+
+
+**What you see at a glance:**
+- **KPI Row** — Total requests, cost, governance denials, budget consumption with color-coded indicators
+- **Cost Velocity & Budget Forecast** — Burn rate trends and exhaustion projection
+- **Defense Pipeline** — 3-stage security evaluation flow with short-circuit rates and latency per stage
+- **Canary Alerts** — Behavioral drift detection with agent freeze status and deviation percentages
+- **Agent Matrix** — Fleet status table (active/idle/frozen) with per-agent request metrics
+- **Cost Savings** — Optimization recommendations ranked by impact
+- **Model Routing** — Source-to-target routing with per-request savings
+- **Protocol Governance** — ENFORCE/MONITOR/REPORT_ONLY policy cards with denial counts
+
+Every panel is independently data-fetched with fault isolation — one widget failure never cascades to others.
+
+Run locally: `cd dashboard/api && npm run dev` then `cd dashboard/web && npm run dev` (API on :3100, UI on :3000)
+
+### Progressive Disclosure Path
+
+| Level | Entry Point | What You Get |
+|-------|-------------|--------------|
+| 0 | `observe(client)` | Cost tracking, audit trail, PII detection, behavioral baseline, kill switch |
+| 1 | + guardrails config | Prompt injection, content moderation, secret detection |
+| 2 | + TealEngine policies | ENFORCE/MONITOR/REPORT_ONLY per rule, deterministic decisions |
+| 3 | + TealFlow workflows | Org-level governance inheritance, declarative YAML |
+
+
+
 ## What is TealTiger?
 
 TealTiger is an open-source SDK that provides **deterministic governance** for AI agents. It enforces security policies, tracks costs, and produces structured evidence — all at runtime, with no infrastructure required.
@@ -390,49 +427,18 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## 🗺️ Roadmap
 
-**Current:** v1.3.0 — Autonomous Agent Governance (Released May 18, 2026)
-- TealEngine v1.3 with pre/post evaluation pipeline, FREEZE rules, automation levels
-- Non-Human Identity (NHI) governance with Zero Standing Privilege
-- TealProof — cryptographic governance receipts (Merkle + RFC 3161)
-- TealFlow — declarative YAML governance workflows
-- TealClassifier — local ONNX ML inference (≤20ms)
-- TealDrift, TealState, TealTemporal — behavioral, context, and session governance
-- TealMonitor v2 — governance-owned cost ceilings, anomaly detection
-- OWASP Agentic Top 10 policy pack (zero-config)
-- 12 LLM providers + 3 platform adapters (Bedrock, AgentCore, Azure)
-- Full Python SDK parity
+**Current:** v1.4.0 — Zero-Config Adoption & Governance Dashboard (Released July 9, 2026)
+- `observe(client)` — 1-line auto-instrumentation for 12 providers, zero config
+- `freeze()` / `unfreeze()` — instant kill switch, zero policy required
+- Behavioral baseline — P50/P95/P99 profiling built from first 100 requests
+- PII detection in REPORT_ONLY mode — passive scanning without blocking
+- Governance Dashboard — redesigned with light theme, security widgets, error isolation
+- Under 5ms overhead per call — in-process, deterministic, offline-capable
 
-**Next:** v1.4.0 — Zero-Config Adoption & MCP Governance (July 2026)
-- `observe(client)` — 1-line auto-instrumentation, zero config, instant visibility
-- Local CLI dashboard (`npx tealtiger dashboard`)
-- Progressive disclosure: observe → suggest → enforce → govern
-- 8 framework adapters: LangChain, LangGraph, CrewAI, AG2, LlamaIndex, CAMEL-AI, Haystack, Vercel AI SDK
-- MCP governance: tool validation, per-identity grants, argument-level policies
-- Tool poisoning & rug pull defense
-- Runaway loop detection & per-trace token budgets
-- TEEC v2.1 Execution Receipts (cryptographic evidence)
-- EU AI Act, NIST AI RMF, ISO 42001 compliance mappings
-- **Universal Adapter Governance Contract** — enforced across all framework adapters:
-  - Every proposed tool call, budget change, freeze/unfreeze, and delegated handoff creates a decision record before execution
-  - Decision binds: agent_id, turn_id, parent_turn_id, action kind, tool name, canonical args digest, policy digest, decision source, expiry, delegation scope
-  - Execution outcome backlinks to decision_id and effective args digest that actually ran
-  - Denial, timeout, and require-approval become visible terminal or pending states (no silent transcript gaps)
-  - Per-actor enforcement: channel/hub approval does not become ambient authority for every agent
-  - Delegation creates scope-bound authorization: delegatee emits its own decision and outcome record
-  - Invariant tests: same payload in two turns produces two decision IDs; approval for one agent does not authorize another; revised args create a new pending decision; timeout produces durable terminal result; retry returns prior terminal state instead of re-running side effect
-- **Supply Chain Integrity Verification** — validate AI dependency hashes before agent execution (response to LiteLLM supply chain attack, March 2026)
-- **A2A Protocol Governance** — per-task access scoping, token lifetime enforcement, consent flow governance for Agent2Agent interactions (A2A GA under Linux Foundation, 150+ orgs)
-- **MCP Tool Integrity Monitoring** — definition-drift detection, tool description scanning, adapter composition allowlist, rug-pull defense with cryptographic pinning
-- **Kill Switch Latency SLA** — guaranteed <5ms FREEZE propagation with published benchmarks, quantified time-to-halt for compliance
-- **Shadow Agent Detection** — discover ungoverned agents in the environment, surface unmonitored tool calls and untracked cost
-- **AI Dependency SBOM** — generate Software Bill of Materials for agent dependencies, model provenance, and MCP server inventory
-- **Dakera Integration (shipped)** — persistent governance state backend for distributed deployments (`pip install dakera[tealtiger]`). Cost records, decision receipts, and delegation chains survive restarts via agent-scoped memory with importance-weighted retention.
-- **Pack Hunt Defense** — multi-agent coordinated attack detection:
-  - Cross-session intent correlation: link related sessions via `session_group_id`, query receipts across sessions by agent + time window
-  - Reassembly detection: flag when N individually-benign requests from different agents/sessions converge on the same output scope within a time window (deterministic, no LLM)
-  - Multi-model coordination detection: track which model produced which output, flag when output from model A becomes input to model B without governance evaluation in between
+**Previous:** v1.3.0 — Autonomous Agent Governance (Released May 18, 2026)
 
-**Planned:** v1.5.0 — Enterprise Platform (Q3 2026)
+
+**Planned:** v1.5.0 — Enterprise Platform (Q4 2026)
 - Multi-tenancy with complete data isolation
 - RBAC (Owner, Admin, Policy Author, Viewer, Auditor)
 - SSO via SAML 2.0 / OIDC (Okta, Azure AD, Google)
@@ -447,8 +453,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - Shadow AI detection (discover ungoverned agents)
 - Remote kill switch from SaaS console
 - CloudEvents, OpenTelemetry, Backstage plugin
-
-> All features maintain: in-process <5ms, zero-config entry, no LLM in governance path, offline-capable.
 
 ---
 
