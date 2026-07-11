@@ -224,7 +224,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: azure/setup-helm@v5.0.0
+      - uses: azure/setup-helm@v5.0.1
 
       - name: Package Helm chart
         run: |
