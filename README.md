@@ -509,3 +509,37 @@ Want to contribute? Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) guide!
 [Report Bug](https://github.com/agentguard-ai/tealtiger/issues/new?template=bug_report.md) · [Request Feature](https://github.com/agentguard-ai/tealtiger/issues/new?template=feature_request.md) · [Ask Question](https://github.com/agentguard-ai/tealtiger/issues/new?template=question.md)
 
 </div>
+
+
+## 🌐 Supported Providers
+
+Pricing data is from [`docs/cost-comparison.md`](docs/cost-comparison.md) (last updated April 2026).
+**Coverage** shows whether TealTiger has verified cost tracking via the `observe()` API end-to-end.
+
+| Provider | Example Model | Input $/1M | Output $/1M | Coverage | Example |
+| --- | --- | ---: | ---: | :---: | --- |
+| **OpenAI** | GPT-5.4 | $2.50 | $15.00 | ✅ | [`examples/observe_quickstart.py`](examples/observe_quickstart.py) |
+| **OpenAI** | GPT-5.4 mini | $0.75 | $4.50 | ✅ | [`examples/observe_quickstart.py`](examples/observe_quickstart.py) |
+| **Anthropic** | Claude Sonnet 4 | $3.00 | $15.00 | ✅ | [`examples/observe_quickstart.py`](examples/observe_quickstart.py) |
+| **Anthropic** | Claude Haiku 3.5 | $0.80 | $4.00 | ✅ | [`examples/observe_quickstart.py`](examples/observe_quickstart.py) |
+| **Anthropic** | Claude Opus 4.1 | $15.00 | $75.00 | 🟡 | — |
+| **Gemini** | Gemini 3 Flash Preview | $0.50 | $3.00 | 🛠️ | [`examples/multi-provider-setup.ts`](examples/multi-provider-setup.ts) |
+| **Gemini** | Gemini 3 Pro Preview | $2.00 | $12.00 | 🛠️ | [`examples/multi-provider-setup.ts`](examples/multi-provider-setup.ts) |
+| **Gemini** | Gemini 2.5 Flash-Lite | $0.10 | $0.40 | 🛠️ | [`examples/multi-provider-setup.ts`](examples/multi-provider-setup.ts) |
+| **Bedrock** | Amazon Nova Micro | $0.035 | $0.14 | 🛠️ | [`examples/bedrock-multi-provider.ts`](examples/bedrock-multi-provider.ts) |
+| **Bedrock** | Amazon Nova Lite | $0.06 | $0.24 | 🛠️ | [`examples/bedrock-multi-provider.ts`](examples/bedrock-multi-provider.ts) |
+| **Bedrock** | Amazon Nova Pro | $0.80 | $3.20 | 🛠️ | [`examples/bedrock-multi-provider.ts`](examples/bedrock-multi-provider.ts) |
+| **Azure OpenAI** | GPT-5 Global Standard | $1.25 | $10.00 | 🛠️ | [`examples/multi-provider-failover.ts`](examples/multi-provider-failover.ts) |
+| **Azure OpenAI** | GPT-5 mini Global Standard | $0.25 | $2.00 | 🛠️ | [`examples/multi-provider-failover.ts`](examples/multi-provider-failover.ts) |
+| **Cohere** | Command A | $2.50 | $10.00 | ❌ | — |
+| **Cohere** | Command R+ | $2.50 | $10.00 | ❌ | — |
+| **Mistral** | Mistral Large 3 | $0.50 | $1.50 | ❌ | — |
+| **Mistral** | Mistral Small 4 | $0.15 | $0.60 | ❌ | — |
+| **Mistral** | Mistral Medium 3.5 | $1.50 | $7.50 | ❌ | — |
+
+### Coverage legend
+
+- ✅ — Verified end-to-end via `observe()` + tested in `test_property_20_cost_monotonicity.py`
+- 🟡 — Imported in `observe()` adapter, no property test yet
+- 🛠️ — Adapter example exists, no `observe()` integration yet
+- ❌ — Listed in `cost-comparison.md` only, no SDK hook yet (PRs welcome)
