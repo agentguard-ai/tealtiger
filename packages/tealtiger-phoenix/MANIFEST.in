@@ -1,0 +1,4 @@
+include LICENSE
+include README.md
+recursive-include tealtiger_phoenix *.py
+recursive-include examples *.py
