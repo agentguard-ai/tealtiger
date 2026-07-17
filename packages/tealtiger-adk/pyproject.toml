@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tealtiger-adk"
+version = "0.1.0"
+description = "Deterministic governance callbacks for Google Agent Development Kit (ADK) — policy enforcement, PII detection, cost tracking, and audit evidence."
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "TealTiger", email = "feedback@tealtiger.ai"}
+]
+keywords = ["google-adk", "tealtiger", "governance", "ai-agents", "security", "guardrails", "gemini"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "tealtiger>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "google-adk>=0.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/agentguard-ai/tealtiger"
+Documentation = "https://docs.tealtiger.ai/integrations/google-adk"
+Repository = "https://github.com/agentguard-ai/tealtiger/tree/main/packages/tealtiger-adk"
+Issues = "https://github.com/agentguard-ai/tealtiger/issues"
+
+[tool.setuptools.packages.find]
+include = ["tealtiger_adk*"]
