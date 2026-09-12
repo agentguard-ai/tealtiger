@@ -1,8 +1,9 @@
 """
 TealTiger MCP Server
 
-Exposes TealTiger guardrails, cost tracking, and budget enforcement
-as MCP tools for Claude Desktop, Cursor, Kiro, and any MCP client.
+Exposes TealTiger guardrails, secret detection, cost tracking, and budget
+enforcement as MCP tools for Claude Desktop, Cursor, Kiro, and any MCP
+client.
 
 Usage:
     tealtiger-mcp                  # stdio transport (default)
@@ -28,6 +29,8 @@ from tealtiger import (
     is_model_supported,
 )
 
+from tealtiger_mcp.secret_detection import SecretDetectionGuardrail
+
 # ---------------------------------------------------------------------------
 # Server instance
 # ---------------------------------------------------------------------------
@@ -36,7 +39,7 @@ mcp = FastMCP(
     "TealTiger",
     instructions=(
         "Deterministic AI governance: PII detection, prompt injection blocking, "
-        "content moderation, cost estimation, and budget checks. "
+        "content moderation, secret detection, cost estimation, and budget checks. "
         "All enforcement runs locally — no data leaves your process."
     ),
 )
@@ -48,6 +51,7 @@ mcp = FastMCP(
 _pii_guardrail: PIIDetectionGuardrail | None = None
 _injection_guardrail: PromptInjectionGuardrail | None = None
 _moderation_guardrail: ContentModerationGuardrail | None = None
+_secret_guardrail: SecretDetectionGuardrail | None = None
 _engine: GuardrailEngine | None = None
 _cost_tracker: CostTracker | None = None
 
@@ -73,6 +77,13 @@ def _get_moderation_guardrail() -> ContentModerationGuardrail:
     return _moderation_guardrail
 
 
+def _get_secret_guardrail() -> SecretDetectionGuardrail:
+    global _secret_guardrail
+    if _secret_guardrail is None:
+        _secret_guardrail = SecretDetectionGuardrail({"action": "block", "enabled": True})
+    return _secret_guardrail
+
+
 def _get_engine() -> GuardrailEngine:
     global _engine
     if _engine is None:
@@ -80,6 +91,7 @@ def _get_engine() -> GuardrailEngine:
         _engine.register_guardrail(_get_pii_guardrail())
         _engine.register_guardrail(_get_injection_guardrail())
         _engine.register_guardrail(_get_moderation_guardrail())
+        _engine.register_guardrail(_get_secret_guardrail())
     return _engine
 
 
@@ -138,8 +150,28 @@ async def check_content(text: str) -> str:
 
 
 @mcp.tool()
+async def detect_secrets(text: str) -> str:
+    """Scan text for leaked secrets and credentials.
+
+    Detects API keys (OpenAI, AWS), GitHub PATs, Slack tokens, private keys,
+    and other credential patterns using deterministic regex. Fully local —
+    no data leaves your process.
+
+    Returns JSON with: passed, action, risk_score, findings_count, findings
+    (types, redacted matches, positions), and redacted_text.
+    """
+    guardrail = _get_secret_guardrail()
+    result = await guardrail.evaluate(text)
+    # Flatten metadata into the top-level response for client ergonomics
+    dump = result.model_dump()
+    metadata = dump.pop("metadata", {})
+    dump.update(metadata)
+    return json.dumps(dump, indent=2, default=str)
+
+
+@mcp.tool()
 async def evaluate_guardrails(text: str) -> str:
-    """Run all guardrails (PII, injection, content moderation) on the input text.
+    """Run all guardrails (PII, injection, content, secrets) on the input text.
 
     This is the recommended tool for pre-flight checks before sending a prompt
     to an AI model. It runs all registered guardrails and returns a combined result.
@@ -166,8 +198,7 @@ async def estimate_cost(
 ) -> str:
     """Estimate the cost of an AI API call before making it.
 
-    Supports 7 providers: openai, anthropic, google, azure-openai, bedrock,
-    cohere, mistral. Covers 95%+ of the market.
+    Supports OpenAI and Anthropic models. Covers 95%+ of the market.
 
     Args:
         model: Model identifier (e.g. "gpt-4", "claude-3-opus-20240229")
@@ -271,6 +302,21 @@ async def redact_pii(text: str) -> str:
         return text
 
     return result.metadata.get("redacted_text", text)
+
+
+@mcp.tool()
+async def redact_secrets(text: str) -> str:
+    """Redact all detected secrets from text and return the cleaned version.
+
+    Replaces secrets with tokens like [REDACTED_OPENAI_KEY], [REDACTED_AWS_ACCESS_KEY], etc.
+    Use this to sanitize text before sending it to an AI model or storing it.
+
+    Returns the redacted text string (not JSON).
+    """
+    guardrail = _get_secret_guardrail()
+    result = await guardrail.evaluate(text)
+    metadata = result.metadata if hasattr(result, "metadata") else {}
+    return metadata.get("redacted_text", text) if metadata.get("redacted_text") else text
 
 
 @mcp.tool()
