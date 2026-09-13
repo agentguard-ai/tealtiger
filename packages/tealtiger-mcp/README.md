@@ -90,6 +90,30 @@ Add to `.kiro/settings/mcp.json`:
 }
 ```
 
+### Network transports
+
+`stdio` remains the default for local MCP hosts. For clients that connect over HTTP, use Streamable HTTP:
+
+```bash
+tealtiger-mcp --transport streamable-http
+```
+
+By default the server binds to `127.0.0.1:8000`; the Streamable HTTP endpoint is `/mcp`. You can change the bind address or port explicitly:
+
+```bash
+tealtiger-mcp --transport streamable-http --host 127.0.0.1 --port 9000
+```
+
+Legacy clients that have not migrated to Streamable HTTP can still use SSE:
+
+```bash
+tealtiger-mcp --transport sse --port 9000
+```
+
+SSE is retained for compatibility; prefer Streamable HTTP for new integrations.
+
+> **Security:** `--host` and `--port` control the network listener for SSE and Streamable HTTP. The default loopback binding keeps the MCP server local to the machine. Binding to a non-loopback address exposes the governance tools to other hosts that can reach that interface. Authentication for remote access is out of scope for this v1 package, so do not expose it directly to an untrusted network. Put an authenticated reverse proxy, firewall, or equivalent network control in front of it before allowing remote access.
+
 ## Available Tools
 
 ### Guardrails
@@ -135,8 +159,8 @@ Once connected, ask Claude (or any MCP client):
 │  Claude /    │     │  TealTiger MCP      │     │  AI Provider │
 │  MCP Client  │────▶│  Server             │     │  (OpenAI,    │
 │              │     │                     │     │   Anthropic,  │
-│              │     │  ┌───────────────┐  │     │   etc.)      │
-│              │◀────│  │ Guardrails    │  │     │              │
+│              │◀────│  ┌───────────────┐  │     │   etc.)      │
+│              │     │  │ Guardrails    │  │     │              │
 │              │     │  │ Cost Tracker  │  │     │              │
 │              │     │  │ PII Redaction │  │     │              │
 │              │     │  └───────────────┘  │     │              │
@@ -149,7 +173,7 @@ The MCP server wraps the TealTiger Python SDK. All processing happens locally in
 
 - Python 3.10+
 - `tealtiger` >= 1.4.0
-- `mcp` >= 1.0.0, < 2  (targets the v1 FastMCP API; 2.x migration tracked separately)
+- `mcp` >= 1.8.0, < 2  (Streamable HTTP first shipped in 1.8.0; 2.x migration tracked separately)
 
 ## License
 

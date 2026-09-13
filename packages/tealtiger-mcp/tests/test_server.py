@@ -163,3 +163,96 @@ async def test_security_preflight_allows_clean_no_cost():
     assert out["recommendation"].startswith("ALLOW")
     # no tokens supplied -> no cost estimate key
     assert "cost_estimate" not in out
+
+
+def test_network_defaults_are_loopback_only():
+    assert s.mcp.settings.host == s.DEFAULT_HOST == "127.0.0.1"
+    assert s.mcp.settings.port == s.DEFAULT_PORT == 8000
+
+
+def test_main_defaults_to_stdio(monkeypatch):
+    transports = []
+
+    def fake_run(transport="stdio", mount_path=None):
+        transports.append((transport, mount_path))
+
+    monkeypatch.setattr(s.mcp, "run", fake_run)
+
+    s.main([])
+
+    assert transports == [("stdio", None)]
+
+
+@pytest.mark.parametrize("transport", ["sse", "streamable-http"])
+def test_main_configures_network_transport(monkeypatch, transport):
+    transports = []
+    original_host = s.mcp.settings.host
+    original_port = s.mcp.settings.port
+    original_security = getattr(s.mcp.settings, "transport_security", None)
+
+    def fake_run(transport="stdio", mount_path=None):
+        transports.append((transport, mount_path))
+
+    monkeypatch.setattr(s.mcp, "run", fake_run)
+
+    try:
+        s.main(["--transport", transport, "--host", "127.0.0.1", "--port", "8123"])
+
+        assert transports == [(transport, None)]
+        assert s.mcp.settings.host == "127.0.0.1"
+        assert s.mcp.settings.port == 8123
+        if hasattr(s.mcp.settings, "transport_security"):
+            assert s.mcp.settings.transport_security is s._DEFAULT_TRANSPORT_SECURITY
+    finally:
+        s.mcp.settings.host = original_host
+        s.mcp.settings.port = original_port
+        if hasattr(s.mcp.settings, "transport_security"):
+            s.mcp.settings.transport_security = original_security
+
+
+def test_non_loopback_host_drops_localhost_only_transport_security(monkeypatch):
+    if not hasattr(s.mcp.settings, "transport_security"):
+        pytest.skip("transport_security is not exposed by this mcp 1.x release")
+
+    original_host = s.mcp.settings.host
+    original_port = s.mcp.settings.port
+    original_security = s.mcp.settings.transport_security
+
+    monkeypatch.setattr(s.mcp, "run", lambda **_kwargs: None)
+
+    try:
+        s.main(["--transport", "streamable-http", "--host", "0.0.0.0"])
+        assert s.mcp.settings.host == "0.0.0.0"
+        assert s.mcp.settings.transport_security is None
+    finally:
+        s.mcp.settings.host = original_host
+        s.mcp.settings.port = original_port
+        s.mcp.settings.transport_security = original_security
+
+
+@pytest.mark.parametrize(
+    ("transport", "runner_name"),
+    [
+        ("stdio", "run_stdio_async"),
+        ("sse", "run_sse_async"),
+        ("streamable-http", "run_streamable_http_async"),
+    ],
+)
+def test_fastmcp_starts_each_transport(monkeypatch, transport, runner_name):
+    calls = []
+
+    if transport == "sse":
+
+        async def fake_runner(mount_path=None):
+            calls.append(mount_path)
+
+    else:
+
+        async def fake_runner():
+            calls.append(True)
+
+    monkeypatch.setattr(s.mcp, runner_name, fake_runner)
+
+    s.mcp.run(transport=transport)
+
+    assert calls

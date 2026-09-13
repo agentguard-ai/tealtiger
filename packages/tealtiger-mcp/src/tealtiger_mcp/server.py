@@ -5,11 +5,12 @@ Exposes TealTiger guardrails, cost tracking, and budget enforcement
 as MCP tools for Claude Desktop, Cursor, Kiro, and any MCP client.
 
 Usage:
-    tealtiger-mcp                  # stdio transport (default)
-    tealtiger-mcp --transport sse  # SSE transport for remote access
+    tealtiger-mcp                                  # stdio transport (default)
+    tealtiger-mcp --transport sse                 # SSE transport for remote access
+    tealtiger-mcp --transport streamable-http     # Streamable HTTP transport
 """
 
-import asyncio
+import argparse
 import json
 from typing import Any
 
@@ -32,6 +33,10 @@ from tealtiger import (
 # Server instance
 # ---------------------------------------------------------------------------
 
+DEFAULT_HOST = "127.0.0.1"
+DEFAULT_PORT = 8000
+_LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
+
 mcp = FastMCP(
     "TealTiger",
     instructions=(
@@ -39,7 +44,16 @@ mcp = FastMCP(
         "content moderation, cost estimation, and budget checks. "
         "All enforcement runs locally — no data leaves your process."
     ),
+    # FastMCP 1.8 defaulted to 0.0.0.0 while newer 1.x releases default to
+    # loopback. Set this explicitly so TealTiger stays local by default across
+    # the full supported mcp 1.x range.
+    host=DEFAULT_HOST,
+    port=DEFAULT_PORT,
 )
+
+# Newer mcp 1.x releases auto-enable DNS-rebinding protection for localhost.
+# Keep the generated setting so repeated main() calls in tests can restore it.
+_DEFAULT_TRANSPORT_SECURITY = getattr(mcp.settings, "transport_security", None)
 
 # ---------------------------------------------------------------------------
 # Shared instances (lazy-initialized, reused across calls)
@@ -332,9 +346,55 @@ async def security_preflight(
 # ---------------------------------------------------------------------------
 
 
-def main():
-    """Run the TealTiger MCP server."""
-    mcp.run()
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the command-line parser for transport selection."""
+    parser = argparse.ArgumentParser(description="Run the TealTiger MCP server.")
+    parser.add_argument(
+        "--transport",
+        choices=("stdio", "sse", "streamable-http"),
+        default="stdio",
+        help="MCP transport to use (default: stdio).",
+    )
+    parser.add_argument(
+        "--host",
+        default=DEFAULT_HOST,
+        help=f"Bind host for SSE or Streamable HTTP (default: {DEFAULT_HOST}).",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=DEFAULT_PORT,
+        help=f"Bind port for SSE or Streamable HTTP (default: {DEFAULT_PORT}).",
+    )
+    return parser
+
+
+def _configure_network_transport(host: str, port: int) -> None:
+    """Apply network settings while keeping FastMCP v1 security coherent."""
+    mcp.settings.host = host
+    mcp.settings.port = port
+
+    # mcp >= 1.23 auto-enables localhost DNS-rebinding protection at
+    # construction time. If the caller deliberately binds beyond loopback,
+    # keeping that localhost-only policy would make the listener reject
+    # legitimate Host headers. Match FastMCP's own non-loopback construction
+    # behaviour by disabling the auto-generated localhost policy in that case.
+    # Older mcp 1.x releases do not expose this setting, hence the feature check.
+    if hasattr(mcp.settings, "transport_security"):
+        mcp.settings.transport_security = (
+            _DEFAULT_TRANSPORT_SECURITY if host in _LOOPBACK_HOSTS else None
+        )
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Run the TealTiger MCP server using the selected transport."""
+    args = _build_parser().parse_args(argv)
+
+    # stdio does not use host/port; network transports do.
+    if args.transport != "stdio":
+        _configure_network_transport(args.host, args.port)
+
+    mcp.run(transport=args.transport)
 
 
 if __name__ == "__main__":
