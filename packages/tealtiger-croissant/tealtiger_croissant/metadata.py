@@ -30,3 +30,13 @@ def extract_odrl_offers(
         ):
             offers.append(entry)
     return tuple(offers)
+
+
+def extract_provenance(metadata: Mapping[str, Any]) -> dict[str, Any]:
+    """Extract dataset-level PROV-O relationships from Croissant metadata."""
+    relationships = ("wasDerivedFrom", "wasGeneratedBy", "wasAttributedTo")
+    return {
+        relationship: metadata[f"prov:{relationship}"]
+        for relationship in relationships
+        if f"prov:{relationship}" in metadata
+    }

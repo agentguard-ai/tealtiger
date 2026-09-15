@@ -1,4 +1,8 @@
-from tealtiger_croissant.metadata import extract_duo_codes, extract_odrl_offers
+from tealtiger_croissant.metadata import (
+    extract_duo_codes,
+    extract_odrl_offers,
+    extract_provenance,
+)
 
 
 def test_extracts_duo_codes_from_usage_info() -> None:
@@ -42,3 +46,18 @@ def test_extracts_odrl_offer_from_usage_info() -> None:
     }
 
     assert extract_odrl_offers(metadata) == (offer,)
+
+
+def test_extracts_dataset_provenance() -> None:
+    metadata = {
+        "name": "restricted_health_data",
+        "prov:wasDerivedFrom": {"@id": "https://example.org/source"},
+        "prov:wasGeneratedBy": {"@id": "https://example.org/cleaning"},
+        "prov:wasAttributedTo": {"@id": "https://example.org/publisher"},
+    }
+
+    assert extract_provenance(metadata) == {
+        "wasDerivedFrom": {"@id": "https://example.org/source"},
+        "wasGeneratedBy": {"@id": "https://example.org/cleaning"},
+        "wasAttributedTo": {"@id": "https://example.org/publisher"},
+    }
