@@ -1,6 +1,8 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Literal
+from uuid import uuid4
 
 import mlcroissant as mlc
 
@@ -10,6 +12,8 @@ from .metadata import extract_duo_codes, extract_odrl_constraints, extract_prove
 @dataclass(frozen=True)
 class GovernanceDecision:
     action: Literal["ALLOW", "BLOCK"]
+    timestamp: str
+    correlation_id: str
     reason_codes: tuple[str, ...] = ()
     provenance_verified: bool = False
     dataset_id: str | None = None
@@ -30,6 +34,8 @@ class CroissantGovernanceEnforcer:
         odrl_constraints = extract_odrl_constraints(metadata)
         provenance = extract_provenance(metadata)
         reason_codes = []
+        timestamp = datetime.now(timezone.utc).isoformat()
+        correlation_id = str(uuid4())
 
         if (
             "DUO_0000018" in duo_codes
@@ -74,6 +80,8 @@ class CroissantGovernanceEnforcer:
 
         return GovernanceDecision(
             action="BLOCK" if reason_codes else "ALLOW",
+            timestamp=timestamp,
+            correlation_id=correlation_id,
             reason_codes=tuple(reason_codes),
             provenance_verified=all(
                 relationship in provenance
@@ -103,5 +111,7 @@ class CroissantGovernanceEnforcer:
                 },
                 "agent_context": dict(agent_context),
                 "decision_reason": tuple(reason_codes),
+                "timestamp": timestamp,
+                "correlation_id": correlation_id,
             },
         )

@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+from uuid import UUID
+
 import mlcroissant as mlc
 
 from tealtiger_croissant.enforcer import CroissantGovernanceEnforcer
@@ -260,4 +263,16 @@ def test_records_structured_audit_evidence() -> None:
         },
         "agent_context": context,
         "decision_reason": ("DUO_0000018_NON_COMMERCIAL_ONLY",),
+        "timestamp": decision.timestamp,
+        "correlation_id": decision.correlation_id,
     }
+
+
+def test_assigns_utc_timestamp_and_correlation_id() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access({}, {})
+
+    timestamp = datetime.fromisoformat(decision.timestamp)
+    assert timestamp.utcoffset() == timezone.utc.utcoffset(timestamp)
+    assert str(UUID(decision.correlation_id)) == decision.correlation_id
+    assert decision.audit_evidence["timestamp"] == decision.timestamp
+    assert decision.audit_evidence["correlation_id"] == decision.correlation_id
