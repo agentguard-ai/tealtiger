@@ -12,4 +12,3 @@ def test_exports_public_enforcement_api() -> None:
         is CroissantGovernanceEnforcer
     )
     assert tealtiger_croissant.GovernanceDecision is GovernanceDecision
-      

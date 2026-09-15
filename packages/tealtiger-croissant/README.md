@@ -96,4 +96,3 @@ patterns listed above. Generic ODRL vocabulary support, recursive
 resource/record-set/field provenance, and MCP middleware are not implemented.
 Unsupported governance policies block in ENFORCE mode so the limited scope
 cannot silently authorize access.
-
