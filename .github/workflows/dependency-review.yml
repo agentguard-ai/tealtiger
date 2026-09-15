@@ -28,4 +28,11 @@ jobs:
           fail-on-severity: high
           # Block GPL / AGPL / LGPL — incompatible with Apache 2.0
           deny-licenses: GPL-2.0, GPL-3.0, AGPL-3.0, LGPL-2.0, LGPL-2.1, LGPL-3.0
+          # trufflehog is AGPL-3.0, but it is invoked as a CI *action* (our secret
+          # scanner), not linked into the Apache-2.0 product — AGPL copyleft does
+          # not attach to running a tool in CI. Without this exemption the license
+          # gate blocks every trufflehog action bump (e.g. #543) forever. Exempt
+          # only this action from the LICENSE check; vulnerability checks and all
+          # other dependencies' license checks are unaffected.
+          allow-dependencies-licenses: "pkg:githubactions/trufflesecurity/trufflehog"
           comment-summary-in-pr: always
