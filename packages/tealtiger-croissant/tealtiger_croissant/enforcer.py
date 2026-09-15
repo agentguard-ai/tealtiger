@@ -13,6 +13,16 @@ from .metadata import (
     extract_provenance,
 )
 
+_SUPPORTED_DUO_CODES = {"DUO_0000018", "DUO_0000042"}
+_SUPPORTED_ODRL_ACTIONS = {"duo:0000006", "duo:0000007"}
+
+
+def _reference_id(value: Any) -> str | None:
+    if not isinstance(value, Mapping):
+        return None
+    reference = value.get("@id")
+    return reference if isinstance(reference, str) else None
+
 
 @dataclass(frozen=True)
 class GovernanceDecision:
@@ -92,6 +102,12 @@ class CroissantGovernanceEnforcer:
         correlation_id = engine_decision.correlation_id
 
         if engine_decision.mode != PolicyMode.REPORT_ONLY:
+            if any(code not in _SUPPORTED_DUO_CODES for code in duo_codes):
+                reason_codes.append("UNSUPPORTED_DUO_CODE")
+
+            if any(action not in _SUPPORTED_ODRL_ACTIONS for action in odrl_actions):
+                reason_codes.append("UNSUPPORTED_ODRL_ACTION")
+
             if (
                 "DUO_0000018" in duo_codes
                 and agent_context.get("org_type") not in {"academic", "nonprofit"}
@@ -118,36 +134,36 @@ class CroissantGovernanceEnforcer:
                 reason_codes.append("ODRL_DISEASE_RESEARCH_USE_ONLY")
 
             for constraint in odrl_constraints:
-                left_operand = constraint.get("odrl:leftOperand")
-                operator = constraint.get("odrl:operator")
-                right_operand = constraint.get("odrl:rightOperand")
+                left_operand = _reference_id(constraint.get("odrl:leftOperand"))
+                operator = _reference_id(constraint.get("odrl:operator"))
+                right_operand = _reference_id(constraint.get("odrl:rightOperand"))
+                non_commercial = (
+                    operator == "odrl:eq" and right_operand == "duo:0000018"
+                )
+                disease_specific = (
+                    left_operand == "duo:0000010"
+                    and operator == "odrl:eq"
+                    and right_operand is not None
+                    and right_operand.startswith("mondo:")
+                )
+
                 if (
-                    isinstance(operator, Mapping)
-                    and operator.get("@id") == "odrl:eq"
-                    and isinstance(right_operand, Mapping)
-                    and right_operand.get("@id") == "duo:0000018"
+                    non_commercial
                     and agent_context.get("org_type")
                     not in {"academic", "nonprofit"}
                     and "ODRL_NON_COMMERCIAL_ONLY" not in reason_codes
                 ):
                     reason_codes.append("ODRL_NON_COMMERCIAL_ONLY")
 
-                disease_area = (
-                    right_operand.get("@id")
-                    if isinstance(right_operand, Mapping)
-                    else None
-                )
                 if (
-                    isinstance(left_operand, Mapping)
-                    and left_operand.get("@id") == "duo:0000010"
-                    and isinstance(operator, Mapping)
-                    and operator.get("@id") == "odrl:eq"
-                    and isinstance(disease_area, str)
-                    and disease_area.startswith("mondo:")
-                    and agent_context.get("disease_area") != disease_area
+                    disease_specific
+                    and agent_context.get("disease_area") != right_operand
                     and "ODRL_DISEASE_SPECIFIC_USE_ONLY" not in reason_codes
                 ):
                     reason_codes.append("ODRL_DISEASE_SPECIFIC_USE_ONLY")
+
+                if not non_commercial and not disease_specific:
+                    reason_codes.append("UNSUPPORTED_ODRL_CONSTRAINT")
 
         return GovernanceDecision(
             action=(

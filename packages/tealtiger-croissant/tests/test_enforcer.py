@@ -5,6 +5,7 @@ from unittest.mock import Mock
 from uuid import UUID
 
 import mlcroissant as mlc
+import pytest
 from tealtiger.core.engine import ModeConfig, PolicyMode, TealEngine
 
 from tealtiger_croissant.enforcer import CroissantGovernanceEnforcer
@@ -402,3 +403,48 @@ def test_enforces_disease_research_action() -> None:
 
     assert decision.action == "BLOCK"
     assert decision.reason_codes == ("ODRL_DISEASE_RESEARCH_USE_ONLY",)
+
+
+@pytest.mark.parametrize(
+    ("metadata", "reason_code"),
+    [
+        (
+            {"usageInfo": {"termCode": "DUO_9999999"}},
+            "UNSUPPORTED_DUO_CODE",
+        ),
+        (
+            {
+                "usageInfo": {
+                    "@type": "odrl:Offer",
+                    "odrl:permission": {
+                        "odrl:action": {"@id": "odrl:distribute"}
+                    },
+                }
+            },
+            "UNSUPPORTED_ODRL_ACTION",
+        ),
+        (
+            {
+                "usageInfo": {
+                    "@type": "odrl:Offer",
+                    "odrl:permission": {
+                        "odrl:constraint": {
+                            "odrl:leftOperand": {"@id": "odrl:dateTime"},
+                            "odrl:operator": {"@id": "odrl:lt"},
+                            "odrl:rightOperand": "2030-01-01",
+                        }
+                    },
+                }
+            },
+            "UNSUPPORTED_ODRL_CONSTRAINT",
+        ),
+    ],
+)
+def test_fails_closed_for_unsupported_governance_policy(
+    metadata: dict[str, object],
+    reason_code: str,
+) -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(metadata, {})
+
+    assert decision.action == "BLOCK"
+    assert decision.reason_codes == (reason_code,)
