@@ -5,7 +5,7 @@ from unittest.mock import Mock
 from uuid import UUID
 
 import mlcroissant as mlc
-from tealtiger.core.engine import TealEngine
+from tealtiger.core.engine import ModeConfig, PolicyMode, TealEngine
 
 from tealtiger_croissant.enforcer import CroissantGovernanceEnforcer
 
@@ -267,6 +267,7 @@ def test_records_structured_audit_evidence() -> None:
         },
         "agent_context": context,
         "decision_reason": ("DUO_0000018_NON_COMMERCIAL_ONLY",),
+        "mode": "ENFORCE",
         "timestamp": decision.timestamp,
         "correlation_id": decision.correlation_id,
     }
@@ -306,7 +307,8 @@ def test_exports_decision_as_prov_o_activity() -> None:
 def test_uses_tealtiger_engine_correlation_id() -> None:
     engine = Mock(spec=TealEngine)
     engine.evaluate_with_mode.return_value = SimpleNamespace(
-        correlation_id="governance-correlation-id"
+        correlation_id="governance-correlation-id",
+        mode=PolicyMode.ENFORCE,
     )
 
     decision = CroissantGovernanceEnforcer(engine).evaluate_access(
@@ -321,3 +323,36 @@ def test_uses_tealtiger_engine_correlation_id() -> None:
             "metadata": {"dataset_id": "restricted-health-data"},
         }
     )
+
+
+def test_monitor_mode_records_violation_without_blocking() -> None:
+    engine = TealEngine(
+        policies={},
+        mode=ModeConfig(default=PolicyMode.MONITOR),
+    )
+
+    decision = CroissantGovernanceEnforcer(engine).evaluate_access(
+        NON_COMMERCIAL_METADATA,
+        {"org_type": "commercial"},
+    )
+
+    assert decision.action == "ALLOW"
+    assert decision.mode == PolicyMode.MONITOR
+    assert decision.reason_codes == ("DUO_0000018_NON_COMMERCIAL_ONLY",)
+
+
+def test_report_only_mode_skips_policy_evaluation() -> None:
+    engine = TealEngine(
+        policies={},
+        mode=ModeConfig(default=PolicyMode.REPORT_ONLY),
+    )
+
+    decision = CroissantGovernanceEnforcer(engine).evaluate_access(
+        NON_COMMERCIAL_METADATA,
+        {"org_type": "commercial"},
+    )
+
+    assert decision.action == "ALLOW"
+    assert decision.mode == PolicyMode.REPORT_ONLY
+    assert decision.reason_codes == ()
+    assert decision.policies_evaluated == 0

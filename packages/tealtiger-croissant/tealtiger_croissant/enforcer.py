@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Any, Literal
 
 import mlcroissant as mlc
-from tealtiger.core.engine import TealEngine
+from tealtiger.core.engine import PolicyMode, TealEngine
 
 from .metadata import extract_duo_codes, extract_odrl_constraints, extract_provenance
 
@@ -14,6 +14,7 @@ class GovernanceDecision:
     action: Literal["ALLOW", "BLOCK"]
     timestamp: str
     correlation_id: str
+    mode: PolicyMode
     reason_codes: tuple[str, ...] = ()
     provenance_verified: bool = False
     dataset_id: str | None = None
@@ -84,51 +85,60 @@ class CroissantGovernanceEnforcer:
         )
         correlation_id = engine_decision.correlation_id
 
-        if (
-            "DUO_0000018" in duo_codes
-            and agent_context.get("org_type") not in {"academic", "nonprofit"}
-        ):
-            reason_codes.append("DUO_0000018_NON_COMMERCIAL_ONLY")
-
-        if (
-            "DUO_0000042" in duo_codes
-            and agent_context.get("purpose") != "research"
-        ):
-            reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
-
-        for constraint in odrl_constraints:
-            left_operand = constraint.get("odrl:leftOperand")
-            operator = constraint.get("odrl:operator")
-            right_operand = constraint.get("odrl:rightOperand")
+        if engine_decision.mode != PolicyMode.REPORT_ONLY:
             if (
-                isinstance(operator, Mapping)
-                and operator.get("@id") == "odrl:eq"
-                and isinstance(right_operand, Mapping)
-                and right_operand.get("@id") == "duo:0000018"
+                "DUO_0000018" in duo_codes
                 and agent_context.get("org_type") not in {"academic", "nonprofit"}
-                and "ODRL_NON_COMMERCIAL_ONLY" not in reason_codes
             ):
-                reason_codes.append("ODRL_NON_COMMERCIAL_ONLY")
+                reason_codes.append("DUO_0000018_NON_COMMERCIAL_ONLY")
 
-            disease_area = (
-                right_operand.get("@id") if isinstance(right_operand, Mapping) else None
-            )
             if (
-                isinstance(left_operand, Mapping)
-                and left_operand.get("@id") == "duo:0000010"
-                and isinstance(operator, Mapping)
-                and operator.get("@id") == "odrl:eq"
-                and isinstance(disease_area, str)
-                and disease_area.startswith("mondo:")
-                and agent_context.get("disease_area") != disease_area
-                and "ODRL_DISEASE_SPECIFIC_USE_ONLY" not in reason_codes
+                "DUO_0000042" in duo_codes
+                and agent_context.get("purpose") != "research"
             ):
-                reason_codes.append("ODRL_DISEASE_SPECIFIC_USE_ONLY")
+                reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
+
+            for constraint in odrl_constraints:
+                left_operand = constraint.get("odrl:leftOperand")
+                operator = constraint.get("odrl:operator")
+                right_operand = constraint.get("odrl:rightOperand")
+                if (
+                    isinstance(operator, Mapping)
+                    and operator.get("@id") == "odrl:eq"
+                    and isinstance(right_operand, Mapping)
+                    and right_operand.get("@id") == "duo:0000018"
+                    and agent_context.get("org_type")
+                    not in {"academic", "nonprofit"}
+                    and "ODRL_NON_COMMERCIAL_ONLY" not in reason_codes
+                ):
+                    reason_codes.append("ODRL_NON_COMMERCIAL_ONLY")
+
+                disease_area = (
+                    right_operand.get("@id")
+                    if isinstance(right_operand, Mapping)
+                    else None
+                )
+                if (
+                    isinstance(left_operand, Mapping)
+                    and left_operand.get("@id") == "duo:0000010"
+                    and isinstance(operator, Mapping)
+                    and operator.get("@id") == "odrl:eq"
+                    and isinstance(disease_area, str)
+                    and disease_area.startswith("mondo:")
+                    and agent_context.get("disease_area") != disease_area
+                    and "ODRL_DISEASE_SPECIFIC_USE_ONLY" not in reason_codes
+                ):
+                    reason_codes.append("ODRL_DISEASE_SPECIFIC_USE_ONLY")
 
         return GovernanceDecision(
-            action="BLOCK" if reason_codes else "ALLOW",
+            action=(
+                "BLOCK"
+                if reason_codes and engine_decision.mode == PolicyMode.ENFORCE
+                else "ALLOW"
+            ),
             timestamp=timestamp,
             correlation_id=correlation_id,
+            mode=engine_decision.mode,
             reason_codes=tuple(reason_codes),
             provenance_verified=all(
                 relationship in provenance
@@ -140,7 +150,9 @@ class CroissantGovernanceEnforcer:
             ),
             dataset_id=dataset_id,
             policies_evaluated=(
-                len(duo_codes) + len(odrl_constraints) + bool(provenance)
+                0
+                if engine_decision.mode == PolicyMode.REPORT_ONLY
+                else len(duo_codes) + len(odrl_constraints) + bool(provenance)
             ),
             audit_evidence={
                 "croissant_policies": {
@@ -151,6 +163,7 @@ class CroissantGovernanceEnforcer:
                 },
                 "agent_context": dict(agent_context),
                 "decision_reason": tuple(reason_codes),
+                "mode": engine_decision.mode.value,
                 "timestamp": timestamp,
                 "correlation_id": correlation_id,
             },
