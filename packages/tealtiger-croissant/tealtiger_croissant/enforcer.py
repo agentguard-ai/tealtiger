@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Literal
 
 import mlcroissant as mlc
@@ -14,6 +14,7 @@ class GovernanceDecision:
     provenance_verified: bool = False
     dataset_id: str | None = None
     policies_evaluated: int = 0
+    audit_evidence: Mapping[str, Any] = field(default_factory=dict)
 
 
 class CroissantGovernanceEnforcer:
@@ -93,4 +94,14 @@ class CroissantGovernanceEnforcer:
             policies_evaluated=(
                 len(duo_codes) + len(odrl_constraints) + bool(provenance)
             ),
+            audit_evidence={
+                "croissant_policies": {
+                    "duo_codes": duo_codes,
+                    "odrl_constraints": odrl_constraints,
+                    "provenance": provenance,
+                    "license": metadata.get("license"),
+                },
+                "agent_context": dict(agent_context),
+                "decision_reason": tuple(reason_codes),
+            },
         )

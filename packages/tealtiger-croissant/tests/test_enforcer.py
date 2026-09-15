@@ -233,3 +233,31 @@ def test_reports_dataset_id_and_policy_count() -> None:
 
     assert decision.dataset_id == "restricted-health-data"
     assert decision.policies_evaluated == 3
+
+
+def test_records_structured_audit_evidence() -> None:
+    metadata = {
+        "@id": "licensed-dataset",
+        "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+        "usageInfo": {
+            "@type": "DefinedTerm",
+            "termCode": "DUO_0000018",
+        },
+        "prov:wasDerivedFrom": {"@id": "https://example.org/source"},
+    }
+    context = {"org_type": "commercial", "purpose": "model_training"}
+
+    decision = CroissantGovernanceEnforcer().evaluate_access(metadata, context)
+
+    assert decision.audit_evidence == {
+        "croissant_policies": {
+            "duo_codes": ("DUO_0000018",),
+            "odrl_constraints": (),
+            "provenance": {
+                "wasDerivedFrom": {"@id": "https://example.org/source"}
+            },
+            "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+        },
+        "agent_context": context,
+        "decision_reason": ("DUO_0000018_NON_COMMERCIAL_ONLY",),
+    }
