@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -276,3 +277,24 @@ def test_assigns_utc_timestamp_and_correlation_id() -> None:
     assert str(UUID(decision.correlation_id)) == decision.correlation_id
     assert decision.audit_evidence["timestamp"] == decision.timestamp
     assert decision.audit_evidence["correlation_id"] == decision.correlation_id
+
+
+def test_exports_decision_as_prov_o_activity() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        {"@id": "restricted-health-data", **NON_COMMERCIAL_METADATA},
+        {"org_type": "commercial"},
+    )
+
+    provenance = decision.to_croissant_provenance()
+
+    assert provenance["@type"] == "prov:Activity"
+    assert provenance["prov:used"] == {
+        "@id": "restricted-health-data",
+        "@type": "prov:Entity",
+    }
+    assert provenance["prov:generated"]["decision"] == "BLOCK"
+    assert provenance["prov:generated"]["reason_codes"] == [
+        "DUO_0000018_NON_COMMERCIAL_ONLY"
+    ]
+    assert provenance["prov:endedAtTime"] == decision.timestamp
+    assert json.loads(json.dumps(provenance)) == provenance

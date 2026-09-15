@@ -20,6 +20,36 @@ class GovernanceDecision:
     policies_evaluated: int = 0
     audit_evidence: Mapping[str, Any] = field(default_factory=dict)
 
+    def to_croissant_provenance(self) -> dict[str, Any]:
+        """Export this decision as a PROV-O activity."""
+        provenance = {
+            "@context": {
+                "@vocab": "https://github.com/agentguard-ai/tealtiger#",
+                "prov": "http://www.w3.org/ns/prov#",
+            },
+            "@id": f"urn:uuid:{self.correlation_id}",
+            "@type": "prov:Activity",
+            "prov:wasAssociatedWith": {
+                "@id": "https://github.com/agentguard-ai/tealtiger",
+                "@type": "prov:SoftwareAgent",
+                "name": "TealTiger Governance Engine",
+            },
+            "prov:generated": {
+                "@id": f"urn:uuid:{self.correlation_id}:decision",
+                "@type": "prov:Entity",
+                "decision": self.action,
+                "correlation_id": self.correlation_id,
+                "reason_codes": list(self.reason_codes),
+            },
+            "prov:endedAtTime": self.timestamp,
+        }
+        if self.dataset_id is not None:
+            provenance["prov:used"] = {
+                "@id": self.dataset_id,
+                "@type": "prov:Entity",
+            }
+        return provenance
+
 
 class CroissantGovernanceEnforcer:
     def evaluate_access(
