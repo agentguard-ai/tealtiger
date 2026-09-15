@@ -1,8 +1,11 @@
 import json
 from datetime import datetime, timezone
+from types import SimpleNamespace
+from unittest.mock import Mock
 from uuid import UUID
 
 import mlcroissant as mlc
+from tealtiger.core.engine import TealEngine
 
 from tealtiger_croissant.enforcer import CroissantGovernanceEnforcer
 
@@ -298,3 +301,23 @@ def test_exports_decision_as_prov_o_activity() -> None:
     ]
     assert provenance["prov:endedAtTime"] == decision.timestamp
     assert json.loads(json.dumps(provenance)) == provenance
+
+
+def test_uses_tealtiger_engine_correlation_id() -> None:
+    engine = Mock(spec=TealEngine)
+    engine.evaluate_with_mode.return_value = SimpleNamespace(
+        correlation_id="governance-correlation-id"
+    )
+
+    decision = CroissantGovernanceEnforcer(engine).evaluate_access(
+        {"@id": "restricted-health-data"},
+        {},
+    )
+
+    assert decision.correlation_id == "governance-correlation-id"
+    engine.evaluate_with_mode.assert_called_once_with(
+        {
+            "action": "croissant.dataset_access",
+            "metadata": {"dataset_id": "restricted-health-data"},
+        }
+    )

@@ -2,9 +2,9 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Literal
-from uuid import uuid4
 
 import mlcroissant as mlc
+from tealtiger.core.engine import TealEngine
 
 from .metadata import extract_duo_codes, extract_odrl_constraints, extract_provenance
 
@@ -52,6 +52,9 @@ class GovernanceDecision:
 
 
 class CroissantGovernanceEnforcer:
+    def __init__(self, engine: TealEngine | None = None) -> None:
+        self.engine = engine or TealEngine(policies={})
+
     def evaluate_access(
         self,
         dataset: mlc.Dataset | Mapping[str, Any],
@@ -63,9 +66,23 @@ class CroissantGovernanceEnforcer:
         duo_codes = extract_duo_codes(metadata)
         odrl_constraints = extract_odrl_constraints(metadata)
         provenance = extract_provenance(metadata)
+        dataset_id = next(
+            (
+                value
+                for key in ("@id", "url", "name")
+                if isinstance((value := metadata.get(key)), str)
+            ),
+            None,
+        )
         reason_codes = []
         timestamp = datetime.now(timezone.utc).isoformat()
-        correlation_id = str(uuid4())
+        engine_decision = self.engine.evaluate_with_mode(
+            {
+                "action": "croissant.dataset_access",
+                "metadata": {"dataset_id": dataset_id},
+            }
+        )
+        correlation_id = engine_decision.correlation_id
 
         if (
             "DUO_0000018" in duo_codes
@@ -121,14 +138,7 @@ class CroissantGovernanceEnforcer:
                     "wasAttributedTo",
                 )
             ),
-            dataset_id=next(
-                (
-                    value
-                    for key in ("@id", "url", "name")
-                    if isinstance((value := metadata.get(key)), str)
-                ),
-                None,
-            ),
+            dataset_id=dataset_id,
             policies_evaluated=(
                 len(duo_codes) + len(odrl_constraints) + bool(provenance)
             ),
