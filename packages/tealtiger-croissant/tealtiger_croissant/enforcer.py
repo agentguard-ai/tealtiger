@@ -33,6 +33,7 @@ class CroissantGovernanceEnforcer:
             reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
 
         for constraint in extract_odrl_constraints(metadata):
+            left_operand = constraint.get("odrl:leftOperand")
             operator = constraint.get("odrl:operator")
             right_operand = constraint.get("odrl:rightOperand")
             if (
@@ -41,9 +42,24 @@ class CroissantGovernanceEnforcer:
                 and isinstance(right_operand, Mapping)
                 and right_operand.get("@id") == "duo:0000018"
                 and agent_context.get("org_type") not in {"academic", "nonprofit"}
+                and "ODRL_NON_COMMERCIAL_ONLY" not in reason_codes
             ):
                 reason_codes.append("ODRL_NON_COMMERCIAL_ONLY")
-                break
+
+            disease_area = (
+                right_operand.get("@id") if isinstance(right_operand, Mapping) else None
+            )
+            if (
+                isinstance(left_operand, Mapping)
+                and left_operand.get("@id") == "duo:0000010"
+                and isinstance(operator, Mapping)
+                and operator.get("@id") == "odrl:eq"
+                and isinstance(disease_area, str)
+                and disease_area.startswith("mondo:")
+                and agent_context.get("disease_area") != disease_area
+                and "ODRL_DISEASE_SPECIFIC_USE_ONLY" not in reason_codes
+            ):
+                reason_codes.append("ODRL_DISEASE_SPECIFIC_USE_ONLY")
 
         return GovernanceDecision(
             action="BLOCK" if reason_codes else "ALLOW",

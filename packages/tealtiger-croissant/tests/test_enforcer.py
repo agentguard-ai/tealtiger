@@ -34,6 +34,22 @@ ODRL_NON_COMMERCIAL_METADATA = {
     }
 }
 
+ODRL_DISEASE_SPECIFIC_METADATA = {
+    "usageInfo": {
+        "@type": ["CreativeWork", "odrl:Offer"],
+        "odrl:permission": {
+            "@type": "odrl:Permission",
+            "odrl:action": {"@id": "duo:0000007"},
+            "odrl:constraint": {
+                "@type": "odrl:Constraint",
+                "odrl:leftOperand": {"@id": "duo:0000010"},
+                "odrl:operator": {"@id": "odrl:eq"},
+                "odrl:rightOperand": {"@id": "mondo:0005070"},
+            },
+        },
+    }
+}
+
 
 def test_blocks_commercial_use_of_non_commercial_dataset() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
@@ -99,6 +115,36 @@ def test_allows_nonprofit_use_for_odrl_non_commercial_constraint() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         ODRL_NON_COMMERCIAL_METADATA,
         {"org_type": "nonprofit"},
+    )
+
+    assert decision.action == "ALLOW"
+    assert decision.reason_codes == ()
+
+
+def test_blocks_use_for_a_different_disease_area() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        ODRL_DISEASE_SPECIFIC_METADATA,
+        {"disease_area": "mondo:0005148"},
+    )
+
+    assert decision.action == "BLOCK"
+    assert decision.reason_codes == ("ODRL_DISEASE_SPECIFIC_USE_ONLY",)
+
+
+def test_blocks_disease_specific_use_when_disease_area_is_missing() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        ODRL_DISEASE_SPECIFIC_METADATA,
+        {},
+    )
+
+    assert decision.action == "BLOCK"
+    assert decision.reason_codes == ("ODRL_DISEASE_SPECIFIC_USE_ONLY",)
+
+
+def test_allows_use_for_the_declared_disease_area() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        ODRL_DISEASE_SPECIFIC_METADATA,
+        {"disease_area": "mondo:0005070"},
     )
 
     assert decision.action == "ALLOW"
