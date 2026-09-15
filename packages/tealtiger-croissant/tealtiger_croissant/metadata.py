@@ -2,10 +2,13 @@ from collections.abc import Mapping
 from typing import Any
 
 
-def _usage_entries(metadata: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
-    usage_info = metadata.get("usageInfo", [])
-    entries = usage_info if isinstance(usage_info, list) else [usage_info]
+def _mapping_entries(value: Any) -> tuple[Mapping[str, Any], ...]:
+    entries = value if isinstance(value, list) else [value]
     return tuple(entry for entry in entries if isinstance(entry, Mapping))
+
+
+def _usage_entries(metadata: Mapping[str, Any]) -> tuple[Mapping[str, Any], ...]:
+    return _mapping_entries(metadata.get("usageInfo", []))
 
 
 def extract_duo_codes(metadata: Mapping[str, Any]) -> tuple[str, ...]:
@@ -30,6 +33,19 @@ def extract_odrl_offers(
         ):
             offers.append(entry)
     return tuple(offers)
+
+
+def extract_odrl_constraints(
+    metadata: Mapping[str, Any],
+) -> tuple[Mapping[str, Any], ...]:
+    """Extract constraints nested inside Croissant ODRL permissions."""
+    constraints = []
+    for offer in extract_odrl_offers(metadata):
+        for permission in _mapping_entries(offer.get("odrl:permission", [])):
+            constraints.extend(
+                _mapping_entries(permission.get("odrl:constraint", []))
+            )
+    return tuple(constraints)
 
 
 def extract_provenance(metadata: Mapping[str, Any]) -> dict[str, Any]:
