@@ -149,3 +149,21 @@ def test_allows_use_for_the_declared_disease_area() -> None:
 
     assert decision.action == "ALLOW"
     assert decision.reason_codes == ()
+
+
+def test_reports_provenance_completeness() -> None:
+    complete_metadata = {
+        "prov:wasDerivedFrom": {"@id": "https://example.org/source"},
+        "prov:wasGeneratedBy": {"@id": "https://example.org/activity"},
+        "prov:wasAttributedTo": {"@id": "https://example.org/agent"},
+    }
+    incomplete_metadata = {
+        "prov:wasDerivedFrom": {"@id": "https://example.org/source"},
+    }
+    enforcer = CroissantGovernanceEnforcer()
+
+    complete = enforcer.evaluate_access(complete_metadata, {})
+    incomplete = enforcer.evaluate_access(incomplete_metadata, {})
+
+    assert complete.provenance_verified is True
+    assert incomplete.provenance_verified is False

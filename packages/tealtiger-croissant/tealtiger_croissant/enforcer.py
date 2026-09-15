@@ -2,13 +2,14 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from .metadata import extract_duo_codes, extract_odrl_constraints
+from .metadata import extract_duo_codes, extract_odrl_constraints, extract_provenance
 
 
 @dataclass(frozen=True)
 class GovernanceDecision:
     action: Literal["ALLOW", "BLOCK"]
     reason_codes: tuple[str, ...] = ()
+    provenance_verified: bool = False
 
 
 class CroissantGovernanceEnforcer:
@@ -18,6 +19,7 @@ class CroissantGovernanceEnforcer:
         agent_context: Mapping[str, Any],
     ) -> GovernanceDecision:
         duo_codes = extract_duo_codes(metadata)
+        provenance = extract_provenance(metadata)
         reason_codes = []
 
         if (
@@ -64,4 +66,12 @@ class CroissantGovernanceEnforcer:
         return GovernanceDecision(
             action="BLOCK" if reason_codes else "ALLOW",
             reason_codes=tuple(reason_codes),
+            provenance_verified=all(
+                relationship in provenance
+                for relationship in (
+                    "wasDerivedFrom",
+                    "wasGeneratedBy",
+                    "wasAttributedTo",
+                )
+            ),
         )
