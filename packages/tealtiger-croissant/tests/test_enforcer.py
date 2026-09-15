@@ -19,6 +19,21 @@ GENERAL_RESEARCH_METADATA = {
     }
 }
 
+ODRL_NON_COMMERCIAL_METADATA = {
+    "usageInfo": {
+        "@type": ["CreativeWork", "odrl:Offer"],
+        "odrl:permission": {
+            "@type": "odrl:Permission",
+            "odrl:action": {"@id": "duo:0000006"},
+            "odrl:constraint": {
+                "@type": "odrl:Constraint",
+                "odrl:operator": {"@id": "odrl:eq"},
+                "odrl:rightOperand": {"@id": "duo:0000018"},
+            },
+        },
+    }
+}
+
 
 def test_blocks_commercial_use_of_non_commercial_dataset() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
@@ -64,6 +79,26 @@ def test_allows_research_use_of_general_research_dataset() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         GENERAL_RESEARCH_METADATA,
         {"purpose": "research"},
+    )
+
+    assert decision.action == "ALLOW"
+    assert decision.reason_codes == ()
+
+
+def test_blocks_commercial_use_for_odrl_non_commercial_constraint() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        ODRL_NON_COMMERCIAL_METADATA,
+        {"org_type": "commercial"},
+    )
+
+    assert decision.action == "BLOCK"
+    assert decision.reason_codes == ("ODRL_NON_COMMERCIAL_ONLY",)
+
+
+def test_allows_nonprofit_use_for_odrl_non_commercial_constraint() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        ODRL_NON_COMMERCIAL_METADATA,
+        {"org_type": "nonprofit"},
     )
 
     assert decision.action == "ALLOW"

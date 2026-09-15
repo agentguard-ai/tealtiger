@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from .metadata import extract_duo_codes
+from .metadata import extract_duo_codes, extract_odrl_constraints
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,19 @@ class CroissantGovernanceEnforcer:
             and agent_context.get("purpose") != "research"
         ):
             reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
+
+        for constraint in extract_odrl_constraints(metadata):
+            operator = constraint.get("odrl:operator")
+            right_operand = constraint.get("odrl:rightOperand")
+            if (
+                isinstance(operator, Mapping)
+                and operator.get("@id") == "odrl:eq"
+                and isinstance(right_operand, Mapping)
+                and right_operand.get("@id") == "duo:0000018"
+                and agent_context.get("org_type") not in {"academic", "nonprofit"}
+            ):
+                reason_codes.append("ODRL_NON_COMMERCIAL_ONLY")
+                break
 
         return GovernanceDecision(
             action="BLOCK" if reason_codes else "ALLOW",
