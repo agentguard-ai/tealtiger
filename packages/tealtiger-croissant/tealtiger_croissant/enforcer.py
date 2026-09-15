@@ -12,6 +12,8 @@ class GovernanceDecision:
     action: Literal["ALLOW", "BLOCK"]
     reason_codes: tuple[str, ...] = ()
     provenance_verified: bool = False
+    dataset_id: str | None = None
+    policies_evaluated: int = 0
 
 
 class CroissantGovernanceEnforcer:
@@ -24,6 +26,7 @@ class CroissantGovernanceEnforcer:
             dataset.metadata.to_json() if isinstance(dataset, mlc.Dataset) else dataset
         )
         duo_codes = extract_duo_codes(metadata)
+        odrl_constraints = extract_odrl_constraints(metadata)
         provenance = extract_provenance(metadata)
         reason_codes = []
 
@@ -39,7 +42,7 @@ class CroissantGovernanceEnforcer:
         ):
             reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
 
-        for constraint in extract_odrl_constraints(metadata):
+        for constraint in odrl_constraints:
             left_operand = constraint.get("odrl:leftOperand")
             operator = constraint.get("odrl:operator")
             right_operand = constraint.get("odrl:rightOperand")
@@ -78,5 +81,16 @@ class CroissantGovernanceEnforcer:
                     "wasGeneratedBy",
                     "wasAttributedTo",
                 )
+            ),
+            dataset_id=next(
+                (
+                    value
+                    for key in ("@id", "url", "name")
+                    if isinstance((value := metadata.get(key)), str)
+                ),
+                None,
+            ),
+            policies_evaluated=(
+                len(duo_codes) + len(odrl_constraints) + bool(provenance)
             ),
         )

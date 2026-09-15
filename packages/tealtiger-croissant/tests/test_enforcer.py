@@ -206,3 +206,30 @@ def test_evaluates_an_mlcroissant_dataset() -> None:
 
     assert decision.action == "BLOCK"
     assert decision.reason_codes == ("DUO_0000018_NON_COMMERCIAL_ONLY",)
+
+
+def test_reports_dataset_id_and_policy_count() -> None:
+    metadata = {
+        "@id": "restricted-health-data",
+        "usageInfo": [
+            {"@type": "DefinedTerm", "termCode": "DUO_0000042"},
+            {
+                "@type": ["CreativeWork", "odrl:Offer"],
+                "odrl:permission": {
+                    "odrl:constraint": {
+                        "odrl:operator": {"@id": "odrl:eq"},
+                        "odrl:rightOperand": {"@id": "duo:0000018"},
+                    }
+                },
+            },
+        ],
+        "prov:wasDerivedFrom": {"@id": "https://example.org/source"},
+    }
+
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        metadata,
+        {"purpose": "research", "org_type": "nonprofit"},
+    )
+
+    assert decision.dataset_id == "restricted-health-data"
+    assert decision.policies_evaluated == 3
