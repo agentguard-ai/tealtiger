@@ -6,8 +6,24 @@ build-backend = "setuptools.build_meta"
 name = "tealtiger-croissant"
 version = "0.1.0"
 description = "Deterministic TealTiger enforcement for Croissant 1.1 dataset governance metadata."
+readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
+authors = [
+    { name = "TealTiger Team", email = "reachout@tealtiger.ai" },
+]
+keywords = ["croissant", "data-governance", "duo", "odrl", "prov-o", "tealtiger"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+]
 dependencies = [
     "mlcroissant>=1.1.0,<2",
     "tealtiger>=1.4.0",
@@ -19,6 +35,7 @@ dev = [
 ]
 
 [project.urls]
+Homepage = "https://tealtiger.ai"
 Repository = "https://github.com/agentguard-ai/tealtiger"
 Issues = "https://github.com/agentguard-ai/tealtiger/issues"
 
