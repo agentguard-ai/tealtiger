@@ -10,23 +10,20 @@ Usage:
     tealtiger-mcp --transport sse  # SSE transport for remote access
 """
 
-import asyncio
 import json
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
-
 from tealtiger import (
-    PIIDetectionGuardrail,
-    PromptInjectionGuardrail,
     ContentModerationGuardrail,
-    GuardrailEngine,
     CostTracker,
     CostTrackerConfig,
+    GuardrailEngine,
+    PIIDetectionGuardrail,
+    PromptInjectionGuardrail,
     TokenUsage,
-    get_supported_models,
+    get_provider_models,
     get_supported_providers,
-    is_model_supported,
 )
 
 from tealtiger_mcp.secret_detection import SecretDetectionGuardrail
@@ -273,9 +270,8 @@ async def list_supported_models(provider: str | None = None) -> str:
     Returns JSON with supported providers and models.
     """
     if provider:
-        models = get_supported_models()
-        filtered = [m for m in models if is_model_supported(m)]
-        return json.dumps({"provider": provider, "models": filtered}, indent=2)
+        models = [pricing.model for pricing in get_provider_models(provider)]
+        return json.dumps({"provider": provider, "models": models}, indent=2)
 
     providers = get_supported_providers()
     result = {"providers": list(providers)}
