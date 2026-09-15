@@ -198,7 +198,8 @@ async def estimate_cost(
 ) -> str:
     """Estimate the cost of an AI API call before making it.
 
-    Supports OpenAI and Anthropic models. Covers 95%+ of the market.
+    Supports 7 providers: openai, anthropic, google, azure-openai, bedrock,
+    cohere, mistral. Covers 95%+ of the market.
 
     Args:
         model: Model identifier (e.g. "gpt-4", "claude-3-opus-20240229")
