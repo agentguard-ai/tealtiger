@@ -9,7 +9,7 @@ the tests exercise the real code path).
 import json
 
 import pytest
-
+from tealtiger import get_provider_models
 from tealtiger_mcp import server as s
 
 EXPECTED_TOOLS = {
@@ -120,6 +120,23 @@ async def test_list_supported_models():
     out = json.loads(await _call("list_supported_models", {}))
     assert "providers" in out
     assert len(out["providers"]) >= 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("provider", ["anthropic", "openai"])
+async def test_list_supported_models_filters_by_provider(provider):
+    out = json.loads(await _call("list_supported_models", {"provider": provider}))
+    expected = {pricing.model for pricing in get_provider_models(provider)}
+
+    assert out["provider"] == provider
+    assert out["models"]
+    assert set(out["models"]) == expected
+
+
+@pytest.mark.asyncio
+async def test_list_supported_models_unknown_provider_is_empty():
+    out = json.loads(await _call("list_supported_models", {"provider": "unknown"}))
+    assert out == {"provider": "unknown", "models": []}
 
 
 @pytest.mark.asyncio

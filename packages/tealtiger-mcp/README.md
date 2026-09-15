@@ -244,7 +244,7 @@ Dollar amounts depend on the pricing tables bundled with your installed `tealtig
 |------|-------------|
 | `estimate_cost` | Estimate cost of an API call before making it. 7 providers supported. |
 | `compare_costs` | Compare costs across multiple models for the same token usage. |
-| `list_supported_models` | List supported providers and models for cost tracking. |
+| `list_supported_models` | List supported providers, or filter cost-tracking models by provider. |
 
 ### Combined
 
