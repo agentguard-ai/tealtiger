@@ -1,3 +1,5 @@
+import mlcroissant as mlc
+
 from tealtiger_croissant.enforcer import CroissantGovernanceEnforcer
 
 
@@ -167,3 +169,40 @@ def test_reports_provenance_completeness() -> None:
 
     assert complete.provenance_verified is True
     assert incomplete.provenance_verified is False
+
+
+def test_evaluates_an_mlcroissant_dataset() -> None:
+    dataset = mlc.Dataset(
+        {
+            "@context": {
+                "@language": "en",
+                "@vocab": "https://schema.org/",
+                "cr": "http://mlcommons.org/croissant/",
+                "dct": "http://purl.org/dc/terms/",
+                "conformsTo": "dct:conformsTo",
+                "duo": "http://purl.obolibrary.org/obo/DUO_",
+            },
+            "@type": "Dataset",
+            "name": "non_commercial_dataset",
+            "description": "A governed test dataset.",
+            "conformsTo": "http://mlcommons.org/croissant/1.1",
+            "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+            "url": "https://example.org/dataset",
+            "creator": {"@type": "Organization", "name": "Example"},
+            "datePublished": "2026-01-01",
+            "usageInfo": {
+                "@type": "DefinedTerm",
+                "name": "Non-commercial Use",
+                "termCode": "DUO_0000018",
+                "url": "duo:0000018",
+            },
+        }
+    )
+
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        dataset,
+        {"org_type": "commercial"},
+    )
+
+    assert decision.action == "BLOCK"
+    assert decision.reason_codes == ("DUO_0000018_NON_COMMERCIAL_ONLY",)

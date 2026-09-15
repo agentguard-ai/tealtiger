@@ -2,6 +2,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
 
+import mlcroissant as mlc
+
 from .metadata import extract_duo_codes, extract_odrl_constraints, extract_provenance
 
 
@@ -15,9 +17,12 @@ class GovernanceDecision:
 class CroissantGovernanceEnforcer:
     def evaluate_access(
         self,
-        metadata: Mapping[str, Any],
+        dataset: mlc.Dataset | Mapping[str, Any],
         agent_context: Mapping[str, Any],
     ) -> GovernanceDecision:
+        metadata = (
+            dataset.metadata.to_json() if isinstance(dataset, mlc.Dataset) else dataset
+        )
         duo_codes = extract_duo_codes(metadata)
         provenance = extract_provenance(metadata)
         reason_codes = []
