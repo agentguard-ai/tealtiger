@@ -4,6 +4,7 @@ from tealtiger_croissant.metadata import (
     extract_odrl_constraints,
     extract_odrl_offers,
     extract_provenance,
+    is_governance_metadata_valid,
 )
 
 
@@ -100,4 +101,12 @@ def test_extracts_actions_from_odrl_permissions() -> None:
     assert extract_odrl_actions(metadata) == (
         "duo:0000006",
         "duo:0000007",
+    )
+
+
+def test_validates_governance_container_structure() -> None:
+    assert is_governance_metadata_valid({"usageInfo": {"termCode": "DUO_0000042"}})
+    assert not is_governance_metadata_valid({"usageInfo": "not a policy"})
+    assert not is_governance_metadata_valid(
+        {"usageInfo": {"@type": "odrl:Offer"}}
     )

@@ -11,6 +11,7 @@ from .metadata import (
     extract_odrl_actions,
     extract_odrl_constraints,
     extract_provenance,
+    is_governance_metadata_valid,
 )
 
 _SUPPORTED_DUO_CODES = {"DUO_0000018", "DUO_0000042"}
@@ -76,6 +77,11 @@ class CroissantGovernanceEnforcer:
         dataset: mlc.Dataset | Mapping[str, Any],
         agent_context: Mapping[str, Any],
     ) -> GovernanceDecision:
+        if not isinstance(dataset, (mlc.Dataset, Mapping)):
+            raise TypeError("dataset must be an mlcroissant.Dataset or metadata mapping")
+        if not isinstance(agent_context, Mapping):
+            raise TypeError("agent_context must be a mapping")
+
         metadata = (
             dataset.metadata.to_json() if isinstance(dataset, mlc.Dataset) else dataset
         )
@@ -83,6 +89,7 @@ class CroissantGovernanceEnforcer:
         odrl_actions = extract_odrl_actions(metadata)
         odrl_constraints = extract_odrl_constraints(metadata)
         provenance = extract_provenance(metadata)
+        metadata_valid = is_governance_metadata_valid(metadata)
         dataset_id = next(
             (
                 value
@@ -102,6 +109,9 @@ class CroissantGovernanceEnforcer:
         correlation_id = engine_decision.correlation_id
 
         if engine_decision.mode != PolicyMode.REPORT_ONLY:
+            if not metadata_valid:
+                reason_codes.append("INVALID_GOVERNANCE_METADATA")
+
             if any(code not in _SUPPORTED_DUO_CODES for code in duo_codes):
                 reason_codes.append("UNSUPPORTED_DUO_CODE")
 
@@ -199,6 +209,7 @@ class CroissantGovernanceEnforcer:
                     "odrl_constraints": odrl_constraints,
                     "provenance": provenance,
                     "license": metadata.get("license"),
+                    "metadata_valid": metadata_valid,
                 },
                 "agent_context": dict(agent_context),
                 "decision_reason": tuple(reason_codes),

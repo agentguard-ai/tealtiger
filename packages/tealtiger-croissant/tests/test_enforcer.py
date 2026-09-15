@@ -284,6 +284,7 @@ def test_records_structured_audit_evidence() -> None:
                 "wasDerivedFrom": {"@id": "https://example.org/source"}
             },
             "license": "https://creativecommons.org/licenses/by-nc/4.0/",
+            "metadata_valid": True,
         },
         "agent_context": context,
         "decision_reason": ("DUO_0000018_NON_COMMERCIAL_ONLY",),
@@ -448,3 +449,22 @@ def test_fails_closed_for_unsupported_governance_policy(
 
     assert decision.action == "BLOCK"
     assert decision.reason_codes == (reason_code,)
+
+
+def test_fails_closed_for_malformed_governance_metadata() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        {"usageInfo": "not a policy"},
+        {},
+    )
+
+    assert decision.action == "BLOCK"
+    assert decision.reason_codes == ("INVALID_GOVERNANCE_METADATA",)
+
+
+def test_rejects_invalid_argument_types() -> None:
+    enforcer = CroissantGovernanceEnforcer()
+
+    with pytest.raises(TypeError, match="dataset must be"):
+        enforcer.evaluate_access([], {})  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="agent_context must be"):
+        enforcer.evaluate_access({}, [])  # type: ignore[arg-type]

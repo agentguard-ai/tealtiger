@@ -7,6 +7,7 @@ from .metadata import (
     extract_odrl_constraints,
     extract_odrl_offers,
     extract_provenance,
+    is_governance_metadata_valid,
 )
 
 __version__ = "0.1.0"
@@ -19,4 +20,5 @@ __all__ = [
     "extract_odrl_constraints",
     "extract_odrl_offers",
     "extract_provenance",
+    "is_governance_metadata_valid",
 ]
