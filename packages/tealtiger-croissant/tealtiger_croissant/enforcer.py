@@ -18,14 +18,21 @@ class CroissantGovernanceEnforcer:
         agent_context: Mapping[str, Any],
     ) -> GovernanceDecision:
         duo_codes = extract_duo_codes(metadata)
+        reason_codes = []
 
         if (
             "DUO_0000018" in duo_codes
             and agent_context.get("org_type") not in {"academic", "nonprofit"}
         ):
-            return GovernanceDecision(
-                action="BLOCK",
-                reason_codes=("DUO_0000018_NON_COMMERCIAL_ONLY",),
-            )
+            reason_codes.append("DUO_0000018_NON_COMMERCIAL_ONLY")
 
-        return GovernanceDecision(action="ALLOW")
+        if (
+            "DUO_0000042" in duo_codes
+            and agent_context.get("purpose") != "research"
+        ):
+            reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
+
+        return GovernanceDecision(
+            action="BLOCK" if reason_codes else "ALLOW",
+            reason_codes=tuple(reason_codes),
+        )
