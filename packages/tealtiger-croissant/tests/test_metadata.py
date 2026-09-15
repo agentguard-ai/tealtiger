@@ -1,5 +1,6 @@
 from tealtiger_croissant.metadata import (
     extract_duo_codes,
+    extract_odrl_actions,
     extract_odrl_constraints,
     extract_odrl_offers,
     extract_provenance,
@@ -83,3 +84,20 @@ def test_extracts_constraints_from_odrl_permissions() -> None:
     }
 
     assert extract_odrl_constraints(metadata) == (constraint,)
+
+
+def test_extracts_actions_from_odrl_permissions() -> None:
+    metadata = {
+        "usageInfo": {
+            "@type": ["CreativeWork", "odrl:Offer"],
+            "odrl:permission": [
+                {"odrl:action": {"@id": "duo:0000006"}},
+                {"odrl:action": {"@id": "duo:0000007"}},
+            ],
+        }
+    }
+
+    assert extract_odrl_actions(metadata) == (
+        "duo:0000006",
+        "duo:0000007",
+    )

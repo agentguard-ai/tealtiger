@@ -59,6 +59,16 @@ ODRL_DISEASE_SPECIFIC_METADATA = {
     }
 }
 
+ODRL_HEALTH_RESEARCH_METADATA = {
+    "usageInfo": {
+        "@type": ["CreativeWork", "odrl:Offer"],
+        "odrl:permission": {
+            "@type": "odrl:Permission",
+            "odrl:action": {"@id": "duo:0000006"},
+        },
+    }
+}
+
 
 def test_blocks_commercial_use_of_non_commercial_dataset() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
@@ -113,7 +123,11 @@ def test_allows_research_use_of_general_research_dataset() -> None:
 def test_blocks_commercial_use_for_odrl_non_commercial_constraint() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         ODRL_NON_COMMERCIAL_METADATA,
-        {"org_type": "commercial"},
+        {
+            "org_type": "commercial",
+            "purpose": "research",
+            "research_area": "health",
+        },
     )
 
     assert decision.action == "BLOCK"
@@ -123,7 +137,11 @@ def test_blocks_commercial_use_for_odrl_non_commercial_constraint() -> None:
 def test_allows_nonprofit_use_for_odrl_non_commercial_constraint() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         ODRL_NON_COMMERCIAL_METADATA,
-        {"org_type": "nonprofit"},
+        {
+            "org_type": "nonprofit",
+            "purpose": "research",
+            "research_area": "health",
+        },
     )
 
     assert decision.action == "ALLOW"
@@ -133,7 +151,7 @@ def test_allows_nonprofit_use_for_odrl_non_commercial_constraint() -> None:
 def test_blocks_use_for_a_different_disease_area() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         ODRL_DISEASE_SPECIFIC_METADATA,
-        {"disease_area": "mondo:0005148"},
+        {"purpose": "research", "disease_area": "mondo:0005148"},
     )
 
     assert decision.action == "BLOCK"
@@ -143,7 +161,7 @@ def test_blocks_use_for_a_different_disease_area() -> None:
 def test_blocks_disease_specific_use_when_disease_area_is_missing() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         ODRL_DISEASE_SPECIFIC_METADATA,
-        {},
+        {"purpose": "research"},
     )
 
     assert decision.action == "BLOCK"
@@ -153,7 +171,7 @@ def test_blocks_disease_specific_use_when_disease_area_is_missing() -> None:
 def test_allows_use_for_the_declared_disease_area() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         ODRL_DISEASE_SPECIFIC_METADATA,
-        {"disease_area": "mondo:0005070"},
+        {"purpose": "research", "disease_area": "mondo:0005070"},
     )
 
     assert decision.action == "ALLOW"
@@ -259,6 +277,7 @@ def test_records_structured_audit_evidence() -> None:
     assert decision.audit_evidence == {
         "croissant_policies": {
             "duo_codes": ("DUO_0000018",),
+            "odrl_actions": (),
             "odrl_constraints": (),
             "provenance": {
                 "wasDerivedFrom": {"@id": "https://example.org/source"}
@@ -356,3 +375,30 @@ def test_report_only_mode_skips_policy_evaluation() -> None:
     assert decision.mode == PolicyMode.REPORT_ONLY
     assert decision.reason_codes == ()
     assert decision.policies_evaluated == 0
+
+
+def test_enforces_health_research_action() -> None:
+    enforcer = CroissantGovernanceEnforcer()
+
+    blocked = enforcer.evaluate_access(
+        ODRL_HEALTH_RESEARCH_METADATA,
+        {"purpose": "research", "research_area": "general"},
+    )
+    allowed = enforcer.evaluate_access(
+        ODRL_HEALTH_RESEARCH_METADATA,
+        {"purpose": "research", "research_area": "biomedical"},
+    )
+
+    assert blocked.action == "BLOCK"
+    assert blocked.reason_codes == ("ODRL_HEALTH_RESEARCH_USE_ONLY",)
+    assert allowed.action == "ALLOW"
+
+
+def test_enforces_disease_research_action() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        ODRL_DISEASE_SPECIFIC_METADATA,
+        {"purpose": "commercial_finetuning", "disease_area": "mondo:0005070"},
+    )
+
+    assert decision.action == "BLOCK"
+    assert decision.reason_codes == ("ODRL_DISEASE_RESEARCH_USE_ONLY",)

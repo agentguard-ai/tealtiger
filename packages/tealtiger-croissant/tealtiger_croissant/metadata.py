@@ -48,6 +48,18 @@ def extract_odrl_constraints(
     return tuple(constraints)
 
 
+def extract_odrl_actions(metadata: Mapping[str, Any]) -> tuple[str, ...]:
+    """Extract action identifiers nested inside Croissant ODRL permissions."""
+    actions = []
+    for offer in extract_odrl_offers(metadata):
+        for permission in _mapping_entries(offer.get("odrl:permission", [])):
+            for action in _mapping_entries(permission.get("odrl:action", [])):
+                action_id = action.get("@id")
+                if isinstance(action_id, str):
+                    actions.append(action_id)
+    return tuple(actions)
+
+
 def extract_provenance(metadata: Mapping[str, Any]) -> dict[str, Any]:
     """Extract dataset-level PROV-O relationships from Croissant metadata."""
     relationships = ("wasDerivedFrom", "wasGeneratedBy", "wasAttributedTo")

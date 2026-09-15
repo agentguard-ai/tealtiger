@@ -6,7 +6,12 @@ from typing import Any, Literal
 import mlcroissant as mlc
 from tealtiger.core.engine import PolicyMode, TealEngine
 
-from .metadata import extract_duo_codes, extract_odrl_constraints, extract_provenance
+from .metadata import (
+    extract_duo_codes,
+    extract_odrl_actions,
+    extract_odrl_constraints,
+    extract_provenance,
+)
 
 
 @dataclass(frozen=True)
@@ -65,6 +70,7 @@ class CroissantGovernanceEnforcer:
             dataset.metadata.to_json() if isinstance(dataset, mlc.Dataset) else dataset
         )
         duo_codes = extract_duo_codes(metadata)
+        odrl_actions = extract_odrl_actions(metadata)
         odrl_constraints = extract_odrl_constraints(metadata)
         provenance = extract_provenance(metadata)
         dataset_id = next(
@@ -97,6 +103,19 @@ class CroissantGovernanceEnforcer:
                 and agent_context.get("purpose") != "research"
             ):
                 reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
+
+            if "duo:0000006" in odrl_actions and (
+                agent_context.get("purpose") != "research"
+                or agent_context.get("research_area")
+                not in {"health", "medical", "biomedical"}
+            ):
+                reason_codes.append("ODRL_HEALTH_RESEARCH_USE_ONLY")
+
+            if (
+                "duo:0000007" in odrl_actions
+                and agent_context.get("purpose") != "research"
+            ):
+                reason_codes.append("ODRL_DISEASE_RESEARCH_USE_ONLY")
 
             for constraint in odrl_constraints:
                 left_operand = constraint.get("odrl:leftOperand")
@@ -152,11 +171,15 @@ class CroissantGovernanceEnforcer:
             policies_evaluated=(
                 0
                 if engine_decision.mode == PolicyMode.REPORT_ONLY
-                else len(duo_codes) + len(odrl_constraints) + bool(provenance)
+                else len(duo_codes)
+                + len(odrl_actions)
+                + len(odrl_constraints)
+                + bool(provenance)
             ),
             audit_evidence={
                 "croissant_policies": {
                     "duo_codes": duo_codes,
+                    "odrl_actions": odrl_actions,
                     "odrl_constraints": odrl_constraints,
                     "provenance": provenance,
                     "license": metadata.get("license"),
