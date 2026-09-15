@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tealtiger-croissant"
+version = "0.1.0"
+description = "Deterministic TealTiger enforcement for Croissant 1.1 dataset governance metadata."
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "mlcroissant>=1.1.0,<2",
+    "tealtiger>=1.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.urls]
+Repository = "https://github.com/agentguard-ai/tealtiger"
+Issues = "https://github.com/agentguard-ai/tealtiger/issues"
+
+[tool.setuptools.packages.find]
+include = ["tealtiger_croissant*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
