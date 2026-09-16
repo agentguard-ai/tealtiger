@@ -25,13 +25,18 @@ classifiers = [
     "Topic :: Security",
 ]
 dependencies = [
+    "mcp>=1.28,<2",
     "mlcroissant>=1.1.0,<2",
     "tealtiger>=1.4.0",
 ]
 
+[project.scripts]
+tealtiger-croissant-mcp = "tealtiger_croissant.mcp_server:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    "pytest-asyncio>=0.23",
 ]
 
 [project.urls]
