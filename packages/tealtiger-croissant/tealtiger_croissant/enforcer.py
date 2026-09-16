@@ -132,6 +132,11 @@ class GovernanceDecision:
     policies_evaluated: int = 0
     audit_evidence: Mapping[str, Any] = field(default_factory=dict)
 
+    @property
+    def findings(self) -> tuple[str, ...]:
+        """Compatibility name for the decision's structured reasons."""
+        return self.reason_codes
+
     def to_croissant_provenance(self) -> dict[str, Any]:
         """Export this decision as a PROV-O activity."""
         provenance = {

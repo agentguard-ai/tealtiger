@@ -80,6 +80,7 @@ def test_blocks_commercial_use_of_non_commercial_dataset() -> None:
 
     assert decision.action == "BLOCK"
     assert decision.reason_codes == ("DUO_0000018_NON_COMMERCIAL_ONLY",)
+    assert decision.findings == decision.reason_codes
 
 
 def test_allows_nonprofit_use_of_non_commercial_dataset() -> None:
