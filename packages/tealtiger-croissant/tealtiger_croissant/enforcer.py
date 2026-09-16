@@ -8,8 +8,10 @@ from tealtiger.core.engine import PolicyMode, TealEngine
 
 from .metadata import (
     extract_duo_codes,
-    extract_odrl_actions,
     extract_odrl_constraints,
+    extract_odrl_obligations,
+    extract_odrl_permissions,
+    extract_odrl_prohibitions,
     extract_provenance,
     is_governance_metadata_valid,
 )
@@ -25,7 +27,14 @@ _SUPPORTED_DUO_CODES = {
     "DUO_0000042",  # general research use
     "DUO_0000046",  # non-commercial use only
 }
-_SUPPORTED_ODRL_ACTIONS = {"duo:0000006", "duo:0000007"}
+_SUPPORTED_ODRL_DUO_ACTIONS = {"duo:0000006", "duo:0000007"}
+_ODRL_OBLIGATION_EVIDENCE = {
+    "odrl:attribute": "attribution_provided",
+    "odrl:compensate": "compensation_provided",
+    "odrl:inform": "notice_provided",
+    "odrl:obtainConsent": "consent_obtained",
+    "odrl:reviewPolicy": "policy_reviewed",
+}
 _NON_COMMERCIAL_ORGS = {"academic", "nonprofit"}
 _NON_COMMERCIAL_PURPOSES = {"evaluation", "research"}
 _HEALTH_RESEARCH_AREAS = {"biomedical", "health", "medical"}
@@ -84,6 +93,24 @@ def _duo_violations(
     ):
         violations.append("DUO_0000046_NON_COMMERCIAL_USE_ONLY")
     return violations
+
+
+def _rule_action_ids(rules: tuple[Mapping[str, Any], ...]) -> tuple[str, ...]:
+    return tuple(
+        action_id
+        for rule in rules
+        for action in (
+            rule.get("odrl:action")
+            if isinstance(rule.get("odrl:action"), list)
+            else [rule.get("odrl:action")]
+        )
+        if (action_id := _reference_id(action)) is not None
+    )
+
+
+def _append_once(reason_codes: list[str], reason_code: str) -> None:
+    if reason_code not in reason_codes:
+        reason_codes.append(reason_code)
 
 
 @dataclass(frozen=True)
@@ -147,7 +174,12 @@ class CroissantGovernanceEnforcer:
             dataset.metadata.to_json() if isinstance(dataset, mlc.Dataset) else dataset
         )
         duo_codes = extract_duo_codes(metadata)
-        odrl_actions = extract_odrl_actions(metadata)
+        odrl_permissions = extract_odrl_permissions(metadata)
+        odrl_prohibitions = extract_odrl_prohibitions(metadata)
+        odrl_obligations = extract_odrl_obligations(metadata)
+        odrl_actions = _rule_action_ids(odrl_permissions)
+        odrl_prohibition_actions = _rule_action_ids(odrl_prohibitions)
+        odrl_obligation_actions = _rule_action_ids(odrl_obligations)
         odrl_constraints = extract_odrl_constraints(metadata)
         provenance = extract_provenance(metadata)
         metadata_valid = is_governance_metadata_valid(metadata)
@@ -176,7 +208,11 @@ class CroissantGovernanceEnforcer:
             if any(code not in _SUPPORTED_DUO_CODES for code in duo_codes):
                 reason_codes.append("UNSUPPORTED_DUO_CODE")
 
-            if any(action not in _SUPPORTED_ODRL_ACTIONS for action in odrl_actions):
+            if any(
+                action.startswith("duo:")
+                and action not in _SUPPORTED_ODRL_DUO_ACTIONS
+                for action in odrl_actions
+            ):
                 reason_codes.append("UNSUPPORTED_ODRL_ACTION")
 
             reason_codes.extend(_duo_violations(duo_codes, agent_context))
@@ -193,6 +229,36 @@ class CroissantGovernanceEnforcer:
                 and agent_context.get("purpose") != "research"
             ):
                 reason_codes.append("ODRL_DISEASE_RESEARCH_USE_ONLY")
+
+            requested_action = agent_context.get("action")
+            operational_permissions = {
+                action for action in odrl_actions if not action.startswith("duo:")
+            }
+            if operational_permissions:
+                if not isinstance(requested_action, str):
+                    reason_codes.append("ODRL_REQUEST_ACTION_REQUIRED")
+                elif requested_action not in operational_permissions:
+                    reason_codes.append("ODRL_ACTION_NOT_PERMITTED")
+
+            if odrl_prohibition_actions:
+                if not isinstance(requested_action, str):
+                    _append_once(reason_codes, "ODRL_REQUEST_ACTION_REQUIRED")
+                elif requested_action in odrl_prohibition_actions:
+                    reason_codes.append("ODRL_ACTION_PROHIBITED")
+
+            for action in odrl_obligation_actions:
+                evidence_field = _ODRL_OBLIGATION_EVIDENCE.get(action)
+                if evidence_field is None:
+                    _append_once(
+                        reason_codes, "UNSUPPORTED_ODRL_OBLIGATION_ACTION"
+                    )
+                elif agent_context.get(evidence_field) is not True:
+                    _append_once(reason_codes, "ODRL_OBLIGATION_NOT_FULFILLED")
+
+            if extract_odrl_constraints(metadata, "odrl:prohibition") or any(
+                "odrl:constraint" in obligation for obligation in odrl_obligations
+            ):
+                _append_once(reason_codes, "UNSUPPORTED_ODRL_CONSTRAINT")
 
             for constraint in odrl_constraints:
                 left_operand = _reference_id(constraint.get("odrl:leftOperand"))
@@ -253,6 +319,8 @@ class CroissantGovernanceEnforcer:
                 if engine_decision.mode == PolicyMode.REPORT_ONLY
                 else len(duo_codes)
                 + len(odrl_actions)
+                + len(odrl_prohibition_actions)
+                + len(odrl_obligation_actions)
                 + len(odrl_constraints)
                 + bool(provenance)
             ),
@@ -260,6 +328,8 @@ class CroissantGovernanceEnforcer:
                 "croissant_policies": {
                     "duo_codes": duo_codes,
                     "odrl_actions": odrl_actions,
+                    "odrl_prohibition_actions": odrl_prohibition_actions,
+                    "odrl_obligation_actions": odrl_obligation_actions,
                     "odrl_constraints": odrl_constraints,
                     "provenance": provenance,
                     "license": metadata.get("license"),

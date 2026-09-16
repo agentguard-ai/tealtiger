@@ -342,6 +342,8 @@ def test_records_structured_audit_evidence() -> None:
         "croissant_policies": {
             "duo_codes": ("DUO_0000018",),
             "odrl_actions": (),
+            "odrl_prohibition_actions": (),
+            "odrl_obligation_actions": (),
             "odrl_constraints": (),
             "provenance": {
                 "wasDerivedFrom": {"@id": "https://example.org/source"}
@@ -469,6 +471,113 @@ def test_enforces_disease_research_action() -> None:
     assert decision.reason_codes == ("ODRL_DISEASE_RESEARCH_USE_ONLY",)
 
 
+def test_enforces_odrl_permission_action_allowlist() -> None:
+    metadata = {
+        "usageInfo": {
+            "@type": "odrl:Offer",
+            "odrl:permission": {"odrl:action": {"@id": "odrl:use"}},
+        }
+    }
+    enforcer = CroissantGovernanceEnforcer()
+
+    allowed = enforcer.evaluate_access(metadata, {"action": "odrl:use"})
+    blocked = enforcer.evaluate_access(metadata, {"action": "odrl:distribute"})
+
+    assert allowed.action == "ALLOW"
+    assert blocked.reason_codes == ("ODRL_ACTION_NOT_PERMITTED",)
+
+
+def test_enforces_odrl_prohibition() -> None:
+    metadata = {
+        "usageInfo": {
+            "@type": "odrl:Offer",
+            "odrl:prohibition": {
+                "odrl:action": {"@id": "odrl:commercialize"}
+            },
+        }
+    }
+    enforcer = CroissantGovernanceEnforcer()
+
+    blocked = enforcer.evaluate_access(metadata, {"action": "odrl:commercialize"})
+    allowed = enforcer.evaluate_access(metadata, {"action": "odrl:use"})
+
+    assert blocked.reason_codes == ("ODRL_ACTION_PROHIBITED",)
+    assert allowed.action == "ALLOW"
+
+
+@pytest.mark.parametrize(
+    ("action", "evidence_field"),
+    [
+        ("odrl:attribute", "attribution_provided"),
+        ("odrl:compensate", "compensation_provided"),
+        ("odrl:inform", "notice_provided"),
+        ("odrl:obtainConsent", "consent_obtained"),
+        ("odrl:reviewPolicy", "policy_reviewed"),
+    ],
+)
+def test_enforces_odrl_obligations(action: str, evidence_field: str) -> None:
+    metadata = {
+        "usageInfo": {
+            "@type": "odrl:Offer",
+            "odrl:obligation": {"odrl:action": {"@id": action}},
+        }
+    }
+    enforcer = CroissantGovernanceEnforcer()
+
+    blocked = enforcer.evaluate_access(metadata, {})
+    allowed = enforcer.evaluate_access(metadata, {evidence_field: True})
+
+    assert blocked.reason_codes == ("ODRL_OBLIGATION_NOT_FULFILLED",)
+    assert allowed.action == "ALLOW"
+
+
+def test_enforces_duty_attached_to_permission() -> None:
+    metadata = {
+        "usageInfo": {
+            "@type": "odrl:Offer",
+            "odrl:permission": {
+                "odrl:action": {"@id": "odrl:use"},
+                "odrl:duty": {"odrl:action": {"@id": "odrl:attribute"}},
+            },
+        }
+    }
+
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        metadata,
+        {"action": "odrl:use", "attribution_provided": False},
+    )
+
+    assert decision.reason_codes == ("ODRL_OBLIGATION_NOT_FULFILLED",)
+
+
+def test_fails_closed_when_odrl_request_context_is_incomplete() -> None:
+    metadata = {
+        "usageInfo": {
+            "@type": "odrl:Offer",
+            "odrl:prohibition": {"odrl:action": {"@id": "odrl:archive"}},
+        }
+    }
+
+    decision = CroissantGovernanceEnforcer().evaluate_access(metadata, {})
+
+    assert decision.reason_codes == ("ODRL_REQUEST_ACTION_REQUIRED",)
+
+
+def test_fails_closed_for_unknown_odrl_obligation() -> None:
+    metadata = {
+        "usageInfo": {
+            "@type": "odrl:Offer",
+            "odrl:obligation": {
+                "odrl:action": {"@id": "https://example.org/custom-duty"}
+            },
+        }
+    }
+
+    decision = CroissantGovernanceEnforcer().evaluate_access(metadata, {})
+
+    assert decision.reason_codes == ("UNSUPPORTED_ODRL_OBLIGATION_ACTION",)
+
+
 @pytest.mark.parametrize(
     ("metadata", "reason_code"),
     [
@@ -479,10 +588,10 @@ def test_enforces_disease_research_action() -> None:
         (
             {
                 "usageInfo": {
-                    "@type": "odrl:Offer",
-                    "odrl:permission": {
-                        "odrl:action": {"@id": "odrl:distribute"}
-                    },
+                        "@type": "odrl:Offer",
+                        "odrl:permission": {
+                            "odrl:action": {"@id": "duo:9999999"}
+                        },
                 }
             },
             "UNSUPPORTED_ODRL_ACTION",
