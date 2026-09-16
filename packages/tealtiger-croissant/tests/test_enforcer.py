@@ -348,6 +348,22 @@ def test_records_structured_audit_evidence() -> None:
             "provenance": {
                 "wasDerivedFrom": {"@id": "https://example.org/source"}
             },
+            "provenance_records": (
+                {
+                    "path": "$",
+                    "entity_id": "licensed-dataset",
+                    "relationships": {
+                        "wasDerivedFrom": {"@id": "https://example.org/source"}
+                    },
+                },
+            ),
+            "provenance_gaps": (
+                {
+                    "path": "$",
+                    "entity_id": "licensed-dataset",
+                    "missing": ("wasGeneratedBy", "wasAttributedTo"),
+                },
+            ),
             "license": "https://creativecommons.org/licenses/by-nc/4.0/",
             "metadata_valid": True,
         },
@@ -367,6 +383,35 @@ def test_assigns_utc_timestamp_and_correlation_id() -> None:
     assert str(UUID(decision.correlation_id)) == decision.correlation_id
     assert decision.audit_evidence["timestamp"] == decision.timestamp
     assert decision.audit_evidence["correlation_id"] == decision.correlation_id
+
+
+def test_reports_nested_provenance_gaps() -> None:
+    metadata = {
+        "@id": "dataset",
+        "prov:wasDerivedFrom": {"@id": "source"},
+        "prov:wasGeneratedBy": {"@id": "generation"},
+        "prov:wasAttributedTo": {"@id": "publisher"},
+        "recordSet": {
+            "@id": "records",
+            "field": {
+                "@id": "records/label",
+                "prov:wasGeneratedBy": {"@id": "labeling"},
+                "prov:wasAttributedTo": {"@id": "annotator"},
+            },
+        },
+    }
+
+    decision = CroissantGovernanceEnforcer().evaluate_access(metadata, {})
+
+    assert decision.provenance_verified is False
+    assert decision.audit_evidence["croissant_policies"]["provenance_gaps"] == (
+        {
+            "path": "$.recordSet.field",
+            "entity_id": "records/label",
+            "missing": ("wasDerivedFrom",),
+        },
+    )
+    assert decision.policies_evaluated == 2
 
 
 def test_exports_decision_as_prov_o_activity() -> None:

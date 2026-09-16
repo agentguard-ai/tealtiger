@@ -13,6 +13,7 @@ from .metadata import (
     extract_odrl_permissions,
     extract_odrl_prohibitions,
     extract_provenance,
+    extract_provenance_records,
     is_governance_metadata_valid,
 )
 
@@ -39,6 +40,11 @@ _NON_COMMERCIAL_ORGS = {"academic", "nonprofit"}
 _NON_COMMERCIAL_PURPOSES = {"evaluation", "research"}
 _HEALTH_RESEARCH_AREAS = {"biomedical", "health", "medical"}
 _NON_METHODS_USE_CASES = {"analysis", "benchmarking", "model_training"}
+_PROVENANCE_RELATIONSHIPS = (
+    "wasDerivedFrom",
+    "wasGeneratedBy",
+    "wasAttributedTo",
+)
 
 
 def _reference_id(value: Any) -> str | None:
@@ -182,6 +188,23 @@ class CroissantGovernanceEnforcer:
         odrl_obligation_actions = _rule_action_ids(odrl_obligations)
         odrl_constraints = extract_odrl_constraints(metadata)
         provenance = extract_provenance(metadata)
+        provenance_records = extract_provenance_records(metadata)
+        provenance_gaps = tuple(
+            {
+                "path": record["path"],
+                "entity_id": record["entity_id"],
+                "missing": tuple(
+                    relationship
+                    for relationship in _PROVENANCE_RELATIONSHIPS
+                    if relationship not in record["relationships"]
+                ),
+            }
+            for record in provenance_records
+            if any(
+                relationship not in record["relationships"]
+                for relationship in _PROVENANCE_RELATIONSHIPS
+            )
+        )
         metadata_valid = is_governance_metadata_valid(metadata)
         dataset_id = next(
             (
@@ -305,14 +328,7 @@ class CroissantGovernanceEnforcer:
             correlation_id=correlation_id,
             mode=engine_decision.mode,
             reason_codes=tuple(reason_codes),
-            provenance_verified=all(
-                relationship in provenance
-                for relationship in (
-                    "wasDerivedFrom",
-                    "wasGeneratedBy",
-                    "wasAttributedTo",
-                )
-            ),
+            provenance_verified=bool(provenance_records) and not provenance_gaps,
             dataset_id=dataset_id,
             policies_evaluated=(
                 0
@@ -322,7 +338,7 @@ class CroissantGovernanceEnforcer:
                 + len(odrl_prohibition_actions)
                 + len(odrl_obligation_actions)
                 + len(odrl_constraints)
-                + bool(provenance)
+                + len(provenance_records)
             ),
             audit_evidence={
                 "croissant_policies": {
@@ -332,6 +348,8 @@ class CroissantGovernanceEnforcer:
                     "odrl_obligation_actions": odrl_obligation_actions,
                     "odrl_constraints": odrl_constraints,
                     "provenance": provenance,
+                    "provenance_records": provenance_records,
+                    "provenance_gaps": provenance_gaps,
                     "license": metadata.get("license"),
                     "metadata_valid": metadata_valid,
                 },
