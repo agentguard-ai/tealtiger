@@ -23,6 +23,12 @@ def _load_metadata(metadata_source: str) -> mlc.Dataset:
     return mlc.Dataset(metadata_source)
 
 
+def _json_default(value: Any) -> str:
+    if isinstance(value, bytes):
+        return value.decode("utf-8")
+    return str(value)
+
+
 def _decision_payload(decision: GovernanceDecision) -> dict[str, Any]:
     return {
         "action": decision.action,
@@ -42,7 +48,7 @@ async def evaluate_dataset_access(
 ) -> str:
     """Evaluate access against parsed Croissant metadata without reading records."""
     decision = CroissantGovernanceEnforcer().evaluate_access(metadata, agent_context)
-    return json.dumps(_decision_payload(decision), default=str)
+    return json.dumps(_decision_payload(decision), default=_json_default)
 
 
 @mcp.tool()
@@ -68,7 +74,7 @@ async def load_dataset(
     payload = _decision_payload(decision)
     payload["records"] = []
     if decision.action == "BLOCK":
-        return json.dumps(payload, default=str)
+        return json.dumps(payload, default=_json_default)
 
     records = (
         dataset.records(record_set=record_set)
@@ -76,7 +82,7 @@ async def load_dataset(
         else dataset.records()
     )
     payload["records"] = list(islice(records, max_records))
-    return json.dumps(payload, default=str)
+    return json.dumps(payload, default=_json_default)
 
 
 def main() -> None:
