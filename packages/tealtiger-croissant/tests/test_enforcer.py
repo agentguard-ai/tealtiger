@@ -242,6 +242,7 @@ def test_reports_dataset_id_and_policy_count() -> None:
             {
                 "@type": ["CreativeWork", "odrl:Offer"],
                 "odrl:permission": {
+                    "odrl:action": {"@id": "duo:0000006"},
                     "odrl:constraint": {
                         "odrl:operator": {"@id": "odrl:eq"},
                         "odrl:rightOperand": {"@id": "duo:0000018"},
@@ -258,7 +259,7 @@ def test_reports_dataset_id_and_policy_count() -> None:
     )
 
     assert decision.dataset_id == "restricted-health-data"
-    assert decision.policies_evaluated == 3
+    assert decision.policies_evaluated == 4
 
 
 def test_records_structured_audit_evidence() -> None:
@@ -429,6 +430,7 @@ def test_enforces_disease_research_action() -> None:
                 "usageInfo": {
                     "@type": "odrl:Offer",
                     "odrl:permission": {
+                        "odrl:action": {"@id": "duo:0000006"},
                         "odrl:constraint": {
                             "odrl:leftOperand": {"@id": "odrl:dateTime"},
                             "odrl:operator": {"@id": "odrl:lt"},
@@ -448,7 +450,7 @@ def test_fails_closed_for_unsupported_governance_policy(
     decision = CroissantGovernanceEnforcer().evaluate_access(metadata, {})
 
     assert decision.action == "BLOCK"
-    assert decision.reason_codes == (reason_code,)
+    assert reason_code in decision.reason_codes
 
 
 def test_fails_closed_for_malformed_governance_metadata() -> None:

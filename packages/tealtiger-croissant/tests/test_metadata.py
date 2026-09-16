@@ -2,8 +2,12 @@ from tealtiger_croissant.metadata import (
     extract_duo_codes,
     extract_odrl_actions,
     extract_odrl_constraints,
+    extract_odrl_obligations,
     extract_odrl_offers,
+    extract_odrl_permissions,
+    extract_odrl_prohibitions,
     extract_provenance,
+    extract_provenance_records,
     is_governance_metadata_valid,
 )
 
@@ -104,9 +108,87 @@ def test_extracts_actions_from_odrl_permissions() -> None:
     )
 
 
+def test_extracts_all_odrl_rule_categories() -> None:
+    permission = {
+        "odrl:action": {"@id": "duo:0000006"},
+        "odrl:duty": {"odrl:action": {"@id": "odrl:attribute"}},
+    }
+    prohibition = {"odrl:action": {"@id": "odrl:commercialize"}}
+    obligation = {"odrl:action": {"@id": "odrl:inform"}}
+    metadata = {
+        "usageInfo": {
+            "@type": "odrl:Offer",
+            "odrl:permission": permission,
+            "odrl:prohibition": prohibition,
+            "odrl:obligation": obligation,
+        }
+    }
+
+    assert extract_odrl_permissions(metadata) == (permission,)
+    assert extract_odrl_prohibitions(metadata) == (prohibition,)
+    assert extract_odrl_obligations(metadata) == (obligation, permission["odrl:duty"])
+    assert extract_odrl_actions(metadata, "odrl:prohibition") == (
+        "odrl:commercialize",
+    )
+
+
+def test_extracts_nested_provenance_records() -> None:
+    metadata = {
+        "@id": "dataset",
+        "prov:wasDerivedFrom": {"@id": "source"},
+        "recordSet": [
+            {
+                "@id": "records",
+                "field": {
+                    "@id": "records/label",
+                    "prov:wasGeneratedBy": {"@id": "labeling"},
+                    "prov:wasAttributedTo": {"@id": "annotator"},
+                },
+            }
+        ],
+    }
+
+    assert extract_provenance_records(metadata) == (
+        {
+            "path": "$",
+            "entity_id": "dataset",
+            "relationships": {"wasDerivedFrom": {"@id": "source"}},
+        },
+        {
+            "path": "$.recordSet[0].field",
+            "entity_id": "records/label",
+            "relationships": {
+                "wasGeneratedBy": {"@id": "labeling"},
+                "wasAttributedTo": {"@id": "annotator"},
+            },
+        },
+    )
+
+
 def test_validates_governance_container_structure() -> None:
     assert is_governance_metadata_valid({"usageInfo": {"termCode": "DUO_0000042"}})
     assert not is_governance_metadata_valid({"usageInfo": "not a policy"})
     assert not is_governance_metadata_valid(
         {"usageInfo": {"@type": "odrl:Offer"}}
+    )
+    assert is_governance_metadata_valid(
+        {
+            "usageInfo": {
+                "@type": "odrl:Offer",
+                "odrl:prohibition": {
+                    "odrl:action": {"@id": "odrl:commercialize"}
+                },
+                "odrl:obligation": {
+                    "odrl:action": {"@id": "odrl:attribute"}
+                },
+            }
+        }
+    )
+    assert not is_governance_metadata_valid(
+        {
+            "usageInfo": {
+                "@type": "odrl:Offer",
+                "odrl:permission": {"odrl:constraint": {}},
+            }
+        }
     )

@@ -5,8 +5,12 @@ from .metadata import (
     extract_duo_codes,
     extract_odrl_actions,
     extract_odrl_constraints,
+    extract_odrl_obligations,
     extract_odrl_offers,
+    extract_odrl_permissions,
+    extract_odrl_prohibitions,
     extract_provenance,
+    extract_provenance_records,
     is_governance_metadata_valid,
 )
 
@@ -18,7 +22,11 @@ __all__ = [
     "extract_duo_codes",
     "extract_odrl_actions",
     "extract_odrl_constraints",
+    "extract_odrl_obligations",
     "extract_odrl_offers",
+    "extract_odrl_permissions",
+    "extract_odrl_prohibitions",
     "extract_provenance",
+    "extract_provenance_records",
     "is_governance_metadata_valid",
 ]
