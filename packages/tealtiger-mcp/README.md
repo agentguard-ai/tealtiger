@@ -283,6 +283,8 @@ Dollar amounts depend on the pricing tables bundled with your installed `tealtig
 | `check_content` | Scan for content policy violations (harmful, violent, sexual content). |
 | `evaluate_guardrails` | Run all guardrails at once. Recommended for pre-flight checks. |
 | `redact_pii` | Redact PII and return cleaned text. |
+| `detect_secrets` | Scan text for leaked credentials (OpenAI keys, GitHub PATs, AWS keys, Slack tokens, PEM private keys). Fully local, no data leaves the process. |
+| `redact_secrets` | Replace detected secrets with `[REDACTED_<TYPE>]` tokens in returned text. |
 
 ### Cost Tracking
 
