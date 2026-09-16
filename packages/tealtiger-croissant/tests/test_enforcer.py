@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import Mock
 from uuid import UUID
+from xml.etree import ElementTree
 
 import mlcroissant as mlc
 import pytest
@@ -433,6 +434,43 @@ def test_exports_decision_as_prov_o_activity() -> None:
     ]
     assert provenance["prov:endedAtTime"] == decision.timestamp
     assert json.loads(json.dumps(provenance)) == provenance
+
+
+def test_exports_decision_as_sarif() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        {"@id": "restricted-health-data", **NON_COMMERCIAL_METADATA},
+        {"org_type": "commercial", "purpose": "commercial_finetuning"},
+    )
+
+    sarif = decision.to_sarif()
+
+    assert sarif["version"] == "2.1.0"
+    assert sarif["runs"][0]["results"][0]["ruleId"] == (
+        "DUO_0000018_NON_COMMERCIAL_ONLY"
+    )
+    assert sarif["runs"][0]["results"][0]["level"] == "error"
+    assert json.loads(json.dumps(sarif)) == sarif
+
+
+def test_exports_decision_as_junit_xml() -> None:
+    decision = CroissantGovernanceEnforcer().evaluate_access(
+        {"@id": 'dataset<&"', **NON_COMMERCIAL_METADATA},
+        {"org_type": "commercial", "purpose": "commercial_finetuning"},
+    )
+
+    suite = ElementTree.fromstring(decision.to_junit_xml())
+
+    assert suite.attrib == {
+        "name": "tealtiger-croissant",
+        "tests": "1",
+        "failures": "1",
+    }
+    case = suite.find("testcase")
+    assert case is not None
+    assert case.attrib["name"] == 'dataset<&"'
+    assert case.find("failure").attrib["message"] == (
+        "DUO_0000018_NON_COMMERCIAL_ONLY"
+    )
 
 
 def test_uses_tealtiger_engine_correlation_id() -> None:

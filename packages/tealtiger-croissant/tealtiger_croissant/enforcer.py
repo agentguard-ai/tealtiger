@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Literal
+from xml.etree import ElementTree
 
 import mlcroissant as mlc
 from tealtiger.core.engine import PolicyMode, TealEngine
@@ -160,6 +161,77 @@ class GovernanceDecision:
                 "@type": "prov:Entity",
             }
         return provenance
+
+    def to_sarif(self) -> dict[str, Any]:
+        """Export this decision as a SARIF 2.1.0 log."""
+        level = "error" if self.action == "BLOCK" else "warning"
+        results = [
+            {
+                "ruleId": reason_code,
+                "level": level,
+                "message": {"text": reason_code.replace("_", " ").title()},
+                "properties": {
+                    "correlation_id": self.correlation_id,
+                    "dataset_id": self.dataset_id,
+                    "mode": self.mode.value,
+                },
+            }
+            for reason_code in self.reason_codes
+        ]
+        return {
+            "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+            "version": "2.1.0",
+            "runs": [
+                {
+                    "tool": {
+                        "driver": {
+                            "name": "TealTiger Croissant Governance",
+                            "informationUri": (
+                                "https://github.com/agentguard-ai/tealtiger"
+                            ),
+                            "rules": [
+                                {
+                                    "id": reason_code,
+                                    "name": reason_code,
+                                }
+                                for reason_code in self.reason_codes
+                            ],
+                        }
+                    },
+                    "results": results,
+                }
+            ],
+        }
+
+    def to_junit_xml(self) -> str:
+        """Export this decision as a one-test JUnit XML report."""
+        suite = ElementTree.Element(
+            "testsuite",
+            {
+                "name": "tealtiger-croissant",
+                "tests": "1",
+                "failures": "1" if self.action == "BLOCK" else "0",
+            },
+        )
+        case = ElementTree.SubElement(
+            suite,
+            "testcase",
+            {
+                "classname": "CroissantGovernanceEnforcer",
+                "name": self.dataset_id or "dataset-access",
+            },
+        )
+        reasons = ", ".join(self.reason_codes)
+        if self.action == "BLOCK":
+            failure = ElementTree.SubElement(
+                case,
+                "failure",
+                {"message": reasons or "Governance access denied"},
+            )
+            failure.text = reasons
+        elif self.reason_codes:
+            ElementTree.SubElement(case, "system-out").text = reasons
+        return ElementTree.tostring(suite, encoding="unicode")
 
 
 class CroissantGovernanceEnforcer:
