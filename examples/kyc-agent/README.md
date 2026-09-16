@@ -213,12 +213,88 @@ The `make_decision` call itself is a pure deterministic function. It is intended
 
 ```bash
 cd examples/kyc-agent
+python -m pip install -r requirements-dev.txt
 python -m pytest tests/ -v
 ```
 
-No external dependencies; no API keys; no network calls; no LLM. All three
-suites — `test_document_extractor.py`, `test_sanctions_screener.py` and
-`test_decision_agent.py` — run offline and deterministically.
+The test suite uses FastAPI and its HTTP test client, but no API keys, network
+calls or LLM are required. All four suites — `test_document_extractor.py`,
+`test_sanctions_screener.py`, `test_decision_agent.py` and `test_service.py` —
+run offline and deterministically.
+
+## Docker Compose deployment
+
+This is a local demo deployment for the deterministic KYC primitives currently
+implemented in this directory. It exposes document extraction and synthetic
+sanctions screening; it is **not** a complete KYC decision workflow or a
+production compliance service. Risk scoring and end-to-end orchestration remain
+outside this example's scope.
+
+From this directory, start the app with no API key or external service:
+
+```bash
+docker compose up --build
+```
+
+The service listens on `http://localhost:8000` by default. If that host port
+is already in use, choose another host port without changing the application's
+container port:
+
+```bash
+KYC_PORT=18000 docker compose up --build
+# Then use http://localhost:18000/health
+```
+
+The service provides:
+
+```bash
+curl -fsS http://localhost:8000/health
+
+curl -fsS -X POST http://localhost:8000/extract \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "document": {
+      "document_type": "passport",
+      "extracted_fields": {
+        "first_name": "Jane",
+        "last_name": "Testcase",
+        "date_of_birth": "1985-03-15",
+        "nationality": "ZZ",
+        "document_number": "ZZ-TEST-000001",
+        "document_expiry": "2029-01-01"
+      }
+    }
+  }'
+
+curl -fsS -X POST http://localhost:8000/sanctions \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Ivan Testovich Fixture","dob":"1961-02-02","nationality":"ZZ"}'
+```
+
+`/extract` always uses the deterministic extractor; it does not enable the
+optional LLM path. `/sanctions` reads only the bundled synthetic fixture, not a
+real sanctions database. Do not send real identity documents to this demo.
+
+The demo has no authentication and the default port mapping is intentionally
+bound to `127.0.0.1`. The application always listens on container port `8000`;
+`KYC_PORT` changes only the host-side port. Do not expose it to a network
+without adding appropriate access controls and reviewing the handling of
+identity data.
+
+The default Compose deployment starts only `app`. Optional vector databases and
+LLM runtimes are intentionally not included because the current KYC example
+does not connect to them.
+
+To validate and clean up the deployment:
+
+```bash
+docker compose config
+docker compose up --build -d --wait
+curl -fsS http://localhost:8000/health
+curl -fsS -X POST http://localhost:8000/extract -H 'Content-Type: application/json' -d '{"document":{"first_name":"Jane","last_name":"Testcase"}}'
+curl -fsS -X POST http://localhost:8000/sanctions -H 'Content-Type: application/json' -d '{"name":"Ivan Testovich Fixture","dob":"1961-02-02","nationality":"ZZ"}'
+docker compose down --volumes --remove-orphans
+```
 
 ## Follow-ups after this PR merges
 
