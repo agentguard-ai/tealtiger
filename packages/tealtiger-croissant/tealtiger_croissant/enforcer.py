@@ -14,8 +14,22 @@ from .metadata import (
     is_governance_metadata_valid,
 )
 
-_SUPPORTED_DUO_CODES = {"DUO_0000018", "DUO_0000042"}
+_SUPPORTED_DUO_CODES = {
+    "DUO_0000004",  # no restriction
+    "DUO_0000006",  # health/medical/biomedical research
+    "DUO_0000007",  # disease-specific research
+    "DUO_0000015",  # no methods development research
+    "DUO_0000018",  # not-for-profit, non-commercial use
+    "DUO_0000020",  # collaboration required
+    "DUO_0000021",  # ethics approval required
+    "DUO_0000042",  # general research use
+    "DUO_0000046",  # non-commercial use only
+}
 _SUPPORTED_ODRL_ACTIONS = {"duo:0000006", "duo:0000007"}
+_NON_COMMERCIAL_ORGS = {"academic", "nonprofit"}
+_NON_COMMERCIAL_PURPOSES = {"evaluation", "research"}
+_HEALTH_RESEARCH_AREAS = {"biomedical", "health", "medical"}
+_NON_METHODS_USE_CASES = {"analysis", "benchmarking", "model_training"}
 
 
 def _reference_id(value: Any) -> str | None:
@@ -23,6 +37,53 @@ def _reference_id(value: Any) -> str | None:
         return None
     reference = value.get("@id")
     return reference if isinstance(reference, str) else None
+
+
+def _duo_violations(
+    duo_codes: tuple[str, ...], agent_context: Mapping[str, Any]
+) -> list[str]:
+    violations = []
+    if "DUO_0000006" in duo_codes and (
+        agent_context.get("purpose") != "research"
+        or agent_context.get("research_area") not in _HEALTH_RESEARCH_AREAS
+    ):
+        violations.append("DUO_0000006_HEALTH_RESEARCH_ONLY")
+    if "DUO_0000007" in duo_codes and (
+        agent_context.get("purpose") != "research"
+        or not agent_context.get("disease_area")
+    ):
+        violations.append("DUO_0000007_DISEASE_SPECIFIC_RESEARCH_ONLY")
+    if (
+        "DUO_0000015" in duo_codes
+        and agent_context.get("use_case") not in _NON_METHODS_USE_CASES
+    ):
+        violations.append("DUO_0000015_METHODS_RESEARCH_PROHIBITED")
+    if "DUO_0000018" in duo_codes and (
+        agent_context.get("org_type") not in _NON_COMMERCIAL_ORGS
+        or agent_context.get("purpose") not in _NON_COMMERCIAL_PURPOSES
+    ):
+        violations.append("DUO_0000018_NON_COMMERCIAL_ONLY")
+    if (
+        "DUO_0000020" in duo_codes
+        and agent_context.get("collaborator_agreement") is not True
+    ):
+        violations.append("DUO_0000020_COLLABORATION_REQUIRED")
+    if (
+        "DUO_0000021" in duo_codes
+        and agent_context.get("ethics_review") is not True
+    ):
+        violations.append("DUO_0000021_ETHICS_APPROVAL_REQUIRED")
+    if (
+        "DUO_0000042" in duo_codes
+        and agent_context.get("purpose") != "research"
+    ):
+        violations.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
+    if (
+        "DUO_0000046" in duo_codes
+        and agent_context.get("purpose") not in _NON_COMMERCIAL_PURPOSES
+    ):
+        violations.append("DUO_0000046_NON_COMMERCIAL_USE_ONLY")
+    return violations
 
 
 @dataclass(frozen=True)
@@ -118,22 +179,12 @@ class CroissantGovernanceEnforcer:
             if any(action not in _SUPPORTED_ODRL_ACTIONS for action in odrl_actions):
                 reason_codes.append("UNSUPPORTED_ODRL_ACTION")
 
-            if (
-                "DUO_0000018" in duo_codes
-                and agent_context.get("org_type") not in {"academic", "nonprofit"}
-            ):
-                reason_codes.append("DUO_0000018_NON_COMMERCIAL_ONLY")
-
-            if (
-                "DUO_0000042" in duo_codes
-                and agent_context.get("purpose") != "research"
-            ):
-                reason_codes.append("DUO_0000042_GENERAL_RESEARCH_USE_ONLY")
+            reason_codes.extend(_duo_violations(duo_codes, agent_context))
 
             if "duo:0000006" in odrl_actions and (
                 agent_context.get("purpose") != "research"
                 or agent_context.get("research_area")
-                not in {"health", "medical", "biomedical"}
+                not in _HEALTH_RESEARCH_AREAS
             ):
                 reason_codes.append("ODRL_HEALTH_RESEARCH_USE_ONLY")
 
@@ -159,8 +210,11 @@ class CroissantGovernanceEnforcer:
 
                 if (
                     non_commercial
-                    and agent_context.get("org_type")
-                    not in {"academic", "nonprofit"}
+                    and (
+                        agent_context.get("org_type") not in _NON_COMMERCIAL_ORGS
+                        or agent_context.get("purpose")
+                        not in _NON_COMMERCIAL_PURPOSES
+                    )
                     and "ODRL_NON_COMMERCIAL_ONLY" not in reason_codes
                 ):
                     reason_codes.append("ODRL_NON_COMMERCIAL_ONLY")

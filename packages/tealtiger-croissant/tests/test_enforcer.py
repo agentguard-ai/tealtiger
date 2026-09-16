@@ -84,7 +84,7 @@ def test_blocks_commercial_use_of_non_commercial_dataset() -> None:
 def test_allows_nonprofit_use_of_non_commercial_dataset() -> None:
     decision = CroissantGovernanceEnforcer().evaluate_access(
         NON_COMMERCIAL_METADATA,
-        {"org_type": "nonprofit"},
+        {"org_type": "nonprofit", "purpose": "research"},
     )
 
     assert decision.action == "ALLOW"
@@ -99,6 +99,68 @@ def test_blocks_when_non_commercial_dataset_has_no_org_type() -> None:
 
     assert decision.action == "BLOCK"
     assert decision.reason_codes == ("DUO_0000018_NON_COMMERCIAL_ONLY",)
+
+
+@pytest.mark.parametrize(
+    ("term_code", "allowed_context", "blocked_context", "reason_code"),
+    [
+        ("DUO_0000004", {}, {}, None),
+        (
+            "DUO_0000006",
+            {"purpose": "research", "research_area": "medical"},
+            {"purpose": "research", "research_area": "general"},
+            "DUO_0000006_HEALTH_RESEARCH_ONLY",
+        ),
+        (
+            "DUO_0000007",
+            {"purpose": "research", "disease_area": "mondo:0005070"},
+            {"purpose": "research"},
+            "DUO_0000007_DISEASE_SPECIFIC_RESEARCH_ONLY",
+        ),
+        (
+            "DUO_0000015",
+            {"use_case": "analysis"},
+            {"use_case": "methods_development"},
+            "DUO_0000015_METHODS_RESEARCH_PROHIBITED",
+        ),
+        (
+            "DUO_0000020",
+            {"collaborator_agreement": True},
+            {"collaborator_agreement": False},
+            "DUO_0000020_COLLABORATION_REQUIRED",
+        ),
+        (
+            "DUO_0000021",
+            {"ethics_review": True},
+            {"ethics_review": False},
+            "DUO_0000021_ETHICS_APPROVAL_REQUIRED",
+        ),
+        (
+            "DUO_0000046",
+            {"purpose": "evaluation"},
+            {"purpose": "commercial_finetuning"},
+            "DUO_0000046_NON_COMMERCIAL_USE_ONLY",
+        ),
+    ],
+)
+def test_enforces_supported_duo_terms(
+    term_code: str,
+    allowed_context: dict[str, object],
+    blocked_context: dict[str, object],
+    reason_code: str | None,
+) -> None:
+    metadata = {"usageInfo": {"@type": "DefinedTerm", "termCode": term_code}}
+    enforcer = CroissantGovernanceEnforcer()
+
+    allowed = enforcer.evaluate_access(metadata, allowed_context)
+    blocked = enforcer.evaluate_access(metadata, blocked_context)
+
+    assert allowed.action == "ALLOW"
+    if reason_code is None:
+        assert blocked.action == "ALLOW"
+    else:
+        assert blocked.action == "BLOCK"
+        assert blocked.reason_codes == (reason_code,)
 
 
 def test_blocks_non_research_use_of_general_research_dataset() -> None:
