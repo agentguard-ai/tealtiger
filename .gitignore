@@ -15,6 +15,10 @@ htmlcov/
 .coverage
 .hypothesis/
 
+# Python bytecode
+__pycache__/
+*.py[cod]
+
 # Environment variables
 .env
 .env.local
@@ -107,6 +111,14 @@ docker-compose*.yml
 
 # Internal source (monorepo backend — not for public SDK repo)
 src/
+
+# Public KYC Docker Compose reference implementation
+!examples/kyc-agent/Dockerfile
+!examples/kyc-agent/docker-compose.yml
+!examples/kyc-agent/src/
+!examples/kyc-agent/src/**
+examples/kyc-agent/src/**/__pycache__/
+
 !dashboard/governance-feed/src/
 !dashboard/governance-feed/src/**
 !packages/tealtiger-ai-sdk/src/
