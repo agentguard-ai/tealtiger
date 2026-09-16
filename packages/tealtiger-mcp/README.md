@@ -152,9 +152,55 @@ Or with `uvx`:
 
 Cline reloads on save. Config shape matches Cline's documented stdio `mcpServers` format; the server command was verified the same way as Cursor above.
 
-### Other clients (community-contributed, untested)
+### Continue
 
-Continue and Windsurf typically accept the same stdio `mcpServers` block as Claude Desktop / Cursor (`command` + optional `args`). Exact config file paths vary by version — treat these as starting points until someone verifies them on their machine.
+Add to your global `config.yaml` ([Continue config reference](https://docs.continue.dev/reference)):
+
+```yaml
+mcpServers:
+  - name: tealtiger
+    command: tealtiger-mcp
+```
+
+Or without a global install:
+
+```yaml
+mcpServers:
+  - name: tealtiger
+    command: uvx
+    args: ["tealtiger-mcp"]
+```
+
+Alternatively, save the same block as a standalone file under `.continue/mcpServers/` (e.g. `.continue/mcpServers/tealtiger.yaml` with `name`, `version`, and `schema` headers). Restart your IDE so Continue reloads the config and spawns the server.
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json` (macOS/Linux) or `%USERPROFILE%\.codeium\windsurf\mcp_config.json` (Windows) — or open it via Command Palette → "Windsurf: Configure MCP Servers":
+
+```json
+{
+  "mcpServers": {
+    "tealtiger": {
+      "command": "tealtiger-mcp"
+    }
+  }
+}
+```
+
+Or without a global install:
+
+```json
+{
+  "mcpServers": {
+    "tealtiger": {
+      "command": "uvx",
+      "args": ["tealtiger-mcp"]
+    }
+  }
+}
+```
+
+Save the file and restart Windsurf (or refresh from the Cascade MCP panel). Config shape matches Windsurf's documented `mcpServers` stdio format; same server entry point as Cursor/Cline above.
 
 ## Try it in 60 seconds
 
@@ -237,6 +283,8 @@ Dollar amounts depend on the pricing tables bundled with your installed `tealtig
 | `check_content` | Scan for content policy violations (harmful, violent, sexual content). |
 | `evaluate_guardrails` | Run all guardrails at once. Recommended for pre-flight checks. |
 | `redact_pii` | Redact PII and return cleaned text. |
+| `detect_secrets` | Scan text for leaked credentials (OpenAI keys, GitHub PATs, AWS keys, Slack tokens, PEM private keys). Fully local, no data leaves the process. |
+| `redact_secrets` | Replace detected secrets with `[REDACTED_<TYPE>]` tokens in returned text. |
 
 ### Cost Tracking
 
