@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tealtiger-croissant"
+version = "0.1.0"
+description = "Deterministic TealTiger enforcement for Croissant 1.1 dataset governance metadata."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [
+    { name = "TealTiger Team", email = "reachout@tealtiger.ai" },
+]
+keywords = ["croissant", "data-governance", "duo", "odrl", "prov-o", "tealtiger"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+]
+dependencies = [
+    "mcp>=1.28,<2",
+    "mlcroissant>=1.1.0,<2",
+    "tealtiger>=1.4.0",
+]
+
+[project.scripts]
+tealtiger-croissant-mcp = "tealtiger_croissant.mcp_server:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.urls]
+Homepage = "https://tealtiger.ai"
+Repository = "https://github.com/agentguard-ai/tealtiger"
+Issues = "https://github.com/agentguard-ai/tealtiger/issues"
+
+[tool.setuptools.packages.find]
+include = ["tealtiger_croissant*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
