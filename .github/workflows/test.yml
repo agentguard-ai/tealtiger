@@ -201,7 +201,9 @@ jobs:
           cache-dependency-path: packages/tealtiger-croissant/pyproject.toml
 
       - name: Install lint tools
-        run: pip install --require-hashes -r .github/ci-requirements.txt
+        run: >
+          pip install --require-hashes
+          -r packages/tealtiger-croissant/ci-requirements.txt
 
       - name: Ruff lint
         working-directory: packages/tealtiger-croissant
