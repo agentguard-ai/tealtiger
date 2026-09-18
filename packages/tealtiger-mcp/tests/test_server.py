@@ -6,13 +6,16 @@ whole point of TealTiger governance is that it is deterministic and local, so
 the tests exercise the real code path).
 """
 
+import asyncio
 import json
 
 import pytest
+from mcp.server.fastmcp.exceptions import ToolError
 from tealtiger import get_provider_models
 from tealtiger_mcp import server as s
 
 EXPECTED_TOOLS = {
+    "check_budget",
     "check_pii",
     "check_injection",
     "check_content",
@@ -36,6 +39,108 @@ async def _call(name: str, args: dict) -> str:
     res = await s.mcp.call_tool(name, args)
     content = res[0] if isinstance(res, tuple) else res
     return content[0].text if content else ""
+
+
+@pytest.fixture
+def budget_args(monkeypatch):
+    monkeypatch.setattr(s, "_budget_state", None)
+    monkeypatch.setattr(s, "_cost_tracker", None)
+
+    for name in (
+        "TEALTIGER_MCP_SESSION_BUDGET_USD",
+        "TEALTIGER_MCP_DAILY_BUDGET_USD",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    return dict(
+        request_id="r1",
+        model="gpt-4",
+        input_tokens=100,
+        output_tokens=50,
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "scope,period",
+    [
+        ("SESSION", "total"),
+        ("DAILY", "daily"),
+    ],
+)
+async def test_budget_limits(monkeypatch, budget_args, scope, period):
+    usage = {k: v for k, v in budget_args.items() if k != "request_id"}
+    price = json.loads(await _call("estimate_cost", usage))["estimated_cost"]
+    monkeypatch.setenv(f"TEALTIGER_MCP_{scope}_BUDGET_USD", str(price * 1.5))
+
+    first = json.loads(await _call("check_budget", budget_args))
+    second = json.loads(
+        await _call("check_budget", dict(budget_args, request_id="r2"))
+    )
+
+    assert first["allowed"] and not second["allowed"]
+    assert second["total_requests"] == 2
+    assert second["total_cost"] == pytest.approx(2 * price)
+    assert first["budgets"][0]["remaining"] == pytest.approx(price * 0.5)
+    assert second["budgets"][0]["budget"]["period"] == period
+    assert second["budgets"][0]["remaining"] == 0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "model",
+    [
+        "gpt-4",
+        "__unknown_model__",
+        "gpt-4-turbo-fake",
+    ],
+)
+async def test_budget_concurrent_retries(monkeypatch, budget_args, model):
+    budget_args["model"] = model
+    state = s._budget_state = s._BudgetState()
+
+    original = state.storage.get_by_request_id
+
+    async def yielding_read(request_id):
+        records = await original(request_id)
+        await asyncio.sleep(0)
+        return records
+
+    monkeypatch.setattr(state.storage, "get_by_request_id", yielding_read)
+
+    calls = [_call("check_budget", budget_args) for _ in range(10)]
+    results = [
+        json.loads(x)
+        for x in await asyncio.wait_for(asyncio.gather(*calls), 5)
+    ]
+
+    assert sum(not x["duplicate"] for x in results) == 1
+    assert all(
+        x["total_requests"] == 1 and x["budgets"] == [] for x in results
+    )
+    assert state.storage.size() == 1
+
+    if model == "__unknown_model__":
+        assert all(x["total_cost"] == 0 for x in results)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"input_tokens": -1},
+        {"output_tokens": -1},
+        {"input_tokens": 101},
+        {"model": "gpt-4-32k"},
+    ],
+)
+async def test_budget_invalid_or_conflicting_report(budget_args, change):
+    await _call("check_budget", budget_args)
+
+    with pytest.raises(ToolError):
+        await _call("check_budget", dict(budget_args, **change))
+
+    assert json.loads(await _call("check_budget", budget_args))["total_requests"] == 1
 
 
 @pytest.mark.asyncio

@@ -290,6 +290,7 @@ Dollar amounts depend on the pricing tables bundled with your installed `tealtig
 
 | Tool | Description |
 |------|-------------|
+| `check_budget` | Record completed usage, deduplicate retries, and report process/daily budget status |
 | `estimate_cost` | Estimate cost of an API call before making it. 7 providers supported. |
 | `compare_costs` | Compare costs across multiple models for the same token usage. |
 | `list_supported_models` | List supported providers, or filter cost-tracking models by provider. |
@@ -338,3 +339,9 @@ The MCP server wraps the TealTiger Python SDK. All processing happens locally in
 ## License
 
 MIT
+
+## Budget reporting
+
+Set `TEALTIGER_MCP_SESSION_BUDGET_USD` and/or `TEALTIGER_MCP_DAILY_BUDGET_USD` to positive finite USD limits in the server environment; omitted limits are disabled. Configuration is read on first use.
+Report completed usage with `check_budget(request_id="r1", model="gpt-4", input_tokens=100, output_tokens=50)`. The result includes the record, cumulative cost, budget status and remaining amounts. It reports after usage; it neither reserves funds nor blocks model calls.
+State and limits are shared by callers in one server process; daily windows use UTC, and restarting resets all records, including daily spending. Identical `(agent_id, request_id)` reports are counted once; changed reports are rejected. As with the SDK, missing prices warn and count as zero, not proof of free usage. This relies on truthful usage reports and is not a strict spending guarantee.
