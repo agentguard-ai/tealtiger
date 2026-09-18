@@ -10,15 +10,21 @@ Usage:
     tealtiger-mcp --transport sse  # SSE transport for remote access
 """
 
+import asyncio
 import json
+import math
+import os
+from datetime import datetime, timezone
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 from tealtiger import (
+    BudgetManager,
     ContentModerationGuardrail,
     CostTracker,
     CostTrackerConfig,
     GuardrailEngine,
+    InMemoryCostStorage,
     PIIDetectionGuardrail,
     PromptInjectionGuardrail,
     TokenUsage,
@@ -27,6 +33,40 @@ from tealtiger import (
 )
 
 from tealtiger_mcp.secret_detection import SecretDetectionGuardrail
+
+# ---------------------------------------------------------------------------
+# Budget state
+# ---------------------------------------------------------------------------
+
+class _BudgetState:
+    def __init__(self):
+        self.lock = asyncio.Lock()
+        self.storage = InMemoryCostStorage()
+        self.manager = BudgetManager(self.storage)
+
+        for period, name in (
+            ("total", "TEALTIGER_MCP_SESSION_BUDGET_USD"),
+            ("daily", "TEALTIGER_MCP_DAILY_BUDGET_USD"),
+        ):
+            raw = os.getenv(name)
+            if raw is None:
+                continue
+
+            try:
+                limit = float(raw)
+            except ValueError as exc:
+                raise ValueError(f"{name} must be a valid USD amount") from exc
+
+            if not math.isfinite(limit) or limit <= 0:
+                raise ValueError(f"{name} must be a positive finite USD amount")
+
+            self.manager.create_budget(
+                name=name,
+                limit=limit,
+                period=period,
+                alert_thresholds=[],
+                action="block"
+            )
 
 # ---------------------------------------------------------------------------
 # Server instance
@@ -51,6 +91,7 @@ _moderation_guardrail: ContentModerationGuardrail | None = None
 _secret_guardrail: SecretDetectionGuardrail | None = None
 _engine: GuardrailEngine | None = None
 _cost_tracker: CostTracker | None = None
+_budget_state: _BudgetState | None = None
 
 
 def _get_pii_guardrail() -> PIIDetectionGuardrail:
@@ -257,6 +298,108 @@ async def compare_costs(
 
     results.sort(key=lambda r: r["estimated_cost"])
     return json.dumps(results, indent=2, default=str)
+
+
+@mcp.tool()
+async def check_budget(
+    request_id: str,
+    model: str,
+    input_tokens: int,
+    output_tokens: int,
+    provider: str = "openai",
+    agent_id: str = "mcp-client",
+) -> str:
+    """Record actual usage and report budgets; this does not block model calls.
+
+    Retries are idempotent in this process; unknown prices keep the SDK fallback.
+    """
+
+    global _budget_state
+
+    if not all(value.strip() for value in (request_id, agent_id, model, provider)):
+        raise ValueError("Request, agent, model and provider must not be empty")
+    if input_tokens < 0 or output_tokens < 0:
+        raise ValueError("Token counts must be non-negative")
+    if _budget_state is None:
+        _budget_state = _BudgetState()
+
+    state = _budget_state
+
+    async with state.lock:
+        usage = dict(
+            model=model,
+            provider=provider,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
+        )
+        records = await state.storage.get_by_request_id(request_id)
+        record = next((r for r in records if r.agent_id == agent_id), None)
+        duplicate = record is not None
+
+        if duplicate and (record.metadata or {}).get("mcp_usage") != usage:
+            raise ValueError("Conflicting usage for the same agent and request")
+        if record is None:
+            tokens = TokenUsage(
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                total_tokens=input_tokens + output_tokens
+            )
+            record = _get_cost_tracker().calculate_actual_cost(
+                request_id=request_id,
+                agent_id=agent_id,
+                model=model,
+                actual_tokens=tokens,
+                provider=provider,
+            )
+            if not math.isfinite(record.actual_cost) or record.actual_cost < 0:
+                raise ValueError("Calculated cost must be finite and non-negative")
+
+            # The current SDK queries naive UTC windows.
+            stamp = datetime.fromisoformat(record.timestamp.strip().replace("Z", "+00:00"))
+            if stamp.utcoffset() is None:
+                raise ValueError("SDK cost timestamp must include a timezone")
+            record = record.model_copy(
+                update={
+                    "timestamp": stamp.astimezone(timezone.utc).replace(tzinfo=None).isoformat(),
+                    "metadata": {**(record.metadata or {}), "mcp_usage": usage},
+                }
+            )
+        try:
+            if not duplicate:
+                await state.storage.store(record)
+            statuses = [
+                await state.manager.get_budget_status(b.id)
+                for b in state.manager.get_all_budgets()
+            ]
+            summary = await state.storage.get_summary(
+                datetime(1970, 1, 1),
+                datetime.now(timezone.utc).replace(tzinfo=None)
+            )
+
+            if not math.isfinite(summary.total_cost) or any(
+                not math.isfinite(status.percentage_used) for status in statuses
+            ):
+                raise ValueError("Budget calculation exceeds the supported numeric range")
+
+            return json.dumps(
+                {
+                    "record": record.model_dump(),
+                    "duplicate": duplicate,
+                    "total_cost": summary.total_cost,
+                    "total_requests": summary.total_requests,
+                    "budget_configured": bool(statuses),
+                    "allowed": not any(status.is_exceeded for status in statuses),
+                    "budgets": [status.model_dump() for status in statuses],
+                },
+                indent=2,
+                default=str,
+                allow_nan=False,
+            )
+
+        except (ValueError, OverflowError):
+            if not duplicate:
+                state.storage.records.pop(record.id, None)
+            raise
 
 
 @mcp.tool()
