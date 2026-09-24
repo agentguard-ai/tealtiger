@@ -1,0 +1,4 @@
+# Ruff is the only standalone tool used by this package's CI job.
+ruff==0.15.15 \
+    --hash=sha256:48decfa11d740de4889de623be1463308346312f2409a56e24aa280c86162dc4 \
+    --hash=sha256:b8dff018130b46d8e5bf0f926ef6b60cf871d6d5ae45fc9334e09632daa741d6
