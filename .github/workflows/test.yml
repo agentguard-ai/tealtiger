@@ -24,19 +24,22 @@ jobs:
     outputs:
       python: ${{ steps.filter.outputs.python }}
       mcp: ${{ steps.filter.outputs.mcp }}
+      croissant: ${{ steps.filter.outputs.croissant }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Filter changed paths
         id: filter
-        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
           filters: |
             python:
               - 'packages/tealtiger-python/**'
             mcp:
               - 'packages/tealtiger-mcp/**'
+            croissant:
+              - 'packages/tealtiger-croissant/**'
 
   # ---------------------------------------------------------------------------
   # TypeScript type check + unit tests (hub repo)
@@ -172,3 +175,50 @@ jobs:
       - name: Pytest (tealtiger-mcp)
         working-directory: packages/tealtiger-mcp
         run: python -m pytest tests/ -q
+
+  # ---------------------------------------------------------------------------
+  # Python package — lint + tests (tealtiger-croissant)
+  # ---------------------------------------------------------------------------
+  croissant:
+    name: Python ${{ matrix.python-version }} (tealtiger-croissant)
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.croissant == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: packages/tealtiger-croissant/pyproject.toml
+
+      - name: Install lint tools
+        run: >
+          pip install --require-hashes
+          -r packages/tealtiger-croissant/ci-requirements.txt
+
+      - name: Ruff lint
+        working-directory: packages/tealtiger-croissant
+        run: ruff check .
+
+      - name: Install package + test dependencies
+        run: pip install -e "packages/tealtiger-croissant[dev]"
+
+      - name: Test package
+        working-directory: packages/tealtiger-croissant
+        run: python -m pytest -q
+
+      - name: Verify dependencies
+        run: python -m pip check
+
+      - name: Build wheel
+        working-directory: packages/tealtiger-croissant
+        run: python -m pip wheel . --no-deps --wheel-dir dist
