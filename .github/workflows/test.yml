@@ -113,8 +113,13 @@ jobs:
     if: needs.changes.outputs.python == 'true'
 
     steps:
+      # `packages/tealtiger-python` is a git submodule. Without
+      # `submodules: recursive` the directory is checked out EMPTY, and the
+      # lint/type-check steps below then had nothing to inspect.
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
 
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -124,23 +129,27 @@ jobs:
       - name: Install tools
         run: pip install --require-hashes -r .github/ci-requirements.txt
 
-      - name: Ruff lint (Python)
+      # Fail loudly on an empty submodule rather than reporting success.
+      # The previous `else echo "... skipping ..."` branch turned a missing
+      # checkout into a green job that inspected zero files.
+      - name: Verify submodule is populated
         working-directory: packages/tealtiger-python
         run: |
-          if [ -n "$(find . -name '*.py' 2>/dev/null)" ]; then
-            ruff check .
-          else
-            echo "No Python source files found — skipping lint"
+          if [ -z "$(find . -name '*.py' -not -path './.git/*' 2>/dev/null)" ]; then
+            echo "::error::packages/tealtiger-python contains no Python sources."
+            echo "The submodule was not checked out. Ensure the checkout step"
+            echo "sets 'submodules: recursive'."
+            exit 1
           fi
+          echo "Found $(find . -name '*.py' -not -path './.git/*' | wc -l) Python files."
+
+      - name: Ruff lint (Python)
+        working-directory: packages/tealtiger-python
+        run: ruff check .
 
       - name: mypy type check
         working-directory: packages/tealtiger-python
-        run: |
-          if [ -n "$(find . -name '*.py' 2>/dev/null)" ]; then
-            mypy . --ignore-missing-imports
-          else
-            echo "No Python source files found — skipping type check"
-          fi
+        run: mypy . --ignore-missing-imports
 
   # ---------------------------------------------------------------------------
   # Python package — lint + tests (tealtiger-mcp)

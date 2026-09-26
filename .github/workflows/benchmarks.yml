@@ -42,10 +42,15 @@ jobs:
           --health-start-period 30s
 
     steps:
+      # `packages/tealtiger-sdk` is a git submodule. Without
+      # `submodules: recursive` it is checked out EMPTY, and every
+      # `working-directory: packages/tealtiger-sdk` step below then operates on
+      # nothing — which would publish benchmark results measured against no code.
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v7.0.0
