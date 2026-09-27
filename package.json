@@ -31,7 +31,7 @@
   "dependencies": {
     "@fastify/swagger": "^9.8.1",
     "@libsql/client": "^0.18.0",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "^0.45.3",
     "fastify": "^5.12.5",
     "ws": "^8.21.3",
     "zod": "^4.6.5"
