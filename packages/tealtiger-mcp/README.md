@@ -49,6 +49,38 @@ pip install -e .
 
 ## Quick Start
 
+### Transports
+
+```bash
+tealtiger-mcp  # stdio (default)
+tealtiger-mcp --transport sse --port 8000
+tealtiger-mcp --transport streamable-http --port 8000
+tealtiger-mcp --help
+```
+
+`--transport` accepts `stdio`, `sse`, or `streamable-http`. Network transports
+bind to `--host 127.0.0.1` and `--port 8000` by default. Use `--host` to choose
+a different bind address and `--port` to choose a port from 1 through 65535.
+Host and port are ignored for stdio; diagnostics stay on stderr.
+
+The SDK's default endpoints are:
+
+| Transport | Client endpoint | Message endpoint |
+|-----------|-----------------|------------------|
+| SSE | `http://127.0.0.1:8000/sse` | POST `/messages/` (session URL announced by SSE) |
+| Streamable HTTP | `http://127.0.0.1:8000/mcp` | Same `/mcp` endpoint |
+
+SSE is the legacy transport, deprecated upstream in favor of Streamable HTTP.
+Prefer Streamable HTTP for new integrations. Both require an MCP client that
+supports the selected transport; the stdio client configurations below stay valid.
+
+**Network security:** binding beyond localhost (for example, `--host 0.0.0.0`)
+exposes governance tools to reachable network clients. Authentication is out of
+scope for v1. This change adds neither authentication nor TLS. Remote deployments
+require appropriate access controls, such as a trusted private network, firewall
+rules, or an authenticated reverse proxy with TLS. SDK DNS-rebinding defaults
+vary by version and bind host; they are not client authentication.
+
 ### Claude Desktop
 
 Add to your `claude_desktop_config.json`:
@@ -334,7 +366,7 @@ The MCP server wraps the TealTiger Python SDK. All processing happens locally in
 
 - Python 3.10+
 - `tealtiger` >= 1.4.0
-- `mcp` >= 1.0.0, < 2  (targets the v1 FastMCP API; 2.x migration tracked separately)
+- `mcp` >= 1.8.0, < 2 (Streamable HTTP first shipped in 1.8.0; targets the v1 FastMCP API)
 
 ## License
 

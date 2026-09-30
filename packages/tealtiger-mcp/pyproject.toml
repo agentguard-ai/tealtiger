@@ -28,7 +28,8 @@ dependencies = [
     "tealtiger>=1.4.0",
     # mcp 2.x renamed FastMCP -> MCPServer and dropped mcp.server.fastmcp.
     # This server targets the v1 FastMCP API; pin until migrated to 2.x.
-    "mcp>=1.0.0,<2",
+    # Streamable HTTP requires the v1.8.0 FastMCP transport API.
+    "mcp>=1.8.0,<2",
 ]
 
 [project.urls]

@@ -6,10 +6,18 @@ enforcement as MCP tools for Claude Desktop, Cursor, Kiro, and any MCP
 client.
 
 Usage:
-    tealtiger-mcp                  # stdio transport (default)
-    tealtiger-mcp --transport sse  # SSE transport for remote access
+    tealtiger-mcp  # stdio transport (default)
+    tealtiger-mcp --transport sse --port 8000
+    tealtiger-mcp --transport streamable-http --port 8000
+
+Network transports default to --host 127.0.0.1 --port 8000. SSE clients
+connect to /sse and post messages to /messages/; Streamable HTTP uses /mcp.
+Binding beyond localhost exposes governance tools to reachable network
+clients. Authentication is out of scope for v1; remote deployments require
+appropriate access controls. These options do not add authentication or TLS.
 """
 
+import argparse
 import asyncio
 import json
 import math
@@ -518,9 +526,49 @@ async def security_preflight(
 # ---------------------------------------------------------------------------
 
 
-def main():
-    """Run the TealTiger MCP server."""
-    mcp.run()
+def _port(value: str) -> int:
+    try:
+        port = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("port must be an integer") from exc
+    if not 1 <= port <= 65535:
+        raise argparse.ArgumentTypeError("port must be between 1 and 65535")
+    return port
+
+
+def _host(value: str) -> str:
+    if not value.strip():
+        raise argparse.ArgumentTypeError("host must not be empty")
+    return value
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Run the TealTiger MCP server with the selected CLI transport."""
+    parser = argparse.ArgumentParser(
+        prog="tealtiger-mcp",
+        description="Expose TealTiger governance tools over MCP.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--transport", choices=("stdio", "sse", "streamable-http"),
+        default="stdio", help="MCP transport",
+    )
+    parser.add_argument(
+        "--host", type=_host, default="127.0.0.1",
+        help="Bind host for network transports (ignored for stdio)",
+    )
+    parser.add_argument(
+        "--port", type=_port, default=8000,
+        help="Bind port for network transports (ignored for stdio)",
+    )
+    args = parser.parse_args(argv)
+
+    if args.transport != "stdio":
+        # Let the SDK derive settings for the chosen host, including its
+        # version-specific DNS-rebinding defaults. Keep the registered server
+        # and its tools/resources/prompts; run() accepts transport, not host/port.
+        mcp.settings = FastMCP(host=args.host, port=args.port).settings
+    mcp.run(transport=args.transport)
 
 
 if __name__ == "__main__":
