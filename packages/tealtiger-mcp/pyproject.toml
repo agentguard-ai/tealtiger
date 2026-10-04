@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tealtiger-mcp"
-version = "1.0.0"
+version = "1.1.0"
 description = "MCP server exposing TealTiger guardrails, cost tracking, and budget enforcement as tools for Claude and other MCP clients."
 readme = "README.md"
 license = "MIT"
@@ -25,7 +25,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "tealtiger>=1.4.0",
+    # Floor raised to 1.5.0. Verified: the 35-test suite passes against it, and
+    # the two behaviour changes in that release do not reach this server —
+    # PIIDetectionGuardrail is constructed without `detect_types` so the new
+    # ValueError on unknown types cannot fire, and PolicyTester (whose stub now
+    # raises instead of returning an unconditional allow) is not imported here.
+    # 1.5.0 also makes `tealtiger.integrations` importable, which 1.4.x did not.
+    "tealtiger>=1.5.0",
     # mcp 2.x renamed FastMCP -> MCPServer and dropped mcp.server.fastmcp.
     # This server targets the v1 FastMCP API; pin until migrated to 2.x.
     "mcp>=1.0.0,<2",

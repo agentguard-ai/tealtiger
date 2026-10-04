@@ -196,11 +196,14 @@ jobs:
       - name: Install lint tools
         run: pip install --require-hashes -r .github/ci-requirements.txt
 
-      # Report-only for now: main's server.py has a pre-existing unused import
-      # (F401) that #547 / #549 remove. Flip back to blocking once one lands.
+      # Blocking again. The exemption was added for two unused typing imports
+      # (F401) in secret_detection.py, pending #547 / #549. Neither landed, so a
+      # `|| true` that nobody could fail sat here for weeks guarding a
+      # ten-second fix. The imports are now removed and `ruff check .` is clean,
+      # so the gate is restored rather than left permanently vacuous.
       - name: Ruff lint (tealtiger-mcp)
         working-directory: packages/tealtiger-mcp
-        run: ruff check . || true
+        run: ruff check .
 
       - name: Install package + test deps
         run: pip install -e "packages/tealtiger-mcp[dev]"

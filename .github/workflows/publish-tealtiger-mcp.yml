@@ -1,0 +1,190 @@
+# Publish tealtiger-mcp to PyPI
+#
+# Triggered on tag push matching `tealtiger-mcp-v*`, or manually via
+# workflow_dispatch.
+#
+# Why this exists: 1.0.0 was published by hand. Nothing ran the tests, nothing
+# ran the linter, and nothing checked that the tag matched the package version.
+# That is the same gap that let the `tealtiger` core drift to 1.4.1 on PyPI
+# while the repository still read 1.4.0, and it is why three user-visible
+# changes sat unpublished on main for three weeks.
+#
+# Modelled on publish-langchain-tealtiger.yml, with the additions that proved
+# necessary during the 1.5.0 / 1.6.1 releases:
+#   - twine check --strict, because the README is the PyPI description and PyPI
+#     freezes it per release; a rendering failure cannot be fixed without
+#     burning another version number
+#   - verification that the built wheel reports the version being released,
+#     which checks the artifact rather than the tree it came from
+name: Publish tealtiger-mcp
+
+on:
+  push:
+    tags:
+      - 'tealtiger-mcp-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.1.0). Must match pyproject.toml.'
+        required: true
+        type: string
+
+concurrency:
+  group: tealtiger-mcp-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: packages/tealtiger-mcp/pyproject.toml
+
+      # The tag is the human's statement of what is being published.
+      # pyproject.toml#version is what PyPI will actually publish under. A PyPI
+      # version can never be reused or replaced, so a disagreement has to stop
+      # the run before anything is built.
+      - name: Verify version consistency (tag, pyproject.toml)
+        if: github.event_name == 'push'
+        working-directory: packages/tealtiger-mcp
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF#refs/tags/tealtiger-mcp-v}"
+          PKG_VERSION="$(python -c "
+          import tomllib, pathlib
+          print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])
+          ")"
+          echo "release tag    : $TAG_VERSION"
+          echo "pyproject.toml : $PKG_VERSION"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Release tag ($TAG_VERSION) does not match pyproject.toml version ($PKG_VERSION). Nothing published."
+            exit 1
+          fi
+          echo "OK: tag and pyproject.toml agree."
+
+      - name: Install package + dev deps
+        working-directory: packages/tealtiger-mcp
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pip install "ruff>=0.15,<0.16"
+
+      - name: Ruff lint
+        working-directory: packages/tealtiger-mcp
+        run: ruff check .
+
+      - name: Run tests
+        working-directory: packages/tealtiger-mcp
+        run: python -m pytest tests/ -q
+
+  publish:
+    name: Publish to PyPI
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.11'
+
+      - name: Install build tools
+        run: python -m pip install --upgrade pip build twine
+
+      - name: Build package
+        working-directory: packages/tealtiger-mcp
+        run: python -m build
+
+      # --strict fails on malformed metadata and on a README that will not
+      # render on PyPI. The README *is* the PyPI project description, and PyPI
+      # freezes it per release.
+      - name: Check package metadata and README rendering
+        working-directory: packages/tealtiger-mcp
+        run: twine check --strict dist/*
+
+      # Verify the artifact about to be uploaded, not the tree it came from.
+      # This closes the loop on the importlib.metadata version path: install the
+      # built wheel into a clean venv and confirm the version it reports.
+      - name: Verify built artifact reports the released version
+        working-directory: packages/tealtiger-mcp
+        run: |
+          set -euo pipefail
+          EXPECTED="$(python -c "
+          import tomllib, pathlib
+          print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])
+          ")"
+          python -m venv /tmp/verify-venv
+          /tmp/verify-venv/bin/pip install --quiet --upgrade pip
+          WHEEL="$(ls dist/*.whl)"
+          echo "verifying wheel: $WHEEL"
+          /tmp/verify-venv/bin/pip install --quiet "$WHEEL"
+          GOT="$(/tmp/verify-venv/bin/python -c 'import tealtiger_mcp; print(tealtiger_mcp.__version__)')"
+          echo "expected version  : $EXPECTED"
+          echo "wheel __version__ : $GOT"
+          if [ "$GOT" != "$EXPECTED" ]; then
+            echo "::error::Built wheel reports __version__ $GOT but $EXPECTED is being released. Nothing published."
+            exit 1
+          fi
+          echo "OK: the wheel reports the version being released."
+
+      - name: Publish to PyPI
+        working-directory: packages/tealtiger-mcp
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload dist/*
+
+  release:
+    name: Create GitHub Release
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Create Release
+        uses: actions/github-script@v9.0.0
+        with:
+          script: |
+            const tag = context.ref.replace('refs/tags/', '');
+            const version = tag.replace('tealtiger-mcp-v', '');
+            const body = `## tealtiger-mcp v${version}
+
+            MCP server exposing TealTiger guardrails, cost estimation and budget
+            checks as tools for Claude and other MCP clients.
+
+            ### Install
+            \`\`\`bash
+            pip install tealtiger-mcp==${version}
+            \`\`\`
+
+            ### Links
+            - [PyPI](https://pypi.org/project/tealtiger-mcp/${version}/)
+            - [Changelog](https://github.com/agentguard-ai/tealtiger/blob/main/packages/tealtiger-mcp/CHANGELOG.md)
+            - [Documentation](https://docs.tealtiger.ai)
+            `;
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              name: `tealtiger-mcp v${version}`,
+              body,
+              draft: false,
+              prerelease: false,
+            });
