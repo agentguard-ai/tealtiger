@@ -33,11 +33,19 @@ jobs:
         id: filter
         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
+          # The shared hashed tool list is included in the python and mcp
+          # filters because both jobs install from it. Without this, a change to
+          # .github/ci-requirements.txt triggers neither job, so the file can be
+          # broken with nothing noticing — which is exactly what happened: a
+          # missing `librt` pin made the install step fail for weeks, and the
+          # only signal was a red job on unrelated PRs that got merged anyway.
           filters: |
             python:
               - 'packages/tealtiger-python/**'
+              - '.github/ci-requirements.txt'
             mcp:
               - 'packages/tealtiger-mcp/**'
+              - '.github/ci-requirements.txt'
             croissant:
               - 'packages/tealtiger-croissant/**'
 

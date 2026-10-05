@@ -1,6 +1,17 @@
 # Hash-pinned dev tools for CI lint/typecheck.
 # Scorecard Pinned-Dependencies compliance — use with:
 #   pip install --require-hashes -r .github/ci-requirements.txt
+#
+# IMPORTANT: --require-hashes requires *every* transitive dependency to be
+# pinned with == and hashed here. A missing one fails the whole install, not
+# just that package. `librt` was missing, which broke the "Install tools" step
+# in both jobs that use this file — so the Python lint/typecheck job and the
+# tealtiger-mcp job were failing before ruff or pytest ever ran, and had been
+# merged past (see #559).
+#
+# Hashes cover what CI resolves: ubuntu-latest on Python 3.11, i.e. the cp311
+# manylinux x86_64 wheel, with the sdist as fallback. Adding a Python version
+# or a runner OS to these jobs means adding the matching wheel hashes.
 mypy==1.19.1 \
     --hash=sha256:f1235f5ea01b7db5468d53ece6aaddf1ad0b88d9e7462b86ef96fe04995d7247 \
     --hash=sha256:19d88bb05303fe63f71dd2c6270daca27cb9401c4ca8255fe50d1d920e0eb9ba
@@ -10,7 +21,24 @@ mypy-extensions==1.0.0 \
 typing-extensions==4.13.2 \
     --hash=sha256:a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c \
     --hash=sha256:e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef
+# The first hash is the manylinux x86_64 wheel; the second is the sdist, which
+# was previously the only pinned artifact. ruff is written in Rust, so an
+# sdist-only pin makes every CI run compile it from source rather than install
+# a wheel. The wheel hash is listed first so CI installs it instead.
 ruff==0.15.15 \
+    --hash=sha256:48decfa11d740de4889de623be1463308346312f2409a56e24aa280c86162dc4 \
     --hash=sha256:b8dff018130b46d8e5bf0f926ef6b60cf871d6d5ae45fc9334e09632daa741d6
 pathspec==1.1.1 \
     --hash=sha256:a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189
+# Transitive dependency of mypy>=1.19 (`librt>=0.6.2`, non-PyPy only). Pinned
+# and hashed because --require-hashes mode will not resolve it otherwise.
+#
+# Unlike mypy and pathspec, which ship `py3-none-any` wheels, librt is a
+# compiled extension and needs a wheel hash per platform. Pinned here is the
+# cp311 manylinux x86_64 wheel — what CI resolves — plus the sdist as a
+# fallback. Note the sdist builds with a Rust toolchain, so a platform without
+# a pinned wheel will attempt a source build; add the matching wheel hash
+# rather than relying on that.
+librt==0.16.0 \
+    --hash=sha256:94aed6a8308818b91677957d1bd03188869cd7aeb23c5dba7912a6c0402f7602 \
+    --hash=sha256:ac38d6d8d66bf3d744148dbbc0b8e193e195a51e364ed55e224631f5721891fc
