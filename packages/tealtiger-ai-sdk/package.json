@@ -86,7 +86,7 @@
     "tealtiger-sdk": "file:../tealtiger-sdk",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
-    "vitest": "^4.1.0"
+    "vitest": "^5.0.2"
   },
   "engines": {
     "node": ">=18.0.0"
