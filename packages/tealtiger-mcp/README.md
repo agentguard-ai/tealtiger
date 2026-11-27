@@ -295,6 +295,53 @@ Dollar amounts depend on the pricing tables bundled with your installed `tealtig
 | `compare_costs` | Compare costs across multiple models for the same token usage. |
 | `list_supported_models` | List supported providers, or filter cost-tracking models by provider. |
 
+### Policy decisions
+
+| Tool | Description |
+|------|-------------|
+| `evaluate_action` | Evaluate an action against the server's configured **tool-allowlist** policy. Returns the decision, reason codes, and the policy clause that produced it. |
+| `policy_status` | Report which rule types this server enforces, and whether its policy loaded. Answerable without evaluating anything. |
+
+**Configure a policy** with `TEALTIGER_MCP_POLICY_FILE`, pointing at a JSON policy
+document:
+
+```json
+{
+  "tools": {
+    "search": { "allowed": true },
+    "file_delete": { "allowed": false }
+  }
+}
+```
+
+```jsonc
+// Claude Desktop / Cursor / Kiro, in the server's "env" block
+"env": { "TEALTIGER_MCP_POLICY_FILE": "/path/to/policy.json" }
+```
+
+Three things to know before relying on this:
+
+**The policy comes from the server, never from the tool call.** There is no `policy`
+argument, deliberately. In an MCP deployment the client is the agent being governed, so a
+per-call policy would let it choose the rules it is judged by. Every decision reports
+`policy_source` and `policy_file` so you can see which policy produced it.
+
+**Tool allowlist only.** Every other rule type is unspecified in v0.1 of the policy
+conformance specification, so none is implemented and none is claimed. A policy
+configuring one is **refused** — the server will not start, and `evaluate_action` will not
+answer. Partial enforcement reported as a decision would be worse than no enforcement, and
+`policy_status` gives you the full claim without having to find out the hard way. For
+content governance use the guardrail tools above.
+
+**The decision is advisory.** This server returns verdicts; it cannot intercept your
+actions. A caller that ignores a `DENY` proceeds anyway — what it cannot do is claim it was
+not told. Treat these as a governance oracle plus an audit trail, not as a control point.
+
+Default-deny applies: a tool absent from the policy is denied, because an unknown tool is
+not an allowed tool. The clause distinguishes the two cases — `tools.<name>.absent` when
+nobody configured it, `tools.<name>.allowed` when somebody forbade it. Same verdict,
+different policy facts, and an operator needs to tell them apart.
+
 ### Combined
 
 | Tool | Description |

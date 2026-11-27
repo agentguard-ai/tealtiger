@@ -132,6 +132,21 @@ examples/kyc-agent/src/**/__pycache__/
 !packages/tealtiger-copilotkit/src/
 !packages/tealtiger-copilotkit/src/**
 
+# The `!packages/*/src/**` negations above re-include everything under those
+# source trees, which un-ignores the `__pycache__/` rule near the top of this
+# file for exactly those paths. The effect: running the tests and then
+# `git add packages/tealtiger-mcp` stages compiled bytecode, silently.
+#
+# Re-ignore it. Later rules win, so this has to come after the negations.
+#
+# Scoped to the Python packages whose src is negated rather than applied
+# globally, to avoid changing what any other path does. Note that 80 `.pyc`
+# files are already tracked under eight other packages, from before these
+# rules existed; untracking those is a separate change.
+packages/tealtiger-mcp/src/**/__pycache__/
+packages/tealtiger-harness/src/**/__pycache__/
+packages/tealtiger-contracts/python/src/**/__pycache__/
+
 # Postman collections
 postman/
 
