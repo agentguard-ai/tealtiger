@@ -14,7 +14,9 @@ import asyncio
 import json
 import math
 import os
+import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from mcp.server.fastmcp import FastMCP
@@ -31,6 +33,7 @@ from tealtiger import (
     get_provider_models,
     get_supported_providers,
 )
+from tealtiger.core.engine import ModeConfig, PolicyMode, TealEngine
 
 from tealtiger_mcp.secret_detection import SecretDetectionGuardrail
 
@@ -92,6 +95,109 @@ _secret_guardrail: SecretDetectionGuardrail | None = None
 _engine: GuardrailEngine | None = None
 _cost_tracker: CostTracker | None = None
 _budget_state: _BudgetState | None = None
+
+
+# ---------------------------------------------------------------------------
+# Policy state
+#
+# The policy is read from a file named by TEALTIGER_MCP_POLICY_FILE, at server
+# startup, and NEVER from a tool argument.
+#
+# That is a governance decision, not an ergonomic one. In an MCP deployment the
+# client is the agent being governed. A tool that accepted a policy per call
+# would let the governed party choose the rules it is judged by, which is not a
+# flexible version of governance — it is the absence of governance wearing its
+# shape. The same reasoning retired `PolicyTester.test_policy()` in the SDK's
+# 1.5.0 and the silent-allow engine in 1.6.0.
+#
+# Policy authoring and simulation are a separate capability (G2 in the
+# governance capability floor) and belong in separately named tools that cannot
+# be mistaken for enforcement.
+# ---------------------------------------------------------------------------
+
+POLICY_FILE_ENV = "TEALTIGER_MCP_POLICY_FILE"
+
+
+class _PolicyState:
+    """The configured policy engine, or the reason there isn't one.
+
+    Construction never raises. A broken policy must not stop `check_pii` from
+    working, and the 12 tools that predate this one do not depend on it. The
+    failure is carried instead, and surfaced two ways: `main()` refuses to start
+    the server, and `evaluate_action` refuses to answer.
+
+    What is never done is the third option — answering anyway. An ALLOW produced
+    without a readable policy is the defect this package's SDK dependency spent
+    two releases removing.
+    """
+
+    def __init__(self) -> None:
+        self.engine: TealEngine | None = None
+        self.error: str | None = None
+        self.path: str | None = os.getenv(POLICY_FILE_ENV) or None
+
+        if self.path is None:
+            self.error = (
+                f"No policy is configured. Set {POLICY_FILE_ENV} to a JSON file "
+                "containing a TealTiger policy document, for example "
+                '{"tools": {"search": {"allowed": true}}}.'
+            )
+            return
+
+        try:
+            raw = Path(self.path).read_text(encoding="utf-8")
+        except OSError as exc:
+            self.error = f"Cannot read the policy file at {self.path}: {exc}"
+            return
+
+        try:
+            policies = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            # JSON only, deliberately. The specification writes policy shapes in
+            # YAML, but adding a parser — or leaning on one that happens to be
+            # installed transitively — to read a governance policy is not a
+            # trade worth making for a first release. Converting YAML to JSON is
+            # one command; silently accepting a half-parsed policy is not.
+            self.error = f"The policy file at {self.path} is not valid JSON: {exc}"
+            return
+
+        if not isinstance(policies, dict):
+            self.error = (
+                f"The policy file at {self.path} must contain a JSON object, got "
+                f"{type(policies).__name__}."
+            )
+            return
+
+        engine = TealEngine(policies=policies, mode=ModeConfig(default=PolicyMode.ENFORCE))
+
+        # Refuse a policy this build cannot enforce, before answering anything
+        # with it. Checked here rather than on first evaluation so the operator
+        # learns at startup instead of on the request that mattered.
+        unenforceable = engine.unenforceable_sections()
+        if unenforceable:
+            enforced = ", ".join(
+                name for name, state in engine.rule_type_support().items()
+                if state == "enforced"
+            )
+            self.error = (
+                f"The policy at {self.path} configures rule types this build cannot "
+                f"enforce: {', '.join(unenforceable)}. Enforced: {enforced}. "
+                "Remove the unenforceable sections, or use the guardrail tools "
+                "(check_pii, check_injection, check_content) for content governance."
+            )
+            return
+
+        self.engine = engine
+
+
+_policy_state: _PolicyState | None = None
+
+
+def _get_policy_state() -> _PolicyState:
+    global _policy_state
+    if _policy_state is None:
+        _policy_state = _PolicyState()
+    return _policy_state
 
 
 def _get_pii_guardrail() -> PIIDetectionGuardrail:
@@ -518,8 +624,148 @@ async def security_preflight(
 # ---------------------------------------------------------------------------
 
 
+@mcp.tool()
+async def policy_status() -> str:
+    """Report which rule types this server enforces, and whether its policy loaded.
+
+    Answerable without evaluating anything, so a client can discover the limits of
+    the governance on offer before it depends on them — rather than on the first
+    request that mattered.
+
+    `enforced_rule_types` is the whole claim. A rule type listed `unspecified` is
+    not evaluated here and not evaluated by the SDK; a policy configuring one is
+    refused rather than partly honoured.
+    """
+
+    state = _get_policy_state()
+
+    return json.dumps(
+        {
+            "policy_configured": state.path is not None,
+            "policy_file": state.path,
+            "policy_loaded": state.engine is not None,
+            "error": state.error,
+            "rule_type_support": TealEngine.rule_type_support(),
+            "enforced_rule_types": [
+                name
+                for name, support in TealEngine.rule_type_support().items()
+                if support == "enforced"
+            ],
+            "enforcement_is_advisory": True,
+            "note": (
+                "This server returns decisions; it cannot intercept the client's "
+                "actions. A caller that ignores a DENY is not prevented from "
+                "proceeding. Treat these decisions as a governance oracle plus an "
+                "audit trail, not as a control point."
+            ),
+        },
+        indent=2,
+        default=str,
+    )
+
+
+@mcp.tool()
+async def evaluate_action(
+    action: str,
+    tool: str | None = None,
+    agent_id: str = "mcp-client",
+) -> str:
+    """Evaluate an action against the server's configured tool-allowlist policy.
+
+    Returns the decision, the standardized reason codes, and `triggering_clause` —
+    the policy clause that produced it. The clause is the field worth reading: it
+    distinguishes a decision that was reasoned from one that merely coincided. A
+    tool absent from the policy denies as `tools.<name>.absent`, while a tool
+    configured `allowed: false` denies as `tools.<name>.allowed`. Same verdict,
+    different policy facts.
+
+    **Tool allowlist only.** Call `policy_status` for the full support claim. The
+    policy comes from the server's configuration and cannot be supplied here, so
+    the agent being governed cannot choose the rules it is judged by.
+
+    **The decision is advisory.** This server cannot intercept your actions. A
+    caller that ignores a DENY proceeds anyway; what it cannot do is claim it was
+    not told.
+
+    Args:
+        action: The operation requested, e.g. `tool.execute`.
+        tool: The tool name. Required when action is `tool.execute`.
+        agent_id: Identity of the calling agent, recorded on the decision.
+    """
+
+    if not action.strip():
+        raise ValueError("Action must not be empty")
+    if not agent_id.strip():
+        raise ValueError("Agent ID must not be empty")
+
+    state = _get_policy_state()
+    if state.engine is None:
+        # Never an ALLOW. A missing or unusable policy means this server has
+        # nothing to judge the request against, and saying so is the only honest
+        # answer available.
+        raise ValueError(f"Cannot evaluate: {state.error}")
+
+    context: dict[str, Any] = {"agentId": agent_id, "action": action}
+    if tool is not None:
+        if not tool.strip():
+            raise ValueError("Tool must not be empty when supplied")
+        context["tool"] = tool
+
+    decision = state.engine.evaluate_with_mode(context)
+
+    return json.dumps(
+        {
+            "action": decision.action.value,
+            "reason_codes": [code.value for code in decision.reason_codes],
+            "triggering_clause": decision.triggering_clause,
+            "reason": decision.reason,
+            "mode": decision.mode.value,
+            "policy_id": decision.policy_id,
+            "correlation_id": decision.correlation_id,
+            # Which policy produced this, stated on the decision itself.
+            #
+            # Two reasons. For audit, a decision that does not say what judged it
+            # is hard to reconstruct later. And because the MCP layer silently
+            # drops arguments a tool does not declare: a caller that passes
+            # `policy=...` gets no error, and the server's policy governs anyway.
+            # Safe, but silent — so the decision says whose policy it used rather
+            # than leaving the caller to assume it was theirs.
+            "policy_source": "server",
+            "policy_file": state.path,
+            # The exact context evaluated, so a caller can see that nothing it
+            # sent beyond these fields had any effect.
+            "request": context,
+            "enforced_rule_types": [
+                name
+                for name, support in TealEngine.rule_type_support().items()
+                if support == "enforced"
+            ],
+            "enforcement_is_advisory": True,
+        },
+        indent=2,
+        default=str,
+    )
+
+
 def main():
-    """Run the TealTiger MCP server."""
+    """Run the TealTiger MCP server.
+
+    Refuses to start when a policy is configured but unusable. A governance server
+    that comes up healthy while unable to read its own policy is the failure mode
+    worth preventing: every other tool would keep working, `evaluate_action` would
+    error on each call, and nobody would notice until something was supposed to be
+    denied.
+
+    A server with no policy configured starts normally. The other 12 tools do not
+    need one, and `evaluate_action` says plainly that it has nothing to evaluate
+    against.
+    """
+
+    state = _get_policy_state()
+    if state.path is not None and state.engine is None:
+        print(f"tealtiger-mcp: {state.error}", file=sys.stderr)
+        raise SystemExit(2)
+
     mcp.run()
 
 
